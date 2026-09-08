@@ -1,0 +1,179 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+
+    font-family: Arial, Helvetica, sans-serif;
+
+    background:
+        linear-gradient(180deg,
+            #151229,
+            #090811);
+
+    color: white;
+}
+
+.app {
+    width: 100%;
+    max-width: 500px;
+
+    margin: 0 auto;
+
+    padding: 30px 20px 50px;
+
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: 5px;
+    font-size: 30px;
+}
+
+.subtitulo {
+    margin-top: 5px;
+    margin-bottom: 35px;
+
+    color: #c8c5d6;
+}
+
+.roleta-area {
+    position: relative;
+
+    width: min(85vw, 400px);
+    height: min(85vw, 400px);
+
+    margin: 0 auto 35px;
+}
+
+#roleta {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+
+    position: relative;
+    z-index: 1;
+    transform-origin: 50% 48.8%;
+
+    transition:
+        transform 5s cubic-bezier(0.12,
+            0.65,
+            0.18,
+            1);
+
+    filter:
+        drop-shadow(0 10px 16px rgba(0, 0, 0, 0.5));
+}
+
+.ponteiro {
+    position: absolute;
+
+    z-index: 10;
+
+    left: 50%;
+    top: -13px;
+
+    transform: translateX(-50%);
+
+    width: 0;
+    height: 0;
+
+    border-left: 18px solid transparent;
+    border-right: 18px solid transparent;
+    border-top: 38px solid #ffffff;
+
+    filter:
+        drop-shadow(0 3px 3px rgba(0, 0, 0, 0.5));
+}
+
+#girar {
+    width: 100%;
+    max-width: 330px;
+
+    border: none;
+    border-radius: 14px;
+
+    padding: 17px;
+
+    font-size: 19px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    background: #7c5cff;
+    color: white;
+}
+
+#girar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.resultado {
+    min-height: 30px;
+
+    margin-top: 25px;
+
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.aviso {
+    margin-top: 30px;
+
+    color: #77748a;
+
+    font-size: 12px;
+}
+
+.aviso-comunidade {
+    margin: 25px auto 0;
+    padding: 18px;
+
+    max-width: 360px;
+
+    border: 1px solid #49445f;
+    border-radius: 14px;
+
+    background: #171423;
+}
+
+.aviso-comunidade p {
+    margin-top: 0;
+    line-height: 1.5;
+}
+
+.botao-canal,
+#verificar-inscricao {
+    width: 100%;
+
+    margin-top: 10px;
+    padding: 14px;
+
+    border: none;
+    border-radius: 10px;
+
+    font-size: 15px;
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.botao-canal {
+    background: #229ed9;
+    color: white;
+}
+
+#verificar-inscricao {
+    background: #ffffff;
+    color: #171423;
+}
+
+#verificar-inscricao:disabled {
+    opacity: 0.5;
+}

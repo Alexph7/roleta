@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Roleta Premiada</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <main class="app">
+
+        <h1>🎁 Roleta Premiada</h1>
+
+        <p class="subtitulo">
+            Toque no botão para girar
+        </p>
+
+        <div class="roleta-area">
+
+            <div class="ponteiro"></div>
+
+            <img id="roleta" src="roleta-premium.png" alt="Roleta Premiada">
+
+        </div>
+
+        <button id="girar">
+            🎡 GIRAR
+        </button>
+
+        <div id="aviso-comunidade" class="aviso-comunidade" hidden>
+
+            <p>
+                🔒 Para participar, você precisa
+                estar inscrito nos canais abaixo:
+            </p>
+
+            <div id="canais-faltando"></div>
+
+            <button id="verificar-inscricao" type="button">
+                ✅ JÁ ME INSCREVI — VERIFICAR
+            </button>
+
+        </div>
+
+        <p id="resultado" class="resultado"></p>
+
+        <p class="aviso">
+            Modo de demonstração
+        </p>
+
+    </main>
+
+    <script src="app.js"></script>
+
+</body>
+
+</html>
