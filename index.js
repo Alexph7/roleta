@@ -10,7 +10,8 @@ const { Bot } = require("node-telegram-bot-api");
 const {
     buscarGiroUsuarioCampanha,
     contarGanhadoresCampanha,
-    registrarGiroCampanha
+    registrarGiroCampanha,
+    zerarRoleta
 } = require("./database");
 
 const app = express();
@@ -19,6 +20,7 @@ app.set("trust proxy", 1);
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const MINI_APP_URL = process.env.MINI_APP_URL;
 const GANHADORES_CHAT_ID = process.env.GANHADORES_CHAT_ID;
+const ADMIN_ID = process.env.ADMIN_ID;
 
 if (!BOT_TOKEN) {
 
@@ -624,6 +626,56 @@ app.post(
 // ==============================
 // TELEGRAM
 // ==============================
+
+bot.command("roleta", async (ctx) => {
+
+    const usuarioId =
+        String(ctx.from?.id || "");
+
+    if (
+        !ADMIN_ID ||
+        usuarioId !== String(ADMIN_ID)
+    ) {
+        await bot.api.sendMessage({
+            chat_id: ctx.chat.id,
+            text: "⛔ Comando não autorizado."
+        });
+
+        return;
+    }
+
+    try {
+
+        const quantidade =
+            zerarRoleta();
+
+        console.log(
+            `🎡 ROLETA ZERADA pelo admin. ${quantidade} giros removidos.`
+        );
+
+        await bot.api.sendMessage({
+            chat_id: ctx.chat.id,
+            text:
+                "✅ ROLETA ZERADA!\n\n" +
+                `🗑 ${quantidade} giros removidos.\n` +
+                "🏆 Vencedores: 0/5\n" +
+                "🎡 Nova rodada liberada."
+        });
+
+    } catch (erro) {
+
+        console.error(
+            "❌ Erro ao zerar roleta:",
+            erro
+        );
+
+        await bot.api.sendMessage({
+            chat_id: ctx.chat.id,
+            text:
+                "❌ Não foi possível zerar a roleta."
+        });
+    }
+});
 
 bot.command(
     "start",

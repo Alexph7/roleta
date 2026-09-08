@@ -221,10 +221,30 @@ function listarGiros() {
     `).all();
 }
 
+function zerarRoleta() {
+    const transaction = db.transaction(() => {
+
+        const resultado = db
+            .prepare(`
+                DELETE FROM giros
+            `)
+            .run();
+
+        db.prepare(`
+            DELETE FROM sqlite_sequence
+            WHERE name = 'giros'
+        `).run();
+
+        return resultado.changes;
+    });
+
+    return transaction.immediate();
+}
 
 module.exports = {
     buscarGiroUsuarioCampanha,
     contarGanhadoresCampanha,
     registrarGiroCampanha,
-    listarGiros
+    listarGiros,
+    zerarRoleta
 };

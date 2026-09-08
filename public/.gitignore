@@ -3,3 +3,11 @@ node_modules/
 .cache/
 profiles/
 .env
+node_modules/
+.env
+
+roleta.db
+roleta.db-wal
+roleta.db-shm
+
+*.log
