@@ -148,7 +148,7 @@ function desenharRoleta() {
         );
 
         ctx.rotate(
-            meio + Math.PI / 2
+            meio
         );
 
         ctx.textAlign =
