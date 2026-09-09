@@ -48,17 +48,75 @@ h1 {
     margin: 0 auto 35px;
 }
 
-#roleta {
-    display: block;
+.moldura-roleta {
+    position: absolute;
+    inset: 0;
 
     width: 100%;
     height: 100%;
 
     object-fit: contain;
 
-    position: relative;
     z-index: 1;
-    transform-origin: 50% 48.8%;
+
+    pointer-events: none;
+}
+
+.disco-wrap {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    width: 73%;
+    height: 73%;
+
+    transform: translate(-50%, -50%);
+
+    border-radius: 50%;
+    overflow: hidden;
+
+    z-index: 2;
+}
+
+.moldura-roleta {
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+
+    z-index: 1;
+
+    pointer-events: none;
+}
+
+.disco-wrap {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    width: 73%;
+    height: 73%;
+
+    transform: translate(-50%, -50%);
+
+    border-radius: 50%;
+    overflow: hidden;
+
+    z-index: 2;
+}
+
+#roleta {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    border-radius: 50%;
 
     transition:
         transform 5s cubic-bezier(0.12,
@@ -67,7 +125,7 @@ h1 {
             1);
 
     filter:
-        drop-shadow(0 10px 16px rgba(0, 0, 0, 0.5));
+        drop-shadow(0 8px 14px rgba(0, 0, 0, 0.35));
 }
 
 .ponteiro {

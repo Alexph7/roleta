@@ -1,4 +1,7 @@
-const roleta = document.getElementById("roleta");
+const canvas = document.getElementById("roleta");
+
+const ctx =
+    canvas.getContext("2d");
 
 const telegram = window.Telegram?.WebApp;
 
@@ -33,14 +36,190 @@ const itens = [
     "NÃO",
     "R$ 10",
     "TENTE",
-    "R$ 11",
+    "R$ 6",
+    "R$ 9",
     "EITA",
+    "NOT",
     "R$ 7"
+];
+
+const coresBase = [
+    ["#245a94", "#133658"],
+    ["#d94a57", "#8c2430"]
 ];
 
 const quantidade = itens.length;
 
+const anguloPorItem =
+    (Math.PI * 2) / quantidade;
+
 let rotacaoAtual = 0;
+
+function desenharRoleta() {
+    const centro =
+        canvas.width / 2;
+
+    const raio =
+        centro - 10;
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    for (
+        let i = 0;
+        i < quantidade;
+        i++
+    ) {
+        const inicio =
+            -Math.PI / 2
+            - anguloPorItem / 2
+            + i * anguloPorItem;
+
+        const fim =
+            inicio + anguloPorItem;
+
+        const parCores =
+            coresBase[i % 2];
+
+        const gradiente =
+            ctx.createLinearGradient(
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+        gradiente.addColorStop(
+            0,
+            parCores[0]
+        );
+
+        gradiente.addColorStop(
+            1,
+            parCores[1]
+        );
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            centro,
+            centro
+        );
+
+        ctx.arc(
+            centro,
+            centro,
+            raio,
+            inicio,
+            fim
+        );
+
+        ctx.closePath();
+
+        ctx.fillStyle =
+            gradiente;
+
+        ctx.fill();
+
+        ctx.strokeStyle =
+            "#d8c17c";
+
+        ctx.lineWidth = 3;
+
+        ctx.stroke();
+
+        const meio =
+            inicio +
+            anguloPorItem / 2;
+
+        ctx.save();
+
+        ctx.translate(
+            centro,
+            centro
+        );
+
+        ctx.rotate(
+            meio + Math.PI / 2
+        );
+
+        ctx.textAlign =
+            "center";
+
+        ctx.textBaseline =
+            "middle";
+
+        ctx.fillStyle =
+            "#ffffff";
+
+        const tamanhoFonte =
+            quantidade >= 12
+                ? 20
+                : quantidade >= 10
+                    ? 22
+                    : 26;
+
+        ctx.font =
+            `bold ${tamanhoFonte}px Arial`;
+
+        ctx.shadowColor =
+            "rgba(0,0,0,0.7)";
+
+        ctx.shadowBlur = 4;
+
+        ctx.fillText(
+            itens[i],
+            0,
+            -(raio * 0.70)
+        );
+
+        ctx.restore();
+    }
+
+    ctx.beginPath();
+
+    ctx.arc(
+        centro,
+        centro,
+        44,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fillStyle =
+        "#17151d";
+
+    ctx.fill();
+
+    ctx.strokeStyle =
+        "#d8c17c";
+
+    ctx.lineWidth = 5;
+
+    ctx.stroke();
+
+    ctx.fillStyle =
+        "#ffffff";
+
+    ctx.font =
+        "bold 25px Arial";
+
+    ctx.textAlign =
+        "center";
+
+    ctx.textBaseline =
+        "middle";
+
+    ctx.fillText(
+        "PP",
+        centro,
+        centro
+    );
+}
 
 function mostrarCanaisFaltando(canais) {
 
@@ -293,7 +472,8 @@ async function girar() {
         voltasExtras +
         ajuste;
 
-    roleta.style.transform = `rotate(${rotacaoAtual}deg)`;
+    canvas.style.transform =
+        `rotate(${rotacaoAtual}deg)`;
 
     setTimeout(() => {
 
@@ -304,7 +484,8 @@ async function girar() {
             "QUASE",
             "NÃO",
             "TENTE",
-            "EITA"
+            "EITA",
+            "NOT"
         ];
 
         if (semPremio.includes(premio)) {
@@ -335,3 +516,5 @@ botaoVerificarInscricao.addEventListener(
     "click",
     verificarInscricao
 );
+
+desenharRoleta();

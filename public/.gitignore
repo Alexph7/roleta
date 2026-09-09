@@ -1,9 +1,4 @@
 node_modules/
-.playwright/
-.cache/
-profiles/
-.env
-node_modules/
 .env
 
 roleta.db
