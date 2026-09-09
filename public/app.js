@@ -55,6 +55,10 @@ const anguloPorItem =
 
 let rotacaoAtual = 0;
 
+const logoCentro = new Image();
+logoCentro.src = "logo-centro.png";
+logoCentro.onload = () => desenharRoleta();
+
 function desenharRoleta() {
     const centro =
         canvas.width / 2;
@@ -180,45 +184,46 @@ function desenharRoleta() {
         ctx.restore();
     }
 
-    ctx.beginPath();
+    const raioCentro = 44;
 
+    ctx.beginPath();
     ctx.arc(
         centro,
         centro,
-        44,
+        raioCentro,
         0,
         Math.PI * 2
     );
-
-    ctx.fillStyle =
-        "#17151d";
-
+    ctx.fillStyle = "#17151d";
     ctx.fill();
-
-    ctx.strokeStyle =
-        "#d8c17c";
-
+    ctx.strokeStyle = "#d8c17c";
     ctx.lineWidth = 5;
-
     ctx.stroke();
 
-    ctx.fillStyle =
-        "#ffffff";
-
-    ctx.font =
-        "bold 25px Arial";
-
-    ctx.textAlign =
-        "center";
-
-    ctx.textBaseline =
-        "middle";
-
-    ctx.fillText(
-        "PP",
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(
         centro,
-        centro
+        centro,
+        raioCentro - 5,
+        0,
+        Math.PI * 2
     );
+    ctx.clip();
+
+    if (logoCentro.complete && logoCentro.naturalWidth > 0) {
+        const tamanhoLogo = 52;
+
+        ctx.drawImage(
+            logoCentro,
+            centro - tamanhoLogo / 2,
+            centro - tamanhoLogo / 2,
+            tamanhoLogo,
+            tamanhoLogo
+        );
+    }
+
+    ctx.restore();
 }
 
 function mostrarCanaisFaltando(canais) {
