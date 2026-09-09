@@ -222,21 +222,42 @@ function listarGiros() {
 }
 
 function zerarRoleta() {
-    const transaction = db.transaction(() => {
 
-        const resultado = db
-            .prepare(`
+    const transaction =
+        db.transaction(() => {
+
+            const antes =
+                db.prepare(`
+                    SELECT
+                        COUNT(*) AS totalGiros,
+                        COALESCE(
+                            SUM(eh_premio),
+                            0
+                        ) AS totalGanhadores
+                    FROM giros
+                `).get();
+
+            db.prepare(`
                 DELETE FROM giros
-            `)
-            .run();
+            `).run();
 
-        db.prepare(`
-            DELETE FROM sqlite_sequence
-            WHERE name = 'giros'
-        `).run();
+            db.prepare(`
+                DELETE FROM sqlite_sequence
+                WHERE name = 'giros'
+            `).run();
 
-        return resultado.changes;
-    });
+            return {
+                girosRemovidos:
+                    Number(
+                        antes.totalGiros || 0
+                    ),
+
+                ganhadoresRemovidos:
+                    Number(
+                        antes.totalGanhadores || 0
+                    )
+            };
+        });
 
     return transaction.immediate();
 }

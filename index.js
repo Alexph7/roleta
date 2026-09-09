@@ -45,7 +45,8 @@ const PREMIOS_VALIDOS =
     new Set([
         "R$ 5",
         "R$ 10",
-        "R$ 11",
+        "R$ 6",
+        "R$ 9",
         "R$ 7"
     ]);
 
@@ -332,8 +333,10 @@ const premios = [
     "NÃO",
     "R$ 10",
     "TENTE",
-    "R$ 11",
-    "EITA",
+    "R$ 6",
+    "R$ 9",
+    "TRAVEE",
+    "PRA FORA",
     "R$ 7"
 ];
 
@@ -609,10 +612,18 @@ app.post(
                 `🏆 GANHADOR ${registro.totalGanhadores}/${MAX_GANHADORES}`
             );
 
-            await avisarGanhador(
-                usuario,
-                premio
-            );
+            setTimeout(() => {
+                avisarGanhador(
+                    usuario,
+                    premio
+                ).catch((erro) => {
+                    console.error(
+                        "❌ Erro ao anunciar ganhador:",
+                        erro
+                    );
+                });
+            }, 5500);
+
         }
 
         res.json({
@@ -646,20 +657,22 @@ bot.command("roleta", async (ctx) => {
 
     try {
 
-        const quantidade =
+        const resumo =
             zerarRoleta();
 
         console.log(
-            `🎡 ROLETA ZERADA pelo admin. ${quantidade} giros removidos.`
+            `🎡 ROLETA ZERADA pelo admin. ` +
+            `${resumo.girosRemovidos} giros removidos. ` +
+            `${resumo.ganhadoresRemovidos} ganhadores removidos.`
         );
 
         await bot.api.sendMessage({
             chat_id: ctx.chat.id,
             text:
                 "✅ ROLETA ZERADA!\n\n" +
-                `🗑 ${quantidade} giros removidos.\n` +
-                "🏆 Vencedores: 0/5\n" +
-                "🎡 Nova rodada liberada."
+                `🗑 ${resumo.girosRemovidos} giros removidos.\n` +
+                `🏆 Ganhadores da rodada: ${resumo.ganhadoresRemovidos}/${MAX_GANHADORES}\n` +
+                "🎡 Nova rodada: 0/5"
         });
 
     } catch (erro) {

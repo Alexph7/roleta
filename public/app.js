@@ -38,8 +38,8 @@ const itens = [
     "TENTE",
     "R$ 6",
     "R$ 9",
-    "EITA",
-    "NOT",
+    "TRAVEE",
+    "PRA FORA",
     "R$ 7"
 ];
 
@@ -484,8 +484,8 @@ async function girar() {
             "QUASE",
             "NÃO",
             "TENTE",
-            "EITA",
-            "NOT"
+            "TRAVEE",
+            "PRA FORA"
         ];
 
         if (semPremio.includes(premio)) {
