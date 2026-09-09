@@ -212,7 +212,7 @@ function desenharRoleta() {
     ctx.clip();
 
     if (logoCentro.complete && logoCentro.naturalWidth > 0) {
-        const tamanhoLogo = 52;
+        const tamanhoLogo = 60;
 
         ctx.drawImage(
             logoCentro,
