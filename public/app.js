@@ -165,7 +165,7 @@ function desenharRoleta() {
 
         const tamanhoFonte =
             ehValor
-                ? 30
+                ? 40
                 : 22;
 
         ctx.font =
