@@ -1,5 +1,4 @@
 node_modules/
-.playwright/
-.cache/
-profiles/
 .env
+roleta.db*
+*.log
