@@ -160,12 +160,13 @@ function desenharRoleta() {
         ctx.fillStyle =
             "#ffffff";
 
+        const ehValor =
+            itens[i].startsWith("R$");
+
         const tamanhoFonte =
-            quantidade >= 12
-                ? 20
-                : quantidade >= 10
-                    ? 22
-                    : 26;
+            ehValor
+                ? 30
+                : 22;
 
         ctx.font =
             `bold ${tamanhoFonte}px Arial`;
