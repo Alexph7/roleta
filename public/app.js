@@ -140,16 +140,27 @@ function desenharRoleta() {
             inicio +
             anguloPorItem / 2;
 
+        const distanciaTexto =
+            raio * 0.70;
+
+        const xTexto =
+            centro +
+            Math.cos(meio) *
+            distanciaTexto;
+
+        const yTexto =
+            centro +
+            Math.sin(meio) *
+            distanciaTexto;
+
         ctx.save();
 
         ctx.translate(
-            centro,
-            centro
+            xTexto,
+            yTexto
         );
 
-        ctx.rotate(
-            meio
-        );
+        ctx.rotate(meio);
 
         ctx.textAlign =
             "center";
@@ -165,7 +176,7 @@ function desenharRoleta() {
 
         const tamanhoFonte =
             ehValor
-                ? 40
+                ? 30
                 : 22;
 
         ctx.font =
@@ -179,7 +190,7 @@ function desenharRoleta() {
         ctx.fillText(
             itens[i],
             0,
-            -(raio * 0.70)
+            0
         );
 
         ctx.restore();
