@@ -20,6 +20,7 @@ app.set("trust proxy", 1);
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const MINI_APP_URL = process.env.MINI_APP_URL;
 const GANHADORES_CHAT_ID = process.env.GANHADORES_CHAT_ID;
+const CONTROLE_CHAT_ID = process.env.CONTROLE_CHAT_ID;
 const ADMIN_ID = process.env.ADMIN_ID;
 
 if (!BOT_TOKEN) {
@@ -130,6 +131,21 @@ async function avisarGanhador(
                 `🏆 Prêmio: ${premio}\n\n` +
                 "🎡 Roleta Premiada"
         });
+
+        if (CONTROLE_CHAT_ID) {
+
+            await bot.api.sendMessage({
+                chat_id:
+                    CONTROLE_CHAT_ID,
+
+                text:
+                    "🎯 GANHADOR — CONTROLE\n\n" +
+                    `👤 Nome: ${nome}\n` +
+                    `🔗 Username: ${username ? `@${username}` : "sem username"}\n` +
+                    `🆔 ID: ${usuario.id}\n` +
+                    `🏆 Prêmio: ${premio}`
+            });
+        }
 
     } catch (erro) {
 
