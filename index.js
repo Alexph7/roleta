@@ -39,8 +39,7 @@ const PORT = process.env.PORT || 3000;
 const CAMPANHA_ATUAL =
     "preview_1";
 
-const MAX_GANHADORES =
-    5;
+const MAX_GANHADORES = 10;
 
 const PREMIOS_VALIDOS =
     new Set([
@@ -688,7 +687,7 @@ bot.command("roleta", async (ctx) => {
                 "✅ ROLETA ZERADA!\n\n" +
                 `🗑 ${resumo.girosRemovidos} giros removidos.\n` +
                 `🏆 Ganhadores da rodada: ${resumo.ganhadoresRemovidos}/${MAX_GANHADORES}\n` +
-                "🎡 Nova rodada: 0/5"
+                `🎡 Nova rodada: 0/${MAX_GANHADORES}`
         });
 
     } catch (erro) {
