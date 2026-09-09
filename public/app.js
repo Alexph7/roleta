@@ -54,6 +54,14 @@ const anguloPorItem =
     (Math.PI * 2) / quantidade;
 
 let rotacaoAtual = 0;
+let versaoRodada = null;
+let rodadaAberta = false;
+let rodadaUtilizada = false;
+let verificandoEstado = false;
+
+botaoGirar.disabled = true;
+botaoGirar.textContent =
+    "⏳ CARREGANDO...";
 
 const logoCentro = new Image();
 logoCentro.src = "logo-centro.png";
@@ -238,6 +246,103 @@ function desenharRoleta() {
     ctx.restore();
 }
 
+async function verificarEstadoRoleta() {
+
+    if (verificandoEstado) {
+        return;
+    }
+
+    verificandoEstado = true;
+
+    try {
+
+        const resposta =
+            await fetch(
+                `/api/estado-roleta?t=${Date.now()}`,
+                {
+                    cache: "no-store"
+                }
+            );
+
+        if (!resposta.ok) {
+            return;
+        }
+
+        const dados =
+            await resposta.json();
+
+        const novaVersao =
+            Number(dados.versao);
+
+        // ADMIN DEU /roleta
+        if (
+            versaoRodada !== null &&
+            novaVersao !== versaoRodada
+        ) {
+
+            window.location.reload();
+
+            return;
+        }
+
+        versaoRodada =
+            novaVersao;
+
+        rodadaAberta =
+            dados.aberta === true;
+
+
+        // RODADA FECHADA
+        if (!rodadaAberta) {
+
+            botaoGirar.disabled = true;
+
+            botaoGirar.textContent =
+                "🔒 AGUARDANDO LIBERAÇÃO";
+
+            if (!rodadaUtilizada) {
+
+                resultado.textContent =
+                    "🔒 A próxima rodada ainda não foi liberada.";
+            }
+
+            return;
+        }
+
+
+        // RODADA ABERTA
+        if (!rodadaUtilizada) {
+
+            botaoGirar.disabled =
+                false;
+
+            botaoGirar.textContent =
+                "🎡 GIRAR";
+
+            if (
+                resultado.textContent ===
+                "🔒 A próxima rodada ainda não foi liberada."
+            ) {
+
+                resultado.textContent =
+                    "";
+            }
+        }
+
+    } catch (erro) {
+
+        if (versaoRodada === null) {
+
+            resultado.textContent =
+                "❌ Não foi possível verificar a rodada agora.";
+        }
+
+    } finally {
+
+        verificandoEstado = false;
+    }
+}
+
 function mostrarCanaisFaltando(canais) {
 
     canaisFaltandoElemento.innerHTML = "";
@@ -381,7 +486,8 @@ async function girar() {
                 },
 
                 body: JSON.stringify({
-                    initData
+                    initData,
+                    versaoRodada
                 })
             }
         );
@@ -392,9 +498,41 @@ async function girar() {
         if (!resposta.ok) {
 
             if (
+                resposta.status === 409 &&
+                dados.rodadaAtualizada
+            ) {
+
+                window.location.reload();
+
+                return;
+            }
+
+
+            if (
+                resposta.status === 423 &&
+                dados.rodadaFechada
+            ) {
+
+                rodadaAberta = false;
+
+                botaoGirar.disabled =
+                    true;
+
+                botaoGirar.textContent =
+                    "🔒 AGUARDANDO LIBERAÇÃO";
+
+                resultado.textContent =
+                    "🔒 A próxima rodada ainda não foi liberada.";
+
+                return;
+            }
+
+            if (
                 resposta.status === 410 &&
                 dados.premiosEsgotados
             ) {
+
+                rodadaUtilizada = true;
 
                 avisoComunidade.hidden =
                     true;
@@ -413,6 +551,7 @@ async function girar() {
                 resposta.status === 409 &&
                 dados.jaGirou
             ) {
+                rodadaUtilizada = true;
 
                 avisoComunidade.hidden =
                     true;
@@ -461,6 +600,8 @@ async function girar() {
 
         return;
     }
+
+    rodadaUtilizada = true;
 
     const indice = dados.indice;
 
@@ -535,3 +676,26 @@ botaoVerificarInscricao.addEventListener(
 );
 
 desenharRoleta();
+
+verificarEstadoRoleta();
+
+setInterval(
+    verificarEstadoRoleta,
+    10000
+);
+
+document.addEventListener(
+    "visibilitychange",
+    () => {
+
+        if (!document.hidden) {
+
+            verificarEstadoRoleta();
+        }
+    }
+);
+
+window.addEventListener(
+    "focus",
+    verificarEstadoRoleta
+);

@@ -11,7 +11,9 @@ const {
     buscarGiroUsuarioCampanha,
     contarGanhadoresCampanha,
     registrarGiroCampanha,
-    zerarRoleta
+    zerarRoleta,
+    obterEstadoRoleta,
+    abrirRoleta
 } = require("./database");
 
 const app = express();
@@ -33,6 +35,27 @@ if (!BOT_TOKEN) {
 }
 
 const bot = new Bot(BOT_TOKEN);
+
+const BOT_INICIADO_EM =
+    Math.floor(Date.now() / 1000);
+
+
+function comandoAntigo(ctx) {
+
+    const dataMensagem =
+        Number(
+            ctx.message?.date || 0
+        );
+
+    if (!dataMensagem) {
+        return false;
+    }
+
+    return (
+        dataMensagem <
+        BOT_INICIADO_EM
+    );
+}
 
 const PORT = process.env.PORT || 3000;
 
@@ -355,6 +378,27 @@ const premios = [
     "R$ 7"
 ];
 
+app.get(
+    "/api/estado-roleta",
+    (req, res) => {
+
+        res.set(
+            "Cache-Control",
+            "no-store"
+        );
+
+        const estado =
+            obterEstadoRoleta();
+
+        return res.json({
+            versao:
+                estado.versao,
+
+            aberta:
+                estado.aberta
+        });
+    }
+);
 
 // ==============================
 // API DA ROLETA
@@ -418,7 +462,8 @@ app.post(
     async (req, res) => {
 
         const {
-            initData
+            initData,
+            versaoRodada
         } = req.body;
 
         const validacao =
@@ -440,6 +485,55 @@ app.post(
         }
 
         const usuario = validacao.usuario;
+
+        const estadoRoleta =
+            obterEstadoRoleta();
+
+        // A TELA É DE UMA RODADA ANTIGA?
+        if (
+            Number(versaoRodada) !==
+            estadoRoleta.versao
+        ) {
+
+            console.log(
+                `🔄 Tela antiga bloqueada. ` +
+                `Cliente: ${versaoRodada} | ` +
+                `Servidor: ${estadoRoleta.versao}`
+            );
+
+            return res.status(409).json({
+                erro:
+                    "Uma nova rodada foi iniciada.",
+
+                rodadaAtualizada: true,
+
+                versao:
+                    estadoRoleta.versao
+            });
+        }
+
+
+        // A RODADA JÁ FOI LIBERADA?
+        if (!estadoRoleta.aberta) {
+
+            console.log(
+                `🔒 Giro bloqueado: rodada ${estadoRoleta.versao} fechada`
+            );
+
+            return res.status(423).json({
+                erro:
+                    "A nova rodada ainda não foi liberada.",
+
+                rodadaFechada: true,
+
+                versao:
+                    estadoRoleta.versao
+            });
+        }
+
+
+        const versaoDoGiro =
+            estadoRoleta.versao;
 
         // VERIFICA SE ESTÁ NOS CANAIS
         try {
@@ -473,6 +567,52 @@ app.post(
             return res.status(503).json({
                 erro:
                     "Não foi possível verificar sua inscrição agora. Tente novamente."
+            });
+        }
+
+        // ========================================
+        // CONFIRMA A RODADA NOVAMENTE
+        // ========================================
+
+        const estadoConfirmado =
+            obterEstadoRoleta();
+
+        if (
+            estadoConfirmado.versao !==
+            versaoDoGiro
+        ) {
+
+            console.log(
+                `🔄 Giro antigo cancelado. ` +
+                `Começou na rodada ${versaoDoGiro}, ` +
+                `mas agora estamos na ${estadoConfirmado.versao}`
+            );
+
+            return res.status(409).json({
+                erro:
+                    "Uma nova rodada foi iniciada.",
+
+                rodadaAtualizada: true,
+
+                versao:
+                    estadoConfirmado.versao
+            });
+        }
+
+        if (!estadoConfirmado.aberta) {
+
+            console.log(
+                `🔒 Giro cancelado: rodada ${estadoConfirmado.versao} fechada`
+            );
+
+            return res.status(423).json({
+                erro:
+                    "A nova rodada ainda não foi liberada.",
+
+                rodadaFechada: true,
+
+                versao:
+                    estadoConfirmado.versao
             });
         }
 
@@ -628,15 +768,35 @@ app.post(
             );
 
             setTimeout(() => {
+
+                const estadoAtual =
+                    obterEstadoRoleta();
+
+                if (
+                    estadoAtual.versao !==
+                    versaoDoGiro
+                ) {
+
+                    console.log(
+                        `⏭️ Aviso antigo ignorado. ` +
+                        `Giro da rodada ${versaoDoGiro}, ` +
+                        `rodada atual ${estadoAtual.versao}`
+                    );
+
+                    return;
+                }
+
                 avisarGanhador(
                     usuario,
                     premio
                 ).catch((erro) => {
+
                     console.error(
                         "❌ Erro ao anunciar ganhador:",
                         erro
                     );
                 });
+
             }, 5500);
 
         }
@@ -654,6 +814,15 @@ app.post(
 // ==============================
 
 bot.command("roleta", async (ctx) => {
+
+    if (comandoAntigo(ctx)) {
+
+        console.log(
+            "⏭️ /roleta antigo ignorado"
+        );
+
+        return;
+    }
 
     const usuarioId =
         String(ctx.from?.id || "");
@@ -683,11 +852,14 @@ bot.command("roleta", async (ctx) => {
 
         await bot.api.sendMessage({
             chat_id: ctx.chat.id,
+
             text:
-                "✅ ROLETA ZERADA!\n\n" +
+                "✅ NOVA RODADA PREPARADA!\n\n" +
                 `🗑 ${resumo.girosRemovidos} giros removidos.\n` +
-                `🏆 Ganhadores da rodada: ${resumo.ganhadoresRemovidos}/${MAX_GANHADORES}\n` +
-                `🎡 Nova rodada: 0/${MAX_GANHADORES}`
+                `🏆 Ganhadores da rodada anterior: ${resumo.ganhadoresRemovidos}/${MAX_GANHADORES}\n` +
+                `🔢 Nova rodada: ${resumo.versao}\n\n` +
+                "🔒 A nova rodada está FECHADA.\n" +
+                "📢 Envie /abrir quando quiser liberar."
         });
 
     } catch (erro) {
@@ -705,9 +877,102 @@ bot.command("roleta", async (ctx) => {
     }
 });
 
+bot.command("abrir", async (ctx) => {
+
+    if (comandoAntigo(ctx)) {
+
+        console.log(
+            "⏭️ /abrir antigo ignorado"
+        );
+
+        return;
+    }
+
+    const usuarioId =
+        String(ctx.from?.id || "");
+
+    if (
+        !ADMIN_ID ||
+        usuarioId !==
+        String(ADMIN_ID)
+    ) {
+
+        await bot.api.sendMessage({
+            chat_id:
+                ctx.chat.id,
+
+            text:
+                "⛔ Comando não autorizado."
+        });
+
+        return;
+    }
+
+    try {
+
+        const estadoAntes =
+            obterEstadoRoleta();
+
+        if (estadoAntes.aberta) {
+
+            await bot.api.sendMessage({
+                chat_id:
+                    ctx.chat.id,
+
+                text:
+                    `⚠️ A rodada ${estadoAntes.versao} já está aberta.`
+            });
+
+            return;
+        }
+
+        const estado =
+            abrirRoleta();
+
+        console.log(
+            `🎡 RODADA ${estado.versao} LIBERADA`
+        );
+
+        await bot.api.sendMessage({
+            chat_id:
+                ctx.chat.id,
+
+            text:
+                "🎡 RODADA LIBERADA!\n\n" +
+                `🔢 Rodada: ${estado.versao}\n` +
+                `🏆 Limite: ${MAX_GANHADORES} ganhadores\n\n` +
+                "✅ Participações liberadas."
+        });
+
+    } catch (erro) {
+
+        console.error(
+            "❌ Erro ao abrir roleta:",
+            erro
+        );
+
+        await bot.api.sendMessage({
+            chat_id:
+                ctx.chat.id,
+
+            text:
+                "❌ Não foi possível abrir a rodada."
+        });
+    }
+});
+
 bot.command(
     "start",
     async (ctx) => {
+
+        if (comandoAntigo(ctx)) {
+
+            console.log(
+                "⏭️ /start antigo ignorado"
+            );
+
+            return;
+        }
 
         await ctx.reply(
             "🎁 Bem-vindo à Roleta Premiada!\n\nToque abaixo para jogar:",
@@ -732,6 +997,15 @@ bot.command(
 bot.command(
     "teste",
     async (ctx) => {
+
+        if (comandoAntigo(ctx)) {
+
+            console.log(
+                "⏭️ /teste antigo ignorado"
+            );
+
+            return;
+        }
 
         try {
 

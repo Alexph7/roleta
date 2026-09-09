@@ -74,6 +74,34 @@ db.exec(`
         AND usuario_id IS NOT NULL
 `);
 
+// ========================================
+// ESTADO DA ROLETA
+// ========================================
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS estado_roleta (
+        id INTEGER PRIMARY KEY
+            CHECK (id = 1),
+
+        versao INTEGER
+            NOT NULL DEFAULT 1,
+
+        aberta INTEGER
+            NOT NULL DEFAULT 0,
+
+        atualizada_em DATETIME
+            DEFAULT CURRENT_TIMESTAMP
+    )
+`);
+
+db.prepare(`
+    INSERT OR IGNORE INTO estado_roleta (
+        id,
+        versao,
+        aberta
+    )
+    VALUES (1, 1, 0)
+`).run();
 
 // ========================================
 // CONSULTAS
@@ -207,6 +235,40 @@ function registrarGiroCampanha(dados) {
     );
 }
 
+function obterEstadoRoleta() {
+
+    const estado =
+        db.prepare(`
+            SELECT
+                versao,
+                aberta
+            FROM estado_roleta
+            WHERE id = 1
+        `).get();
+
+    return {
+        versao:
+            Number(estado.versao),
+
+        aberta:
+            estado.aberta === 1
+    };
+}
+
+
+function abrirRoleta() {
+
+    db.prepare(`
+        UPDATE estado_roleta
+        SET
+            aberta = 1,
+            atualizada_em =
+                CURRENT_TIMESTAMP
+        WHERE id = 1
+    `).run();
+
+    return obterEstadoRoleta();
+}
 
 function listarGiros() {
 
@@ -230,6 +292,7 @@ function zerarRoleta() {
                 db.prepare(`
                     SELECT
                         COUNT(*) AS totalGiros,
+
                         COALESCE(
                             SUM(eh_premio),
                             0
@@ -246,6 +309,19 @@ function zerarRoleta() {
                 WHERE name = 'giros'
             `).run();
 
+            db.prepare(`
+                UPDATE estado_roleta
+                SET
+                    versao = versao + 1,
+                    aberta = 0,
+                    atualizada_em =
+                        CURRENT_TIMESTAMP
+                WHERE id = 1
+            `).run();
+
+            const estadoNovo =
+                obterEstadoRoleta();
+
             return {
                 girosRemovidos:
                     Number(
@@ -255,7 +331,12 @@ function zerarRoleta() {
                 ganhadoresRemovidos:
                     Number(
                         antes.totalGanhadores || 0
-                    )
+                    ),
+
+                versao:
+                    estadoNovo.versao,
+
+                aberta: false
             };
         });
 
@@ -267,5 +348,7 @@ module.exports = {
     contarGanhadoresCampanha,
     registrarGiroCampanha,
     listarGiros,
-    zerarRoleta
+    zerarRoleta,
+    obterEstadoRoleta,
+    abrirRoleta
 };
