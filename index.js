@@ -332,7 +332,7 @@ const premios = [
     "R$ 5",
     "NÃO",
     "R$ 10",
-    "TENTE",
+    "QUASE",
     "R$ 6",
     "R$ 9",
     "TRAVEE",

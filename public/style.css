@@ -245,3 +245,29 @@ h1 {
 #verificar-inscricao:disabled {
     opacity: 0.5;
 }
+
+@media (max-height: 720px) {
+
+    .app {
+        padding-top: 18px;
+        padding-bottom: 18px;
+    }
+
+    .subtitulo {
+        margin-bottom: 22px;
+    }
+
+    .roleta-area {
+        width: min(
+            100%,
+            350px,
+            calc(100dvh - 250px)
+        );
+
+        margin-bottom: 22px;
+    }
+
+    .aviso {
+        margin-top: 18px;
+    }
+}

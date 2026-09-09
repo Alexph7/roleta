@@ -35,7 +35,7 @@ const itens = [
     "R$ 5",
     "NÃO",
     "R$ 10",
-    "TENTE",
+    "QUASE",
     "R$ 6",
     "R$ 9",
     "TRAVEE",
@@ -483,7 +483,7 @@ async function girar() {
         const semPremio = [
             "QUASE",
             "NÃO",
-            "TENTE",
+            "QUASE",
             "TRAVEE",
             "PRA FORA"
         ];
