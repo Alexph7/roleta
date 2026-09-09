@@ -176,8 +176,8 @@ function desenharRoleta() {
 
         const tamanhoFonte =
             ehValor
-                ? 30
-                : 22;
+                ? 40
+                : 30;
 
         ctx.font =
             `bold ${tamanhoFonte}px Arial`;
