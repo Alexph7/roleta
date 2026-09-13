@@ -288,7 +288,7 @@ h1 {
 }
 
 .menu-topo {
-    margin-bottom: 30px;
+    margin-bottom: 26px;
 }
 
 .menu-logo {
@@ -297,53 +297,62 @@ h1 {
     width: 78px;
     height: 78px;
 
-    margin: 0 auto 14px;
+    margin: 0 auto 16px;
 
     object-fit: contain;
 
     border-radius: 50%;
 }
 
-.menu-topo h1 {
+.subtitulo-menu {
     margin: 0;
 
-    font-size: 29px;
-}
+    color: #c8c5d6;
 
-.subtitulo-menu {
-    margin:
-        8px 0 0;
+    font-size: 16px;
 
-    color: #aaa6bd;
-
-    font-size: 15px;
+    line-height: 1.4;
 }
 
 
 /* ========================================
-   CARDS DOS JOGOS
+   GRADE DOS JOGOS
 ======================================== */
 
 .grade-jogos {
     display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
 
     gap: 14px;
 
     width: 100%;
 }
 
+
+/* ========================================
+   CARD DOS JOGOS
+======================================== */
+
 .card-jogo {
     width: 100%;
 
-    min-height: 100px;
+    aspect-ratio: 1 / 1;
+
+    min-width: 0;
 
     display: flex;
 
+    flex-direction: column;
+
     align-items: center;
 
-    gap: 15px;
+    justify-content: center;
 
-    padding: 16px;
+    gap: 10px;
+
+    padding: 14px 10px;
 
     border:
         1px solid rgba(255, 255, 255, 0.09);
@@ -357,7 +366,7 @@ h1 {
 
     color: white;
 
-    text-align: left;
+    text-align: center;
 
     cursor: pointer;
 
@@ -370,31 +379,41 @@ h1 {
 }
 
 button.card-jogo:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
 }
 
-.card-jogo-icone {
-    flex:
-        0 0 58px;
 
-    width: 58px;
-    height: 58px;
+/* ========================================
+   ÍCONE
+======================================== */
+
+.card-jogo-icone {
+    flex: 0 0 auto;
+
+    width: 52px;
+    height: 52px;
 
     display: flex;
 
     align-items: center;
+
     justify-content: center;
 
-    border-radius: 16px;
+    border-radius: 15px;
 
     background:
         rgba(124, 92, 255, 0.16);
 
-    font-size: 32px;
+    font-size: 28px;
 }
 
+
+/* ========================================
+   CONTEÚDO
+======================================== */
+
 .card-jogo-conteudo {
-    flex: 1;
+    width: 100%;
 
     min-width: 0;
 
@@ -402,38 +421,41 @@ button.card-jogo:active {
 
     flex-direction: column;
 
-    gap: 5px;
+    align-items: center;
+
+    gap: 6px;
 }
 
 .card-jogo-conteudo strong {
-    font-size: 18px;
+    font-size: 16px;
+
+    line-height: 1.15;
 }
 
 .card-jogo-conteudo span {
     color: #b9b5c9;
 
-    font-size: 13px;
+    font-size: 12px;
 
-    line-height: 1.35;
+    line-height: 1.3;
 }
 
 .card-jogo-conteudo small {
     color: #8c78ff;
 
-    font-size: 11px;
+    font-size: 10px;
 
     font-weight: bold;
 
-    letter-spacing: 0.5px;
+    line-height: 1.25;
+
+    letter-spacing: 0.3px;
 }
 
-.card-jogo-seta {
-    color: #8c78ff;
 
-    font-size: 32px;
-
-    font-weight: 300;
-}
+/* ========================================
+   BLOQUEADOS
+======================================== */
 
 .card-bloqueado {
     opacity: 0.42;
@@ -443,6 +465,19 @@ button.card-jogo:active {
 
 .card-bloqueado .card-jogo-conteudo small {
     color: #8e899d;
+}
+
+
+/* ========================================
+   ESPAÇOS FUTUROS
+======================================== */
+
+.card-vazio {
+    opacity: 0.22;
+
+    cursor: default;
+
+    box-shadow: none;
 }
 
 
