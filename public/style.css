@@ -594,7 +594,7 @@ button.card-jogo:active {
     background: #effff9;
 
     box-shadow:
-        0 0 0 4px #4da98a,
+        0 0 0 4px #000000,
         0 14px 35px rgba(0, 0, 0, 0.25);
 }
 
