@@ -527,7 +527,7 @@ button.card-jogo:active {
 
 .subtitulo-pontos {
     margin:
-        5px 0 18px;
+        3px 0 10px;
 
     color: #a9d9ca;
 
@@ -539,10 +539,10 @@ button.card-jogo:active {
     max-width: 330px;
 
     margin:
-        0 auto 25px;
+        0 auto 14px;
 
     padding:
-        14px 18px;
+        11px 18px;
 
     display: flex;
 
@@ -577,12 +577,12 @@ button.card-jogo:active {
 
     width:
         min(100%,
-            370px);
+            325px);
 
     aspect-ratio: 1 / 1;
 
     margin:
-        0 auto 30px;
+        0 auto 16px;
 
     padding: 12px;
 
