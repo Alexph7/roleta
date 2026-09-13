@@ -302,6 +302,11 @@ h1 {
     object-fit: contain;
 
     border-radius: 50%;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
+    -webkit-touch-callout: none;
 }
 
 .subtitulo-menu {
