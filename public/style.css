@@ -638,8 +638,8 @@ button.card-jogo:active {
     border-radius: 14px;
     background:
         linear-gradient(135deg,
-            #75d9b7,
-            #3fa984);
+            #ff7b54,
+            #ff4d6d);
     color: white;
     font-size: 18px;
     font-weight: bold;

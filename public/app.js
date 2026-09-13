@@ -119,18 +119,18 @@ const itensPontos = [
 ];
 
 const coresPontos = [
-    "#ecfff8",
-    "#b8f3df",
-    "#91e9d5",
-    "#d9fbed",
-    "#84dfc0",
-    "#f3fffb",
-    "#a6ecd5",
-    "#d2f8e9",
-    "#e8fff6",
-    "#76d7b5",
-    "#c5f5e4",
-    "#f6fffc"
+    "#ff6b6b", // vermelho coral
+    "#ffd166", // amarelo
+    "#06d6a0", // verde água
+    "#4cc9f0", // azul claro
+    "#f72585", // rosa forte
+    "#f77f00", // laranja
+    "#90be6d", // verde
+    "#577590", // azul petróleo
+    "#9b5de5", // roxo
+    "#43aa8b", // verde médio
+    "#f94144", // vermelho vivo
+    "#f9c74f"  // dourado
 ];
 
 const coresBase = [
@@ -489,7 +489,7 @@ function desenharRoletaPontos() {
         ctxPontos.fill();
 
         ctxPontos.strokeStyle =
-            "#55a98c";
+            "#01ff56";
 
         ctxPontos.lineWidth = 3;
 
@@ -530,7 +530,7 @@ function desenharRoletaPontos() {
             "middle";
 
         ctxPontos.fillStyle =
-            "#176c53";
+            "#ffffff";
 
         if (
             item.tipo ===
@@ -609,12 +609,12 @@ function desenharRoletaPontos() {
     );
 
     ctxPontos.fillStyle =
-        "#f6fffb";
+        "#fff8e7";
 
     ctxPontos.fill();
 
     ctxPontos.strokeStyle =
-        "#55a98c";
+        "#ffd166";
 
     ctxPontos.lineWidth = 6;
 
