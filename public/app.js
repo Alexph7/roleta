@@ -1,7 +1,17 @@
-const telaMenu =
+
+const telaAcesso =
     document.getElementById(
-        "tela-menu"
+        "tela-acesso"
     );
+
+const statusAcesso =
+    document.getElementById(
+        "status-acesso"
+    ); const telaMenu =
+
+        document.getElementById(
+            "tela-menu"
+        );
 
 const telaRoleta =
     document.getElementById(
@@ -92,6 +102,60 @@ const logoCentro = new Image();
 logoCentro.src = "logo-centro.png";
 logoCentro.onload = () => desenharRoleta();
 
+async function verificarAcesso() {
+
+    try {
+
+        const resposta =
+            await fetch(
+                "/api/verificar-acesso",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        initData
+                    })
+                }
+            );
+
+        const dados =
+            await resposta.json();
+
+        if (
+            !resposta.ok ||
+            !dados.permitido
+        ) {
+
+            telaMenu.hidden = true;
+            telaRoleta.hidden = true;
+
+            statusAcesso.textContent =
+                "⛔ Esta conta não está habilitada para acessar esta área.";
+
+            return false;
+        }
+
+        telaAcesso.hidden = true;
+        telaMenu.hidden = false;
+
+        return true;
+
+    } catch (erro) {
+
+        telaMenu.hidden = true;
+
+        statusAcesso.textContent =
+            "❌ Não foi possível verificar o acesso agora.";
+
+        return false;
+    }
+}
+
 function abrirTelaRoleta() {
 
     telaMenu.hidden = true;
@@ -100,7 +164,13 @@ function abrirTelaRoleta() {
 
     desenharRoleta();
 
-    verificarEstadoRoleta();
+    verificarAcesso()
+        .then((permitido) => {
+
+            if (permitido) {
+                verificarEstadoRoleta();
+            }
+        });
 }
 
 

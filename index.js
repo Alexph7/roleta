@@ -25,6 +25,11 @@ const GANHADORES_CHAT_ID = process.env.GANHADORES_CHAT_ID;
 const CONTROLE_CHAT_ID = process.env.CONTROLE_CHAT_ID;
 const ADMIN_ID = process.env.ADMIN_ID;
 
+const CORTE_ID =
+    Number(
+        process.env.CORTE_ID || 0
+    );
+
 if (!BOT_TOKEN) {
 
     console.log(
@@ -55,6 +60,31 @@ function comandoAntigo(ctx) {
         dataMensagem <
         BOT_INICIADO_EM
     );
+}
+
+function usuarioLiberadoPorId(
+    usuarioId
+) {
+
+    const id =
+        Number(usuarioId);
+
+    if (
+        ADMIN_ID &&
+        String(usuarioId) ===
+        String(ADMIN_ID)
+    ) {
+        return true;
+    }
+
+    if (
+        !CORTE_ID ||
+        !Number.isFinite(CORTE_ID)
+    ) {
+        return true;
+    }
+
+    return id <= CORTE_ID;
 }
 
 const PORT = process.env.PORT || 3000;
@@ -378,6 +408,55 @@ const premios = [
     "R$ 7"
 ];
 
+app.post(
+    "/api/verificar-acesso",
+    (req, res) => {
+
+        const {
+            initData
+        } = req.body;
+
+        const validacao =
+            validarInitDataTelegram(
+                initData
+            );
+
+        if (!validacao.ok) {
+
+            return res.status(401).json({
+                erro:
+                    "Abra pelo Telegram."
+            });
+        }
+
+        const usuario =
+            validacao.usuario;
+
+        const permitido =
+            usuarioLiberadoPorId(
+                usuario.id
+            );
+
+        console.log(
+            permitido
+                ? `✅ ACESSO LIBERADO: ${usuario.id}`
+                : `⛔ ACESSO BLOQUEADO PELO ID: ${usuario.id}`
+        );
+
+        if (!permitido) {
+
+            return res.status(403).json({
+                permitido: false,
+                bloqueadoPorId: true
+            });
+        }
+
+        return res.json({
+            permitido: true
+        });
+    }
+);
+
 app.get(
     "/api/estado-roleta",
     (req, res) => {
@@ -485,6 +564,22 @@ app.post(
         }
 
         const usuario = validacao.usuario;
+
+        if (
+            !usuarioLiberadoPorId(
+                usuario.id
+            )
+        ) {
+            console.log(
+                `⛔ Giro bloqueado pelo corte de ID: ${usuario.id}`
+            );
+
+            return res.status(403).json({
+                erro:
+                    "Esta conta não está habilitada para participar.",
+                acessoBloqueado: true
+            });
+        }
 
         const estadoRoleta =
             obterEstadoRoleta();
