@@ -552,7 +552,7 @@ function desenharRoletaPontos() {
 
             ctxPontos.rotate(Math.PI / 2);
 
-            ctxPontos.font = "60px Arial";
+            ctxPontos.font = "70px Arial";
             ctxPontos.fillText("💎", 0, 0);
 
             ctxPontos.restore();
@@ -561,7 +561,7 @@ function desenharRoletaPontos() {
         if (item.tipo === "roleta") {
             ctxPontos.save();
             ctxPontos.rotate(Math.PI / 2);
-            ctxPontos.font = "60px Arial";
+            ctxPontos.font = "70px Arial";
             ctxPontos.fillText("🎡", 0, 0);
             ctxPontos.restore();
         }
@@ -591,7 +591,7 @@ function desenharRoletaPontos() {
     ctxPontos.stroke();
 
     ctxPontos.font =
-        "50px Arial";
+        "55px Arial";
 
     ctxPontos.textAlign =
         "center";
