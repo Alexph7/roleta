@@ -21,6 +21,10 @@ body {
             #090811);
 
     color: white;
+
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
 }
 
 .app {
