@@ -581,14 +581,14 @@ button.card-jogo:active {
 
     width:
         min(100%,
-            276px);
+            274px);
 
     aspect-ratio: 1 / 1;
 
     margin:
         0 auto 30px;
 
-    padding: 12px;
+    padding: 2px;
 
     border:
         7px solid #19d600;
