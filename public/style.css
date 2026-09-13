@@ -517,6 +517,10 @@ button.card-jogo:active {
     cursor: pointer;
 }
 
+#tela-pontos .voltar-menu {
+    margin-bottom: 8px;
+}
+
 /* ========================================
    ROLETA DE PONTOS
 ======================================== */
