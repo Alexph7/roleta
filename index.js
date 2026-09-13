@@ -975,13 +975,13 @@ bot.command(
         }
 
         await ctx.reply(
-            "🎁 Bem-vindo à Roleta Premiada!\n\nToque abaixo para jogar:",
+            "🎁 Aobaa Bem-vindo(a) !\n\nToque abaixo para jogar:",
             {
                 reply_markup: {
                     inline_keyboard: [
                         [
                             {
-                                text: "🎡 ABRIR ROLETA",
+                                text: "🎮 ABRIR MENU",
                                 web_app: {
                                     url: MINI_APP_URL
                                 }
