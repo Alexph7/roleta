@@ -164,13 +164,7 @@ function abrirTelaRoleta() {
 
     desenharRoleta();
 
-    verificarAcesso()
-        .then((permitido) => {
-
-            if (permitido) {
-                verificarEstadoRoleta();
-            }
-        });
+    verificarEstadoRoleta();
 }
 
 
@@ -816,7 +810,13 @@ botaoVerificarInscricao.addEventListener(
 
 desenharRoleta();
 
-verificarEstadoRoleta();
+verificarAcesso()
+    .then((permitido) => {
+
+        if (permitido) {
+            verificarEstadoRoleta();
+        }
+    });
 
 setInterval(
     verificarEstadoRoleta,
