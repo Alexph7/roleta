@@ -552,6 +552,12 @@ function desenharRoletaPontos() {
             "diamante"
         ) {
 
+            ctxPontos.save();
+
+            ctxPontos.rotate(
+                Math.PI
+            );
+
             ctxPontos.font =
                 "45px Arial";
 
@@ -560,12 +566,20 @@ function desenharRoletaPontos() {
                 0,
                 0
             );
+
+            ctxPontos.restore();
         }
 
         if (
             item.tipo ===
             "roleta"
         ) {
+
+            ctxPontos.save();
+
+            ctxPontos.rotate(
+                Math.PI
+            );
 
             ctxPontos.font =
                 "45px Arial";
@@ -575,8 +589,9 @@ function desenharRoletaPontos() {
                 0,
                 0
             );
-        }
 
+            ctxPontos.restore();
+        }
         ctxPontos.restore();
     }
 
