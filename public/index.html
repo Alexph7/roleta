@@ -10,7 +10,7 @@
 
     <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
 </head>
 
 <body>
@@ -72,27 +72,19 @@
                 </button>
 
 
-                <!-- 2 - FUTURO JOGO -->
-                <div class="card-jogo card-bloqueado">
-
+                <button id="abrir-pontos" class="card-jogo" type="button">
                     <div class="card-jogo-icone">
-                        🎮
+                        🏆
                     </div>
 
                     <div class="card-jogo-conteudo">
 
                         <strong>
-                            Novo jogo
+                            Roleta de Pontos
                         </strong>
 
-                        <small>
-                            EM BREVE
-                        </small>
-
                     </div>
-
-                </div>
-
+                </button>
 
                 <!-- 3 - SURPRESA -->
                 <div class="card-jogo card-bloqueado">
@@ -130,6 +122,50 @@
 
         </section>
 
+
+        <!-- ========================= -->
+        <!-- ROLETA DE PONTOS -->
+        <!-- ========================= -->
+
+        <section id="tela-pontos" class="tela" hidden>
+
+            <button id="voltar-menu-pontos" class="voltar-menu" type="button">
+                ← MENU
+            </button>
+
+            <h1>
+                🏆 Roleta de Pontos
+            </h1>
+
+            <p class="subtitulo-pontos">
+                Giro diário
+            </p>
+
+            <div class="placar-pontos">
+                <span>
+                    SEUS PONTOS
+                </span>
+
+                <strong id="total-pontos">
+                    0 pts
+                </strong>
+            </div>
+
+            <div class="roleta-pontos-area">
+
+                <div class="ponteiro-pontos"></div>
+
+                <canvas id="roleta-pontos" width="600" height="600"></canvas>
+
+            </div>
+
+            <button id="girar-pontos" type="button" disabled>
+                GIRO EM PREPARAÇÃO
+            </button>
+
+            <p id="resultado-pontos" class="resultado-pontos"></p>
+
+        </section>
 
         <!-- ========================= -->
         <!-- ROLETA -->
@@ -193,7 +229,7 @@
 
     </main>
 
-    <script src="app.js?v=3"></script>
+    <script src="app.js?v=4"></script>
 
 </body>
 

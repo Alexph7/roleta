@@ -516,3 +516,143 @@ button.card-jogo:active {
 
     cursor: pointer;
 }
+
+/* ========================================
+   ROLETA DE PONTOS
+======================================== */
+
+#tela-pontos {
+    width: 100%;
+}
+
+.subtitulo-pontos {
+    margin:
+        5px 0 18px;
+
+    color: #a9d9ca;
+
+    font-size: 14px;
+}
+
+.placar-pontos {
+    width: 100%;
+    max-width: 330px;
+
+    margin:
+        0 auto 25px;
+
+    padding:
+        14px 18px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    border:
+        1px solid rgba(137, 229, 198, 0.30);
+
+    border-radius: 14px;
+
+    background:
+        rgba(68, 171, 137, 0.12);
+}
+
+.placar-pontos span {
+    color: #a9d9ca;
+
+    font-size: 11px;
+
+    font-weight: bold;
+}
+
+.placar-pontos strong {
+    color: #cffff0;
+
+    font-size: 24px;
+}
+
+.roleta-pontos-area {
+    position: relative;
+
+    width:
+        min(100%,
+            370px);
+
+    aspect-ratio: 1 / 1;
+
+    margin:
+        0 auto 30px;
+
+    padding: 12px;
+
+    border:
+        7px solid #9be4cc;
+
+    border-radius: 50%;
+
+    background: #effff9;
+
+    box-shadow:
+        0 0 0 4px #4da98a,
+        0 14px 35px rgba(0, 0, 0, 0.25);
+}
+
+#roleta-pontos {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    border-radius: 50%;
+
+    transition:
+        transform 5s cubic-bezier(0.12,
+            0.65,
+            0.18,
+            1);
+}
+
+.ponteiro-pontos {
+    position: absolute;
+    z-index: 10;
+    left: 50%;
+    top: -19px;
+    transform:
+        translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left:
+        18px solid transparent;
+    border-right:
+        18px solid transparent;
+    border-top:
+        39px solid #ffffff;
+}
+
+#girar-pontos {
+    width: 100%;
+    max-width: 330px;
+    padding: 17px;
+    border: none;
+    border-radius: 14px;
+    background:
+        linear-gradient(135deg,
+            #75d9b7,
+            #3fa984);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+#girar-pontos:disabled {
+    opacity: 0.55;
+}
+
+.resultado-pontos {
+    min-height: 30px;
+    margin-top: 22px;
+    color: #cffff0;
+    font-size: 21px;
+    font-weight: bold;
+}

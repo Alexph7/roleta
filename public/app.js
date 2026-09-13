@@ -18,6 +18,31 @@ const telaRoleta =
         "tela-roleta"
     );
 
+const telaPontos =
+    document.getElementById(
+        "tela-pontos"
+    );
+
+const botaoAbrirPontos =
+    document.getElementById(
+        "abrir-pontos"
+    );
+
+const botaoVoltarMenuPontos =
+    document.getElementById(
+        "voltar-menu-pontos"
+    );
+
+const canvasPontos =
+    document.getElementById(
+        "roleta-pontos"
+    );
+
+const ctxPontos =
+    canvasPontos.getContext(
+        "2d"
+    );
+
 const botaoAbrirRoleta =
     document.getElementById(
         "abrir-roleta"
@@ -76,6 +101,36 @@ const itens = [
     "TRAVEE",
     "PRA FORA",
     "R$ 7"
+];
+
+const itensPontos = [
+    { tipo: "pontos", valor: 100 },
+    { tipo: "pontos", valor: 500 },
+    { tipo: "diamante", valor: 1000 },
+    { tipo: "pontos", valor: 300 },
+    { tipo: "pontos", valor: 700 },
+    { tipo: "pontos", valor: 100 },
+    { tipo: "pontos", valor: 500 },
+    { tipo: "roleta" },
+    { tipo: "pontos", valor: 100 },
+    { tipo: "pontos", valor: 700 },
+    { tipo: "pontos", valor: 300 },
+    { tipo: "pontos", valor: 100 }
+];
+
+const coresPontos = [
+    "#ecfff8",
+    "#b8f3df",
+    "#91e9d5",
+    "#d9fbed",
+    "#84dfc0",
+    "#f3fffb",
+    "#a6ecd5",
+    "#d2f8e9",
+    "#e8fff6",
+    "#76d7b5",
+    "#c5f5e4",
+    "#f6fffc"
 ];
 
 const coresBase = [
@@ -156,14 +211,30 @@ async function verificarAcesso() {
     }
 }
 
-function abrirTelaRoleta() {
+function abrirTelaPontos() {
 
     telaMenu.hidden = true;
 
+    telaRoleta.hidden = true;
+
+    telaPontos.hidden = false;
+
+    desenharRoletaPontos();
+}
+
+
+function voltarParaMenuPontos() {
+
+    telaPontos.hidden = true;
+
+    telaMenu.hidden = false;
+}
+
+function abrirTelaRoleta() {
+
+    telaMenu.hidden = true;
     telaRoleta.hidden = false;
-
     desenharRoleta();
-
     verificarEstadoRoleta();
 }
 
@@ -354,6 +425,215 @@ function desenharRoleta() {
     }
 
     ctx.restore();
+}
+
+function desenharRoletaPontos() {
+
+    const centro =
+        canvasPontos.width / 2;
+
+    const raio =
+        centro - 12;
+
+    const quantidadePontos =
+        itensPontos.length;
+
+    const angulo =
+        (Math.PI * 2) /
+        quantidadePontos;
+
+    ctxPontos.clearRect(
+        0,
+        0,
+        canvasPontos.width,
+        canvasPontos.height
+    );
+
+    for (
+        let i = 0;
+        i < quantidadePontos;
+        i++
+    ) {
+
+        const inicio =
+            -Math.PI / 2
+            - angulo / 2
+            + i * angulo;
+
+        const fim =
+            inicio + angulo;
+
+        const item =
+            itensPontos[i];
+
+        ctxPontos.beginPath();
+
+        ctxPontos.moveTo(
+            centro,
+            centro
+        );
+
+        ctxPontos.arc(
+            centro,
+            centro,
+            raio,
+            inicio,
+            fim
+        );
+
+        ctxPontos.closePath();
+
+        ctxPontos.fillStyle =
+            coresPontos[i];
+
+        ctxPontos.fill();
+
+        ctxPontos.strokeStyle =
+            "#55a98c";
+
+        ctxPontos.lineWidth = 3;
+
+        ctxPontos.stroke();
+
+        const meio =
+            inicio +
+            angulo / 2;
+
+        const distancia =
+            raio * 0.70;
+
+        const x =
+            centro +
+            Math.cos(meio) *
+            distancia;
+
+        const y =
+            centro +
+            Math.sin(meio) *
+            distancia;
+
+        ctxPontos.save();
+
+        ctxPontos.translate(
+            x,
+            y
+        );
+
+        ctxPontos.rotate(
+            meio
+        );
+
+        ctxPontos.textAlign =
+            "center";
+
+        ctxPontos.textBaseline =
+            "middle";
+
+        ctxPontos.fillStyle =
+            "#176c53";
+
+        if (
+            item.tipo ===
+            "pontos"
+        ) {
+
+            ctxPontos.font =
+                "bold 38px Arial";
+
+            ctxPontos.fillText(
+                String(item.valor),
+                0,
+                0
+            );
+        }
+
+        if (
+            item.tipo ===
+            "diamante"
+        ) {
+
+            ctxPontos.font =
+                "39px Arial";
+
+            ctxPontos.fillText(
+                "💎",
+                0,
+                -15
+            );
+
+            ctxPontos.font =
+                "bold 22px Arial";
+
+            ctxPontos.fillText(
+                "1000",
+                0,
+                24
+            );
+        }
+
+        if (
+            item.tipo ===
+            "roleta"
+        ) {
+
+            ctxPontos.font =
+                "37px Arial";
+
+            ctxPontos.fillText(
+                "🎡",
+                0,
+                -15
+            );
+
+            ctxPontos.font =
+                "bold 16px Arial";
+
+            ctxPontos.fillText(
+                "PRÊMIO",
+                0,
+                23
+            );
+        }
+
+        ctxPontos.restore();
+    }
+
+    ctxPontos.beginPath();
+
+    ctxPontos.arc(
+        centro,
+        centro,
+        47,
+        0,
+        Math.PI * 2
+    );
+
+    ctxPontos.fillStyle =
+        "#f6fffb";
+
+    ctxPontos.fill();
+
+    ctxPontos.strokeStyle =
+        "#55a98c";
+
+    ctxPontos.lineWidth = 6;
+
+    ctxPontos.stroke();
+
+    ctxPontos.font =
+        "30px Arial";
+
+    ctxPontos.textAlign =
+        "center";
+
+    ctxPontos.textBaseline =
+        "middle";
+
+    ctxPontos.fillText(
+        "🏆",
+        centro,
+        centro
+    );
 }
 
 async function verificarEstadoRoleta() {
@@ -788,6 +1068,16 @@ async function girar() {
     }, 5100);
 }
 
+botaoAbrirPontos.addEventListener(
+    "click",
+    abrirTelaPontos
+);
+
+botaoVoltarMenuPontos.addEventListener(
+    "click",
+    voltarParaMenuPontos
+);
+
 botaoAbrirRoleta.addEventListener(
     "click",
     abrirTelaRoleta
@@ -809,6 +1099,8 @@ botaoVerificarInscricao.addEventListener(
 );
 
 desenharRoleta();
+
+desenharRoletaPontos();
 
 verificarAcesso()
     .then((permitido) => {
