@@ -258,11 +258,9 @@ h1 {
     }
 
     .roleta-area {
-        width: min(
-            100%,
-            350px,
-            calc(100dvh - 250px)
-        );
+        width: min(100%,
+                350px,
+                calc(100dvh - 250px));
 
         margin-bottom: 22px;
     }
@@ -270,4 +268,209 @@ h1 {
     .aviso {
         margin-top: 18px;
     }
+}
+
+/* ========================================
+   TELAS
+======================================== */
+
+.tela[hidden] {
+    display: none !important;
+}
+
+
+/* ========================================
+   MENU PRINCIPAL
+======================================== */
+
+#tela-menu {
+    width: 100%;
+}
+
+.menu-topo {
+    margin-bottom: 30px;
+}
+
+.menu-logo {
+    display: block;
+
+    width: 78px;
+    height: 78px;
+
+    margin: 0 auto 14px;
+
+    object-fit: contain;
+
+    border-radius: 50%;
+}
+
+.menu-topo h1 {
+    margin: 0;
+
+    font-size: 29px;
+}
+
+.subtitulo-menu {
+    margin:
+        8px 0 0;
+
+    color: #aaa6bd;
+
+    font-size: 15px;
+}
+
+
+/* ========================================
+   CARDS DOS JOGOS
+======================================== */
+
+.grade-jogos {
+    display: grid;
+
+    gap: 14px;
+
+    width: 100%;
+}
+
+.card-jogo {
+    width: 100%;
+
+    min-height: 100px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+    padding: 16px;
+
+    border:
+        1px solid rgba(255, 255, 255, 0.09);
+
+    border-radius: 18px;
+
+    background:
+        linear-gradient(135deg,
+            #221d3b,
+            #151225);
+
+    color: white;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 10px 25px rgba(0, 0, 0, 0.22);
+
+    transition:
+        transform 0.18s ease,
+        border-color 0.18s ease;
+}
+
+button.card-jogo:active {
+    transform: scale(0.98);
+}
+
+.card-jogo-icone {
+    flex:
+        0 0 58px;
+
+    width: 58px;
+    height: 58px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 16px;
+
+    background:
+        rgba(124, 92, 255, 0.16);
+
+    font-size: 32px;
+}
+
+.card-jogo-conteudo {
+    flex: 1;
+
+    min-width: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+.card-jogo-conteudo strong {
+    font-size: 18px;
+}
+
+.card-jogo-conteudo span {
+    color: #b9b5c9;
+
+    font-size: 13px;
+
+    line-height: 1.35;
+}
+
+.card-jogo-conteudo small {
+    color: #8c78ff;
+
+    font-size: 11px;
+
+    font-weight: bold;
+
+    letter-spacing: 0.5px;
+}
+
+.card-jogo-seta {
+    color: #8c78ff;
+
+    font-size: 32px;
+
+    font-weight: 300;
+}
+
+.card-bloqueado {
+    opacity: 0.42;
+
+    cursor: default;
+}
+
+.card-bloqueado .card-jogo-conteudo small {
+    color: #8e899d;
+}
+
+
+/* ========================================
+   VOLTAR AO MENU
+======================================== */
+
+.voltar-menu {
+    display: block;
+
+    margin:
+        0 0 18px;
+
+    padding:
+        8px 12px;
+
+    border: none;
+
+    border-radius: 9px;
+
+    background:
+        rgba(255, 255, 255, 0.08);
+
+    color: #c9c6d5;
+
+    font-size: 12px;
+
+    font-weight: bold;
+
+    cursor: pointer;
 }

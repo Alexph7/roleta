@@ -1,3 +1,28 @@
+const telaMenu =
+    document.getElementById(
+        "tela-menu"
+    );
+
+const telaRoleta =
+    document.getElementById(
+        "tela-roleta"
+    );
+
+const botaoAbrirRoleta =
+    document.getElementById(
+        "abrir-roleta"
+    );
+
+const botaoVoltarMenu =
+    document.getElementById(
+        "voltar-menu"
+    );
+
+const statusRoletaMenu =
+    document.getElementById(
+        "status-roleta-menu"
+    );
+
 const canvas = document.getElementById("roleta");
 
 const ctx =
@@ -66,6 +91,27 @@ botaoGirar.textContent =
 const logoCentro = new Image();
 logoCentro.src = "logo-centro.png";
 logoCentro.onload = () => desenharRoleta();
+
+function abrirTelaRoleta() {
+
+    telaMenu.hidden = true;
+
+    telaRoleta.hidden = false;
+
+    desenharRoleta();
+
+    verificarEstadoRoleta();
+}
+
+
+function voltarParaMenu() {
+
+    telaRoleta.hidden = true;
+
+    telaMenu.hidden = false;
+
+    verificarEstadoRoleta();
+}
 
 function desenharRoleta() {
     const centro =
@@ -291,6 +337,19 @@ async function verificarEstadoRoleta() {
         rodadaAberta =
             dados.aberta === true;
 
+        if (statusRoletaMenu) {
+
+            if (rodadaAberta) {
+
+                statusRoletaMenu.textContent =
+                    "🟢 RODADA DISPONÍVEL";
+
+            } else {
+
+                statusRoletaMenu.textContent =
+                    "🔒 AGUARDANDO NOVA RODADA";
+            }
+        }
 
         // RODADA FECHADA
         if (!rodadaAberta) {
@@ -664,6 +723,16 @@ async function girar() {
 
     }, 5100);
 }
+
+botaoAbrirRoleta.addEventListener(
+    "click",
+    abrirTelaRoleta
+);
+
+botaoVoltarMenu.addEventListener(
+    "click",
+    voltarParaMenu
+);
 
 botaoGirar.addEventListener(
     "click",

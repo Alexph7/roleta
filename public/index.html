@@ -17,46 +17,171 @@
 
     <main class="app">
 
-        <h1>🎁 Roleta Premiada</h1>
+        <!-- ========================= -->
+        <!-- MENU PRINCIPAL -->
+        <!-- ========================= -->
 
-        <p class="subtitulo">
-            Toque no botão para girar
-        </p>
+        <section id="tela-menu" class="tela">
 
-        <div class="roleta-area">
-            <div class="ponteiro"></div>
+            <div class="menu-topo">
 
-            <img class="moldura-roleta" src="roleta-premium.png" alt="Roleta Premiada">
+                <img class="menu-logo" src="logo-centro.png" alt="Paradoxo">
 
-            <div class="disco-wrap">
-                <canvas id="roleta" width="600" height="600"></canvas>
+                <h1>
+                    Central de Diversão
+                </h1>
+
+                <p class="subtitulo-menu">
+                    Jogue, participe e divirta-se.
+                </p>
+
             </div>
-        </div>
 
-        <button id="girar">
-            🎡 GIRAR
-        </button>
 
-        <div id="aviso-comunidade" class="aviso-comunidade" hidden>
+            <div class="grade-jogos">
 
-            <p>
-                🔒 Para participar, você precisa
-                estar inscrito nos canais abaixo:
-            </p>
+                <button id="abrir-roleta" class="card-jogo" type="button">
 
-            <div id="canais-faltando"></div>
+                    <div class="card-jogo-icone">
+                        🎡
+                    </div>
 
-            <button id="verificar-inscricao" type="button">
-                ✅ JÁ ME INSCREVI — VERIFICAR
+                    <div class="card-jogo-conteudo">
+
+                        <strong>
+                            Roleta Premiada
+                        </strong>
+
+                        <span>
+                            Tente a sorte e concorra a prêmios
+                        </span>
+
+                        <small id="status-roleta-menu">
+                            Carregando...
+                        </small>
+
+                    </div>
+
+                    <div class="card-jogo-seta">
+                        ›
+                    </div>
+
+                </button>
+
+
+                <div class="card-jogo card-bloqueado">
+
+                    <div class="card-jogo-icone">
+                        🎮
+                    </div>
+
+                    <div class="card-jogo-conteudo">
+
+                        <strong>
+                            Novo jogo
+                        </strong>
+
+                        <span>
+                            Mais diversão chegando
+                        </span>
+
+                        <small>
+                            EM BREVE
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div class="card-jogo card-bloqueado">
+
+                    <div class="card-jogo-icone">
+                        🎁
+                    </div>
+
+                    <div class="card-jogo-conteudo">
+
+                        <strong>
+                            Surpresa
+                        </strong>
+
+                        <span>
+                            Uma nova experiência
+                        </span>
+
+                        <small>
+                            EM BREVE
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ========================= -->
+        <!-- ROLETA -->
+        <!-- ========================= -->
+
+        <section id="tela-roleta" class="tela" hidden>
+
+            <button id="voltar-menu" class="voltar-menu" type="button">
+                ← MENU
             </button>
 
-        </div>
 
-        <p id="resultado" class="resultado"></p>
+            <h1>
+                🎁 Roleta Premiada
+            </h1>
 
-        <p class="aviso">
-            Modo de demonstração
-        </p>
+            <p class="subtitulo">
+                Toque no botão para girar
+            </p>
+
+
+            <div class="roleta-area">
+
+                <div class="ponteiro"></div>
+
+                <img class="moldura-roleta" src="roleta-premium.png" alt="Roleta Premiada">
+
+                <div class="disco-wrap">
+
+                    <canvas id="roleta" width="600" height="600"></canvas>
+
+                </div>
+
+            </div>
+
+
+            <button id="girar">
+                🎡 GIRAR
+            </button>
+
+
+            <div id="aviso-comunidade" class="aviso-comunidade" hidden>
+
+                <p>
+                    🔒 Para participar, você precisa
+                    estar inscrito nos canais abaixo:
+                </p>
+
+                <div id="canais-faltando"></div>
+
+                <button id="verificar-inscricao" type="button">
+                    ✅ JÁ ME INSCREVI — VERIFICAR
+                </button>
+
+            </div>
+
+
+            <p id="resultado" class="resultado"></p>
+
+        </section>
 
     </main>
 
