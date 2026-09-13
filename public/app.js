@@ -547,49 +547,22 @@ function desenharRoletaPontos() {
             );
         }
 
-        if (
-            item.tipo ===
-            "diamante"
-        ) {
-
+        if (item.tipo === "diamante") {
             ctxPontos.save();
 
-            ctxPontos.rotate(
-                Math.PI
-            );
+            ctxPontos.rotate(-Math.PI / 2);
 
-            ctxPontos.font =
-                "45px Arial";
-
-            ctxPontos.fillText(
-                "💎",
-                0,
-                0
-            );
+            ctxPontos.font = "42px Arial";
+            ctxPontos.fillText("💎", 0, 0);
 
             ctxPontos.restore();
         }
 
-        if (
-            item.tipo ===
-            "roleta"
-        ) {
-
+        if (item.tipo === "roleta") {
             ctxPontos.save();
-
-            ctxPontos.rotate(
-                Math.PI
-            );
-
-            ctxPontos.font =
-                "45px Arial";
-
-            ctxPontos.fillText(
-                "🎡",
-                0,
-                0
-            );
-
+            ctxPontos.rotate(-Math.PI / 2);
+            ctxPontos.font = "42px Arial";
+            ctxPontos.fillText("🎡", 0, 0);
             ctxPontos.restore();
         }
         ctxPontos.restore();
