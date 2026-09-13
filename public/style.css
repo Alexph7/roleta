@@ -577,7 +577,7 @@ button.card-jogo:active {
 
     width:
         min(100%,
-            325px);
+            300px);
 
     aspect-ratio: 1 / 1;
 
