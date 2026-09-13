@@ -489,7 +489,7 @@ function desenharRoletaPontos() {
         ctxPontos.fill();
 
         ctxPontos.strokeStyle =
-            "#01ff56";
+            "#000000";
 
         ctxPontos.lineWidth = 3;
 
