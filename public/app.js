@@ -135,7 +135,7 @@ async function verificarAcesso() {
             telaRoleta.hidden = true;
 
             statusAcesso.textContent =
-                "⛔ Esta conta não está habilitada para acessar esta área.";
+                "⛔ Hmm, Parece que essa conta é muito recente... Aguarde um tempo";
 
             return false;
         }
