@@ -553,21 +553,12 @@ function desenharRoletaPontos() {
         ) {
 
             ctxPontos.font =
-                "39px Arial";
+                "45px Arial";
 
             ctxPontos.fillText(
                 "💎",
                 0,
-                -15
-            );
-
-            ctxPontos.font =
-                "bold 22px Arial";
-
-            ctxPontos.fillText(
-                "1000",
-                0,
-                24
+                0
             );
         }
 
@@ -577,21 +568,12 @@ function desenharRoletaPontos() {
         ) {
 
             ctxPontos.font =
-                "37px Arial";
+                "45px Arial";
 
             ctxPontos.fillText(
                 "🎡",
                 0,
-                -15
-            );
-
-            ctxPontos.font =
-                "bold 16px Arial";
-
-            ctxPontos.fillText(
-                "PRÊMIO",
-                0,
-                23
+                0
             );
         }
 
