@@ -550,7 +550,7 @@ function desenharRoletaPontos() {
         if (item.tipo === "diamante") {
             ctxPontos.save();
 
-            ctxPontos.rotate(-Math.PI / 2);
+            ctxPontos.rotate(Math.PI / 2);
 
             ctxPontos.font = "42px Arial";
             ctxPontos.fillText("💎", 0, 0);
@@ -560,7 +560,7 @@ function desenharRoletaPontos() {
 
         if (item.tipo === "roleta") {
             ctxPontos.save();
-            ctxPontos.rotate(-Math.PI / 2);
+            ctxPontos.rotate(Math.PI / 2);
             ctxPontos.font = "42px Arial";
             ctxPontos.fillText("🎡", 0, 0);
             ctxPontos.restore();
