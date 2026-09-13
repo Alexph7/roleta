@@ -543,7 +543,7 @@ button.card-jogo:active {
     max-width: 330px;
 
     margin:
-        0 auto 25px;
+        0 auto 32px;
 
     padding:
         11px 18px;
@@ -586,7 +586,7 @@ button.card-jogo:active {
     aspect-ratio: 1 / 1;
 
     margin:
-        0 auto 16px;
+        0 auto 22px;
 
     padding: 12px;
 
