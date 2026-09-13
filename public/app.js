@@ -666,7 +666,7 @@ async function verificarEstadoRoleta() {
             if (!rodadaUtilizada) {
 
                 resultado.textContent =
-                    "🔒 A próxima rodada ainda não foi liberada.";
+                    "";
             }
 
             return;
