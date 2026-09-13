@@ -652,17 +652,7 @@ async function verificarEstadoRoleta() {
             dados.aberta === true;
 
         if (statusRoletaMenu) {
-
-            if (rodadaAberta) {
-
-                statusRoletaMenu.textContent =
-                    "🟢 RODADA DISPONÍVEL";
-
-            } else {
-
-                statusRoletaMenu.textContent =
-                    "🔒 AGUARDANDO NOVA RODADA";
-            }
+            statusRoletaMenu.hidden = true;
         }
 
         // RODADA FECHADA
