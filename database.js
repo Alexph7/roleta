@@ -4,6 +4,10 @@ const db = new Database("roleta.db");
 
 db.pragma("journal_mode = WAL");
 
+db.pragma(
+    "busy_timeout = 5000"
+);
+
 const DURACAO_CHANCE_PREMIADA_MS =
     (
         23 * 60 +
