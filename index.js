@@ -1195,7 +1195,7 @@ app.post(
 
             const ranking =
                 listarRankingPontos(
-                    20
+                    30
                 );
 
             const minhaPosicao =
