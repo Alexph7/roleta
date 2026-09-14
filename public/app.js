@@ -23,6 +23,21 @@ const telaPontos =
         "tela-pontos"
     );
 
+const telaComoGanhar =
+    document.getElementById(
+        "tela-como-ganhar"
+    );
+
+const botaoAbrirComoGanhar =
+    document.getElementById(
+        "abrir-como-ganhar"
+    );
+
+const botaoVoltarMenuComoGanhar =
+    document.getElementById(
+        "voltar-menu-como-ganhar"
+    );
+
 const telaRanking =
     document.getElementById(
         "tela-ranking"
@@ -856,21 +871,36 @@ async function carregarRanking() {
     }
 }
 
+// ========================================
+// COMO GANHAR
+// ========================================
+
+function abrirTelaComoGanhar() {
+
+    telaMenu.hidden =
+        true;
+    telaComoGanhar.hidden =
+        false;
+}
+
+function voltarParaMenuComoGanhar() {
+
+    telaComoGanhar.hidden =
+        true;
+    telaMenu.hidden =
+        false;
+}
 
 function abrirTelaRanking() {
 
     telaMenu.hidden =
         true;
-
     telaRoleta.hidden =
         true;
-
     telaPontos.hidden =
         true;
-
     telaRanking.hidden =
         false;
-
 
     carregarRanking();
 }
@@ -2345,6 +2375,16 @@ async function girar() {
 botaoGirarPontos.addEventListener(
     "click",
     girarPontos
+);
+
+botaoAbrirComoGanhar.addEventListener(
+    "click",
+    abrirTelaComoGanhar
+);
+
+botaoVoltarMenuComoGanhar.addEventListener(
+    "click",
+    voltarParaMenuComoGanhar
 );
 
 botaoAbrirRanking.addEventListener(

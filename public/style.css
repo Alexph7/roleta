@@ -559,6 +559,89 @@ button.card-jogo:active {
 }
 
 /* ========================================
+   COMO GANHAR
+======================================== */
+
+#tela-como-ganhar {
+    width: 100%;
+}
+
+.como-ganhar-titulo {
+    margin:
+        12px 0 22px;
+
+    font-size:
+        28px;
+}
+
+.como-ganhar-box {
+    width:
+        100%;
+
+    max-width:
+        370px;
+
+    margin:
+        0 auto;
+
+    padding:
+        18px;
+
+    border:
+        1px solid rgba(255,
+            255,
+            255,
+            0.09);
+
+    border-radius:
+        16px;
+
+    background:
+        linear-gradient(135deg,
+            #211d35,
+            #151222);
+
+    text-align:
+        left;
+}
+
+.como-ganhar-box p {
+    margin:
+        0;
+
+    padding:
+        13px 0;
+
+    color:
+        #dedbe8;
+
+    font-size:
+        14px;
+
+    line-height:
+        1.55;
+
+    border-bottom:
+        1px solid rgba(255,
+            255,
+            255,
+            0.07);
+}
+
+.como-ganhar-box p:first-child {
+    padding-top:
+        0;
+}
+
+.como-ganhar-box p:last-child {
+    padding-bottom:
+        0;
+
+    border-bottom:
+        none;
+}
+
+/* ========================================
    RANKING
 ======================================== */
 
