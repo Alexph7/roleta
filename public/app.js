@@ -763,11 +763,12 @@ function abrirTelaPontos() {
 
     telaPontos.hidden = false;
 
+    resultadoPontos.textContent = "";
+
     desenharRoletaPontos();
 
     carregarUsuario();
 }
-
 
 function voltarParaMenuPontos() {
 
