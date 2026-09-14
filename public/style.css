@@ -398,24 +398,26 @@ button.card-jogo:active {
 
 .card-jogo-icone {
     flex: 0 0 auto;
-
     width: 52px;
     height: 52px;
-
     display: flex;
-
     align-items: center;
-
     justify-content: center;
-
     border-radius: 15px;
-
     background:
         rgba(124, 92, 255, 0.16);
-
     font-size: 28px;
 }
 
+.icone-menu-img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
 
 /* ========================================
    CONTEÚDO
