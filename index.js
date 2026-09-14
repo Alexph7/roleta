@@ -13,7 +13,9 @@ const {
     registrarGiroCampanha,
     zerarRoleta,
     obterEstadoRoleta,
-    abrirRoleta
+    abrirRoleta,
+    salvarUsuarioTelegram,
+    registrarGiroPontosDiario
 } = require("./database");
 
 const app = express();
@@ -93,6 +95,142 @@ const CAMPANHA_ATUAL =
     "preview_1";
 
 const MAX_GANHADORES = 10;
+
+// ==============================
+// PERÍODO DIÁRIO DA ROLETA
+// DE PONTOS
+// ==============================
+
+const FUSO_HORARIO =
+    "America/Sao_Paulo";
+
+const HORA_GIRO_DIARIO = 8;
+
+const MINUTO_GIRO_DIARIO = 30;
+
+function obterPeriodoDiarioAtual(
+    data = new Date()
+) {
+    const partes =
+        new Intl.DateTimeFormat(
+            "en-CA",
+            {
+                timeZone:
+                    FUSO_HORARIO,
+
+                year:
+                    "numeric",
+
+                month:
+                    "2-digit",
+
+                day:
+                    "2-digit",
+
+                hour:
+                    "2-digit",
+
+                minute:
+                    "2-digit",
+
+                hourCycle:
+                    "h23"
+            }
+        ).formatToParts(
+            data
+        );
+
+    const valores = {};
+
+    for (const parte of partes) {
+
+        if (
+            parte.type !==
+            "literal"
+        ) {
+            valores[
+                parte.type
+            ] = parte.value;
+        }
+    }
+
+    let ano =
+        Number(
+            valores.year
+        );
+
+    let mes =
+        Number(
+            valores.month
+        );
+
+    let dia =
+        Number(
+            valores.day
+        );
+
+    const hora =
+        Number(
+            valores.hour
+        );
+
+    const minuto =
+        Number(
+            valores.minute
+        );
+
+    const antesDaRenovacao =
+        hora <
+        HORA_GIRO_DIARIO ||
+        (
+            hora ===
+            HORA_GIRO_DIARIO &&
+            minuto <
+            MINUTO_GIRO_DIARIO
+        );
+
+
+    if (antesDaRenovacao) {
+
+        const diaAnterior =
+            new Date(
+                Date.UTC(
+                    ano,
+                    mes - 1,
+                    dia - 1
+                )
+            );
+
+        ano =
+            diaAnterior
+                .getUTCFullYear();
+
+        mes =
+            diaAnterior
+                .getUTCMonth() +
+            1;
+
+        dia =
+            diaAnterior
+                .getUTCDate();
+    }
+
+    return (
+        String(ano) +
+        "-" +
+        String(mes)
+            .padStart(
+                2,
+                "0"
+            ) +
+        "-" +
+        String(dia)
+            .padStart(
+                2,
+                "0"
+            )
+    );
+}
 
 const PREMIOS_VALIDOS =
     new Set([
@@ -408,6 +546,61 @@ const premios = [
     "R$ 7"
 ];
 
+// ==============================
+// ROLETA DE PONTOS
+// ==============================
+
+const resultadosPontos = [
+    {
+        tipo: "pontos",
+        pontos: 100
+    },
+    {
+        tipo: "pontos",
+        pontos: 500
+    },
+    {
+        tipo: "diamante",
+        pontos: 1000
+    },
+    {
+        tipo: "pontos",
+        pontos: 300
+    },
+    {
+        tipo: "pontos",
+        pontos: 700
+    },
+    {
+        tipo: "pontos",
+        pontos: 100
+    },
+    {
+        tipo: "pontos",
+        pontos: 500
+    },
+    {
+        tipo: "roleta_premiada",
+        girosPremiada: 1
+    },
+    {
+        tipo: "pontos",
+        pontos: 100
+    },
+    {
+        tipo: "pontos",
+        pontos: 700
+    },
+    {
+        tipo: "pontos",
+        pontos: 300
+    },
+    {
+        tipo: "pontos",
+        pontos: 100
+    }
+];
+
 app.post(
     "/api/verificar-acesso",
     (req, res) => {
@@ -451,8 +644,406 @@ app.post(
             });
         }
 
+
+        // ========================================
+        // CRIA / ATUALIZA O USUÁRIO DA MINI APP
+        // ========================================
+
+        let usuarioApp;
+
+        try {
+
+            usuarioApp =
+                salvarUsuarioTelegram(
+                    usuario
+                );
+
+        } catch (erro) {
+
+            console.error(
+                "❌ Erro ao salvar usuário:",
+                erro
+            );
+
+            return res.status(500).json({
+                erro:
+                    "Não foi possível carregar seu usuário agora."
+            });
+        }
+
+
+        console.log(
+            `👤 USUÁRIO DA MINI APP: ` +
+            `${usuarioApp.nome} | ` +
+            `ID ${usuarioApp.usuarioId}`
+        );
+
+
         return res.json({
-            permitido: true
+            permitido: true,
+
+            usuario: {
+                nome:
+                    usuarioApp.nome,
+
+                pontos:
+                    usuarioApp.pontos,
+
+                girosPremiada:
+                    usuarioApp.girosPremiada,
+
+                girosPontosExtras:
+                    usuarioApp.girosPontosExtras
+            }
+        });
+    }
+);
+
+// ==============================
+// API DO USUÁRIO
+// ==============================
+
+app.post(
+    "/api/usuario",
+    (req, res) => {
+
+        const {
+            initData
+        } = req.body;
+
+
+        const validacao =
+            validarInitDataTelegram(
+                initData
+            );
+
+
+        if (!validacao.ok) {
+
+            return res.status(401).json({
+                erro:
+                    "Abra pelo Telegram."
+            });
+        }
+
+
+        const usuarioTelegram =
+            validacao.usuario;
+
+
+        if (
+            !usuarioLiberadoPorId(
+                usuarioTelegram.id
+            )
+        ) {
+
+            return res.status(403).json({
+                erro:
+                    "Esta conta não está habilitada.",
+                acessoBloqueado: true
+            });
+        }
+
+
+        let usuario;
+
+        try {
+
+            usuario =
+                salvarUsuarioTelegram(
+                    usuarioTelegram
+                );
+
+        } catch (erro) {
+
+            console.error(
+                "❌ Erro ao carregar usuário:",
+                erro
+            );
+
+            return res.status(500).json({
+                erro:
+                    "Não foi possível carregar seu usuário."
+            });
+        }
+
+        const periodoDiarioAtual =
+            obterPeriodoDiarioAtual();
+
+
+        const giroDiarioDisponivel =
+            usuario.ultimoPeriodoDiario !==
+            periodoDiarioAtual;
+
+        return res.json({
+
+            usuario: {
+
+                id:
+                    usuario.usuarioId,
+
+                nome:
+                    usuario.nome,
+
+                firstName:
+                    usuario.firstName,
+
+                lastName:
+                    usuario.lastName,
+
+                username:
+                    usuario.username,
+
+                pontos:
+                    usuario.pontos,
+
+                girosPremiada:
+                    usuario.girosPremiada,
+
+                girosPontosExtras:
+                    usuario.girosPontosExtras,
+
+                ultimoPeriodoDiario:
+                    usuario.ultimoPeriodoDiario,
+
+                periodoDiarioAtual:
+                    periodoDiarioAtual,
+
+                giroDiarioDisponivel:
+                    giroDiarioDisponivel,
+
+                dados:
+                    usuario.dados
+            }
+        });
+    }
+);
+
+// ==============================
+// GIRO DA ROLETA DE PONTOS
+// ==============================
+
+app.post(
+    "/api/girar-pontos",
+    (req, res) => {
+
+        const {
+            initData
+        } = req.body;
+
+
+        const validacao =
+            validarInitDataTelegram(
+                initData
+            );
+
+
+        if (!validacao.ok) {
+
+            return res.status(401).json({
+                erro:
+                    "Abra pelo Telegram."
+            });
+        }
+
+
+        const usuarioTelegram =
+            validacao.usuario;
+
+
+        if (
+            !usuarioLiberadoPorId(
+                usuarioTelegram.id
+            )
+        ) {
+
+            return res.status(403).json({
+                erro:
+                    "Esta conta não está habilitada.",
+                acessoBloqueado: true
+            });
+        }
+
+
+        let usuario;
+
+        try {
+
+            usuario =
+                salvarUsuarioTelegram(
+                    usuarioTelegram
+                );
+
+        } catch (erro) {
+
+            console.error(
+                "❌ Erro ao carregar usuário:",
+                erro
+            );
+
+            return res.status(500).json({
+                erro:
+                    "Não foi possível carregar seu usuário."
+            });
+        }
+
+
+        const periodoDiario =
+            obterPeriodoDiarioAtual();
+
+
+        // ========================================
+        // JÁ GIROU NESTE PERÍODO?
+        // ========================================
+
+        if (
+            usuario.ultimoPeriodoDiario ===
+            periodoDiario
+        ) {
+
+            return res.status(409).json({
+                erro:
+                    "Você já utilizou seu giro diário.",
+
+                jaGirouHoje:
+                    true,
+
+                periodoDiario
+            });
+        }
+
+
+        // ========================================
+        // SORTEIO FEITO NO SERVIDOR
+        // ========================================
+
+        const indice =
+            crypto.randomInt(
+                0,
+                resultadosPontos.length
+            );
+
+
+        const resultado =
+            resultadosPontos[
+            indice
+            ];
+
+
+        const pontosGanhos =
+            Number(
+                resultado.pontos || 0
+            );
+
+
+        const girosPremiadaGanhos =
+            Number(
+                resultado.girosPremiada || 0
+            );
+
+
+        // ========================================
+        // REGISTRO ATÔMICO
+        // ========================================
+
+        let registro;
+
+        try {
+
+            registro =
+                registrarGiroPontosDiario({
+                    usuarioId:
+                        usuario.usuarioId,
+
+                    periodoDiario,
+
+                    indice,
+
+                    tipoResultado:
+                        resultado.tipo,
+
+                    pontosGanhos,
+
+                    girosPremiadaGanhos
+                });
+
+        } catch (erro) {
+
+            console.error(
+                "❌ Erro ao registrar giro de pontos:",
+                erro
+            );
+
+            return res.status(500).json({
+                erro:
+                    "Não foi possível registrar seu giro."
+            });
+        }
+
+
+        if (!registro.ok) {
+
+            if (
+                registro.motivo ===
+                "giro_diario_ja_usado"
+            ) {
+
+                return res.status(409).json({
+                    erro:
+                        "Você já utilizou seu giro diário.",
+
+                    jaGirouHoje:
+                        true,
+
+                    periodoDiario
+                });
+            }
+
+
+            return res.status(500).json({
+                erro:
+                    "Não foi possível concluir seu giro."
+            });
+        }
+
+
+        console.log(
+            `🎯 ROLETA DE PONTOS | ` +
+            `${usuario.usuarioId} | ` +
+            `índice ${indice} | ` +
+            `${resultado.tipo} | ` +
+            `+${pontosGanhos} pts | ` +
+            `+${girosPremiadaGanhos} giro premiada`
+        );
+
+
+        return res.json({
+
+            indice,
+
+            tipo:
+                resultado.tipo,
+
+            pontosGanhos,
+
+            girosPremiadaGanhos,
+
+            periodoDiario,
+
+            usuario: {
+
+                pontos:
+                    registro.usuario.pontos,
+
+                girosPremiada:
+                    registro.usuario.girosPremiada,
+
+                girosPontosExtras:
+                    registro.usuario.girosPontosExtras,
+
+                ultimoPeriodoDiario:
+                    registro.usuario.ultimoPeriodoDiario
+            }
         });
     }
 );

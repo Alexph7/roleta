@@ -104,8 +104,341 @@ db.prepare(`
 `).run();
 
 // ========================================
+// USUÁRIOS DA MINI APP
+// ========================================
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS usuarios (
+        usuario_id TEXT PRIMARY KEY,
+
+        first_name TEXT,
+
+        last_name TEXT,
+
+        username TEXT,
+
+        nome_exibicao TEXT
+            NOT NULL,
+
+        pontos INTEGER
+            NOT NULL DEFAULT 0,
+
+        giros_premiada INTEGER
+            NOT NULL DEFAULT 0,
+
+        giros_pontos_extras INTEGER
+            NOT NULL DEFAULT 0,
+
+        ultimo_periodo_diario TEXT,
+
+        atingiu_pontuacao_em INTEGER,
+
+        dados_json TEXT
+            NOT NULL DEFAULT '{}',
+
+        criado_em INTEGER
+            NOT NULL,
+
+        atualizado_em INTEGER
+            NOT NULL
+    )
+`);
+
+
+// ========================================
+// HISTÓRICO GENÉRICO DO USUÁRIO
+// ========================================
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS eventos_usuario (
+        id INTEGER
+            PRIMARY KEY AUTOINCREMENT,
+
+        usuario_id TEXT
+            NOT NULL,
+
+        tipo TEXT
+            NOT NULL,
+
+        origem TEXT,
+
+        valor INTEGER,
+
+        dados_json TEXT,
+
+        criado_em INTEGER
+            NOT NULL
+    )
+`);
+
+
+// ========================================
+// ÍNDICES DOS EVENTOS
+// ========================================
+
+db.exec(`
+    CREATE INDEX IF NOT EXISTS
+    idx_eventos_usuario
+
+    ON eventos_usuario (
+        usuario_id,
+        criado_em
+    )
+`);
+
+// ========================================
 // CONSULTAS
 // ========================================
+
+// ========================================
+// NOME DE EXIBIÇÃO
+// ========================================
+
+function criarNomeExibicao(
+    firstName,
+    lastName,
+    username,
+    usuarioId
+) {
+
+    const nomeCompleto = [
+        firstName,
+        lastName
+    ]
+        .filter(Boolean)
+        .map(
+            valor =>
+                String(valor).trim()
+        )
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+
+
+    if (nomeCompleto) {
+
+        return nomeCompleto;
+    }
+
+
+    if (username) {
+
+        const usernameLimpo =
+            String(username)
+                .trim()
+                .replace(/^@/, "");
+
+        if (usernameLimpo) {
+
+            return `@${usernameLimpo}`;
+        }
+    }
+
+
+    return `Usuário ${usuarioId}`;
+}
+
+
+// ========================================
+// CONVERTER LINHA EM OBJETO DE USUÁRIO
+// ========================================
+
+function montarObjetoUsuario(
+    linha
+) {
+
+    if (!linha) {
+
+        return null;
+    }
+
+
+    let dados = {};
+
+    try {
+
+        dados =
+            JSON.parse(
+                linha.dados_json ||
+                "{}"
+            );
+
+    } catch {
+
+        dados = {};
+    }
+
+
+    return {
+
+        usuarioId:
+            linha.usuario_id,
+
+        firstName:
+            linha.first_name,
+
+        lastName:
+            linha.last_name,
+
+        username:
+            linha.username,
+
+        nome:
+            linha.nome_exibicao,
+
+        pontos:
+            Number(
+                linha.pontos || 0
+            ),
+
+        girosPremiada:
+            Number(
+                linha.giros_premiada || 0
+            ),
+
+        girosPontosExtras:
+            Number(
+                linha.giros_pontos_extras || 0
+            ),
+
+        ultimoPeriodoDiario:
+            linha.ultimo_periodo_diario,
+
+        atingiuPontuacaoEm:
+            linha.atingiu_pontuacao_em,
+
+        dados,
+
+        criadoEm:
+            linha.criado_em,
+
+        atualizadoEm:
+            linha.atualizado_em
+    };
+}
+
+
+// ========================================
+// BUSCAR USUÁRIO
+// ========================================
+
+function buscarUsuario(
+    usuarioId
+) {
+
+    const linha =
+        db.prepare(`
+            SELECT *
+            FROM usuarios
+            WHERE usuario_id = ?
+            LIMIT 1
+        `).get(
+            String(usuarioId)
+        );
+
+
+    return montarObjetoUsuario(
+        linha
+    );
+}
+
+
+// ========================================
+// CRIAR / ATUALIZAR USUÁRIO TELEGRAM
+// ========================================
+
+function salvarUsuarioTelegram(
+    usuarioTelegram
+) {
+
+    const usuarioId =
+        String(
+            usuarioTelegram.id
+        );
+
+
+    const firstName =
+        usuarioTelegram.first_name ||
+        null;
+
+
+    const lastName =
+        usuarioTelegram.last_name ||
+        null;
+
+
+    const username =
+        usuarioTelegram.username ||
+        null;
+
+
+    const nomeExibicao =
+        criarNomeExibicao(
+            firstName,
+            lastName,
+            username,
+            usuarioId
+        );
+
+
+    const agora =
+        Date.now();
+
+
+    db.prepare(`
+        INSERT INTO usuarios (
+            usuario_id,
+            first_name,
+            last_name,
+            username,
+            nome_exibicao,
+            criado_em,
+            atualizado_em
+        )
+
+        VALUES (
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?
+        )
+
+        ON CONFLICT(usuario_id)
+
+        DO UPDATE SET
+
+            first_name =
+                excluded.first_name,
+
+            last_name =
+                excluded.last_name,
+
+            username =
+                excluded.username,
+
+            nome_exibicao =
+                excluded.nome_exibicao,
+
+            atualizado_em =
+                excluded.atualizado_em
+    `).run(
+        usuarioId,
+        firstName,
+        lastName,
+        username,
+        nomeExibicao,
+        agora,
+        agora
+    );
+
+
+    return buscarUsuario(
+        usuarioId
+    );
+}
 
 function buscarGiroUsuarioCampanha(
     usuarioId,
@@ -128,6 +461,295 @@ function buscarGiroUsuarioCampanha(
     );
 }
 
+
+// ========================================
+// REGISTRAR EVENTO DO USUÁRIO
+// ========================================
+
+function registrarEventoUsuario({
+    usuarioId,
+    tipo,
+    origem = null,
+    valor = null,
+    dados = null,
+    criadoEm = Date.now()
+}) {
+
+    const dadosJson =
+        dados === null
+            ? null
+            : JSON.stringify(
+                dados
+            );
+
+
+    const resultado =
+        db.prepare(`
+            INSERT INTO eventos_usuario (
+                usuario_id,
+                tipo,
+                origem,
+                valor,
+                dados_json,
+                criado_em
+            )
+
+            VALUES (
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?
+            )
+        `).run(
+            String(usuarioId),
+            tipo,
+            origem,
+            valor,
+            dadosJson,
+            criadoEm
+        );
+
+
+    return {
+        id:
+            resultado.lastInsertRowid,
+
+        usuarioId:
+            String(usuarioId),
+
+        tipo,
+
+        origem,
+
+        valor,
+
+        dados,
+
+        criadoEm
+    };
+}
+
+// ========================================
+// GIRO DIÁRIO DA ROLETA DE PONTOS
+// ========================================
+
+const registrarGiroPontosDiarioTransaction =
+    db.transaction(
+        ({
+            usuarioId,
+            periodoDiario,
+            indice,
+            tipoResultado,
+            pontosGanhos = 0,
+            girosPremiadaGanhos = 0,
+            criadoEm = Date.now()
+        }) => {
+
+            const id =
+                String(usuarioId);
+
+
+            const pontos =
+                Math.max(
+                    0,
+                    Math.trunc(
+                        Number(
+                            pontosGanhos
+                        ) || 0
+                    )
+                );
+
+
+            const girosPremiada =
+                Math.max(
+                    0,
+                    Math.trunc(
+                        Number(
+                            girosPremiadaGanhos
+                        ) || 0
+                    )
+                );
+
+
+            // ========================================
+            // USUÁRIO PRECISA EXISTIR
+            // ========================================
+
+            const usuarioAntes =
+                buscarUsuario(
+                    id
+                );
+
+
+            if (!usuarioAntes) {
+
+                return {
+                    ok: false,
+                    motivo:
+                        "usuario_nao_encontrado"
+                };
+            }
+
+
+            // ========================================
+            // CONSOME O GIRO DIÁRIO
+            // E ENTREGA A RECOMPENSA
+            //
+            // O WHERE É O QUE IMPEDE
+            // DOIS GIROS NO MESMO PERÍODO.
+            // ========================================
+
+            const atualizacao =
+                db.prepare(`
+                    UPDATE usuarios
+
+                    SET
+                        ultimo_periodo_diario =
+                            ?,
+
+                        pontos =
+                            pontos + ?,
+
+                        giros_premiada =
+                            giros_premiada + ?,
+
+                        atingiu_pontuacao_em =
+                            CASE
+
+                                WHEN ? > 0
+                                THEN ?
+
+                                ELSE
+                                    atingiu_pontuacao_em
+
+                            END,
+
+                        atualizado_em =
+                            ?
+
+                    WHERE
+                        usuario_id = ?
+
+                        AND (
+                            ultimo_periodo_diario
+                                IS NULL
+
+                            OR
+
+                            ultimo_periodo_diario
+                                <> ?
+                        )
+                `).run(
+                    periodoDiario,
+                    pontos,
+                    girosPremiada,
+                    pontos,
+                    criadoEm,
+                    criadoEm,
+                    id,
+                    periodoDiario
+                );
+
+
+            // ========================================
+            // JÁ UTILIZOU O GIRO DAS 08:30
+            // ========================================
+
+            if (
+                atualizacao.changes !== 1
+            ) {
+
+                return {
+                    ok: false,
+
+                    motivo:
+                        "giro_diario_ja_usado",
+
+                    usuario:
+                        buscarUsuario(
+                            id
+                        )
+                };
+            }
+
+
+            // ========================================
+            // HISTÓRICO GENÉRICO
+            // ========================================
+
+            registrarEventoUsuario({
+                usuarioId:
+                    id,
+
+                tipo:
+                    "GIRO_ROLETA_PONTOS",
+
+                origem:
+                    "roleta_pontos",
+
+                valor:
+                    pontos > 0
+                        ? pontos
+                        : girosPremiada,
+
+                dados: {
+                    periodoDiario,
+                    indice,
+                    tipoResultado,
+
+                    pontosGanhos:
+                        pontos,
+
+                    girosPremiadaGanhos:
+                        girosPremiada
+                },
+
+                criadoEm
+            });
+
+
+            // ========================================
+            // ESTADO FINAL DO USUÁRIO
+            // ========================================
+
+            const usuarioDepois =
+                buscarUsuario(
+                    id
+                );
+
+
+            return {
+                ok: true,
+
+                periodoDiario,
+
+                indice,
+
+                tipoResultado,
+
+                pontosGanhos:
+                    pontos,
+
+                girosPremiadaGanhos:
+                    girosPremiada,
+
+                usuario:
+                    usuarioDepois
+            };
+        }
+    );
+
+
+function registrarGiroPontosDiario(
+    dados
+) {
+
+    return registrarGiroPontosDiarioTransaction.immediate(
+        dados
+    );
+}
 
 function contarGanhadoresCampanha(
     campanha
@@ -350,5 +972,10 @@ module.exports = {
     listarGiros,
     zerarRoleta,
     obterEstadoRoleta,
-    abrirRoleta
+    abrirRoleta,
+
+    buscarUsuario,
+    salvarUsuarioTelegram,
+    registrarEventoUsuario,
+    registrarGiroPontosDiario
 };

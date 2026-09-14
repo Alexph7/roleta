@@ -43,6 +43,21 @@ const ctxPontos =
         "2d"
     );
 
+const botaoGirarPontos =
+    document.getElementById(
+        "girar-pontos"
+    );
+
+const totalPontosElemento =
+    document.getElementById(
+        "total-pontos"
+    );
+
+const resultadoPontos =
+    document.getElementById(
+        "resultado-pontos"
+    );
+
 const botaoAbrirRoleta =
     document.getElementById(
         "abrir-roleta"
@@ -144,10 +159,16 @@ const anguloPorItem =
     (Math.PI * 2) / quantidade;
 
 let rotacaoAtual = 0;
+let rotacaoPontosAtual = 0;
+
 let versaoRodada = null;
 let rodadaAberta = false;
 let rodadaUtilizada = false;
 let verificandoEstado = false;
+
+let usuarioAtual = null;
+let carregandoUsuario = false;
+let girandoPontos = false;
 
 botaoGirar.disabled = true;
 botaoGirar.textContent =
@@ -211,6 +232,138 @@ async function verificarAcesso() {
     }
 }
 
+// ========================================
+// CARREGAR USUÁRIO DA MINI APP
+// ========================================
+
+function atualizarTelaPontos(
+    usuario
+) {
+
+    if (!usuario) {
+        return;
+    }
+
+
+    usuarioAtual =
+        usuario;
+
+
+    const pontos =
+        Number(
+            usuario.pontos || 0
+        );
+
+
+    totalPontosElemento.textContent =
+        `${pontos.toLocaleString("pt-BR")} pts`;
+
+
+    if (girandoPontos) {
+        return;
+    }
+
+
+    if (
+        usuario.giroDiarioDisponivel
+    ) {
+
+        botaoGirarPontos.disabled =
+            false;
+
+        botaoGirarPontos.textContent =
+            "🎡 GIRAR";
+
+    } else {
+
+        botaoGirarPontos.disabled =
+            true;
+
+        botaoGirarPontos.textContent =
+            "🔒 PRÓXIMO GIRO ÀS 08:30";
+    }
+}
+
+
+async function carregarUsuario() {
+
+    if (carregandoUsuario) {
+        return usuarioAtual;
+    }
+
+
+    carregandoUsuario = true;
+
+
+    try {
+
+        const resposta =
+            await fetch(
+                "/api/usuario",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            initData
+                        })
+                }
+            );
+
+
+        const dados =
+            await resposta.json();
+
+
+        if (
+            !resposta.ok ||
+            !dados.usuario
+        ) {
+
+            throw new Error(
+                dados.erro ||
+                "Usuário não disponível"
+            );
+        }
+
+
+        atualizarTelaPontos(
+            dados.usuario
+        );
+
+
+        return dados.usuario;
+
+    } catch (erro) {
+
+        console.error(
+            "❌ Erro ao carregar usuário:",
+            erro
+        );
+
+
+        botaoGirarPontos.disabled =
+            true;
+
+        botaoGirarPontos.textContent =
+            "❌ INDISPONÍVEL";
+
+
+        return null;
+
+    } finally {
+
+        carregandoUsuario =
+            false;
+    }
+}
+
 function abrirTelaPontos() {
 
     telaMenu.hidden = true;
@@ -220,6 +373,8 @@ function abrirTelaPontos() {
     telaPontos.hidden = false;
 
     desenharRoletaPontos();
+
+    carregarUsuario();
 }
 
 
@@ -603,6 +758,206 @@ function desenharRoletaPontos() {
         "🏆",
         centro,
         centro
+    );
+}
+
+// ========================================
+// GIRAR ROLETA DE PONTOS
+// ========================================
+
+async function girarPontos() {
+
+    if (girandoPontos) {
+        return;
+    }
+
+    girandoPontos = true;
+
+    botaoGirarPontos.disabled =
+        true;
+
+    botaoGirarPontos.textContent =
+        "⏳ GIRANDO...";
+
+    resultadoPontos.textContent =
+        "";
+
+    let resposta;
+    let dados;
+
+    try {
+
+        resposta =
+            await fetch(
+                "/api/girar-pontos",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            initData
+                        })
+                }
+            );
+
+
+        dados =
+            await resposta.json();
+
+    } catch (erro) {
+
+        console.error(
+            "❌ Erro no giro de pontos:",
+            erro
+        );
+
+        resultadoPontos.textContent =
+            "❌ Não foi possível realizar o giro.";
+
+        girandoPontos =
+            false;
+
+        await carregarUsuario();
+        return;
+    }
+
+    if (!resposta.ok) {
+
+        if (
+            resposta.status === 409 &&
+            dados.jaGirouHoje
+        ) {
+
+            resultadoPontos.textContent =
+                "🔒 Você já utilizou seu giro diário.";
+
+        } else {
+
+            resultadoPontos.textContent =
+                dados.erro ||
+                "❌ Não foi possível realizar o giro.";
+        }
+
+        girandoPontos =
+            false;
+
+
+        await carregarUsuario();
+        return;
+    }
+
+    const indice =
+        Number(
+            dados.indice
+        );
+
+    const grausPorItem =
+        360 /
+        itensPontos.length;
+
+    const destino =
+        (
+            360 -
+            indice *
+            grausPorItem
+        ) % 360;
+
+    const atualNormalizado =
+        rotacaoPontosAtual %
+        360;
+
+    const ajuste =
+        (
+            destino -
+            atualNormalizado +
+            360
+        ) % 360;
+
+    const voltasExtras =
+        6 * 360;
+
+    rotacaoPontosAtual +=
+        voltasExtras +
+        ajuste;
+
+    canvasPontos.style.transform =
+        `rotate(${rotacaoPontosAtual}deg)`;
+
+    setTimeout(
+        () => {
+
+            const pontosAtualizados =
+                Number(
+                    dados.usuario
+                        ?.pontos || 0
+                );
+
+            totalPontosElemento.textContent =
+                `${pontosAtualizados.toLocaleString("pt-BR")} pts`;
+
+            if (
+                dados.tipo ===
+                "roleta_premiada"
+            ) {
+                resultadoPontos.textContent =
+                    "🎡 Você ganhou 1 chance na Roleta Premiada!";
+
+            } else if (
+                dados.tipo ===
+                "diamante"
+            ) {
+                resultadoPontos.textContent =
+                    "💎 +1.000 pontos!";
+
+            } else {
+                resultadoPontos.textContent =
+                    `🎉 +${Number(
+                        dados.pontosGanhos || 0
+                    ).toLocaleString(
+                        "pt-BR"
+                    )} pontos!`;
+            }
+
+            if (usuarioAtual) {
+
+                usuarioAtual.pontos =
+                    pontosAtualizados;
+
+                usuarioAtual.girosPremiada =
+                    Number(
+                        dados.usuario
+                            ?.girosPremiada ||
+                        usuarioAtual
+                            .girosPremiada ||
+                        0
+                    );
+
+                usuarioAtual
+                    .ultimoPeriodoDiario =
+                    dados.periodoDiario;
+
+                usuarioAtual
+                    .giroDiarioDisponivel =
+                    false;
+            }
+
+            girandoPontos =
+                false;
+
+            botaoGirarPontos.disabled =
+                true;
+
+            botaoGirarPontos.textContent =
+                "🔒 PRÓXIMO GIRO ÀS 08:30";
+
+        },
+        5100
     );
 }
 
@@ -1028,6 +1383,11 @@ async function girar() {
     }, 5100);
 }
 
+botaoGirarPontos.addEventListener(
+    "click",
+    girarPontos
+);
+
 botaoAbrirPontos.addEventListener(
     "click",
     abrirTelaPontos
@@ -1066,7 +1426,10 @@ verificarAcesso()
     .then((permitido) => {
 
         if (permitido) {
+
             verificarEstadoRoleta();
+
+            carregarUsuario();
         }
     });
 
