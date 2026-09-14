@@ -309,6 +309,104 @@ function atualizarTelaPontos(
     }
 }
 
+// ========================================
+// ESTADO DA ROLETA PREMIADA
+// ========================================
+
+function atualizarTelaPremiada(
+    usuario
+) {
+
+    if (
+        !usuario ||
+        !usuario.roletaPremiada
+    ) {
+
+        return;
+    }
+
+
+    const estado =
+        usuario.roletaPremiada;
+
+
+    rodadaAberta =
+        estado.rodadaAberta ===
+        true;
+
+
+    rodadaUtilizada =
+        estado.giroNormalUtilizado ===
+        true;
+
+
+    // ========================================
+    // EXISTE NORMAL OU BÔNUS
+    // ========================================
+
+    if (estado.podeGirar) {
+
+        botaoGirar.disabled =
+            false;
+
+        botaoGirar.textContent =
+            "🎡 GIRAR";
+
+        return;
+    }
+
+
+    // ========================================
+    // ESTOQUE NORMAL ESGOTADO
+    // E NÃO POSSUI BÔNUS
+    // ========================================
+
+    if (
+        estado.premiosNormaisEsgotados
+    ) {
+
+        botaoGirar.disabled =
+            true;
+
+        botaoGirar.textContent =
+            "🎁 PRÊMIOS ESGOTADOS";
+
+        resultado.textContent =
+            "🎁 Os prêmios acabaram por enquanto. Talvez a roleta volte em breve 👀";
+
+        return;
+    }
+
+
+    // ========================================
+    // SUA RODADA AINDA NÃO FOI ABERTA
+    // E NÃO POSSUI BÔNUS
+    // ========================================
+
+    if (
+        !estado.rodadaAberta
+    ) {
+
+        botaoGirar.disabled =
+            true;
+
+        botaoGirar.textContent =
+            "🔒 AGUARDANDO LIBERAÇÃO";
+
+        return;
+    }
+
+
+    // ========================================
+    // NORMAL JÁ USADO E SEM BÔNUS
+    // ========================================
+
+    botaoGirar.disabled =
+        true;
+
+    botaoGirar.textContent =
+        "🔒 CHANCE ESGOTADA";
+}
 
 async function carregarUsuario() {
 
@@ -357,11 +455,13 @@ async function carregarUsuario() {
             );
         }
 
-
         atualizarTelaPontos(
             dados.usuario
         );
 
+        atualizarTelaPremiada(
+            dados.usuario
+        );
 
         return dados.usuario;
 
@@ -1297,8 +1397,9 @@ async function girarPontos() {
                 dados.tipo ===
                 "roleta_premiada"
             ) {
+
                 resultadoPontos.textContent =
-                    "🎡 Você ganhou 1 chance na Roleta Premiada!";
+                    "🎡 1 chance na Roleta Premiada! Use em até 23h59. Essa chance não acumula.";
 
             } else if (
                 dados.tipo ===
@@ -1359,7 +1460,10 @@ async function verificarEstadoRoleta() {
         return;
     }
 
-    verificandoEstado = true;
+
+    verificandoEstado =
+        true;
+
 
     try {
 
@@ -1367,24 +1471,35 @@ async function verificarEstadoRoleta() {
             await fetch(
                 `/api/estado-roleta?t=${Date.now()}`,
                 {
-                    cache: "no-store"
+                    cache:
+                        "no-store"
                 }
             );
+
 
         if (!resposta.ok) {
             return;
         }
 
+
         const dados =
             await resposta.json();
 
-        const novaVersao =
-            Number(dados.versao);
 
-        // ADMIN DEU /roleta
+        const novaVersao =
+            Number(
+                dados.versao
+            );
+
+
+        // ========================================
+        // ADMIN INICIOU OUTRA RODADA
+        // ========================================
+
         if (
             versaoRodada !== null &&
-            novaVersao !== versaoRodada
+            novaVersao !==
+            versaoRodada
         ) {
 
             window.location.reload();
@@ -1392,56 +1507,39 @@ async function verificarEstadoRoleta() {
             return;
         }
 
+
         versaoRodada =
             novaVersao;
 
+
         rodadaAberta =
-            dados.aberta === true;
+            dados.aberta ===
+            true;
 
-        if (statusRoletaMenu) {
-            statusRoletaMenu.hidden = true;
-        }
 
-        // RODADA FECHADA
-        if (!rodadaAberta) {
+        if (
+            statusRoletaMenu
+        ) {
 
-            botaoGirar.disabled = true;
-
-            botaoGirar.textContent =
-                "🔒 AGUARDANDO LIBERAÇÃO";
-
-            if (!rodadaUtilizada) {
-
-                resultado.textContent =
-                    "";
-            }
-
-            return;
+            statusRoletaMenu.hidden =
+                true;
         }
 
 
-        // RODADA ABERTA
-        if (!rodadaUtilizada) {
+        // A decisão de liberar o botão
+        // agora depende de:
+        //
+        // normal + bônus pessoal.
 
-            botaoGirar.disabled =
-                false;
+        await carregarUsuario();
 
-            botaoGirar.textContent =
-                "🎡 GIRAR";
-
-            if (
-                resultado.textContent ===
-                "🔒 A próxima rodada ainda não foi liberada."
-            ) {
-
-                resultado.textContent =
-                    "";
-            }
-        }
 
     } catch (erro) {
 
-        if (versaoRodada === null) {
+        if (
+            versaoRodada ===
+            null
+        ) {
 
             resultado.textContent =
                 "❌ Não foi possível verificar a rodada agora.";
@@ -1449,7 +1547,8 @@ async function verificarEstadoRoleta() {
 
     } finally {
 
-        verificandoEstado = false;
+        verificandoEstado =
+            false;
     }
 }
 
@@ -1767,10 +1866,7 @@ async function girar() {
                 `🎉 Você ganhou ${premio}!`;
         }
 
-        botaoGirar.disabled = true;
-
-        botaoGirar.textContent =
-            "🔒 RODADA UTILIZADA";
+        carregarUsuario();
 
     }, 5100);
 }

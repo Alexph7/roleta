@@ -16,6 +16,7 @@ const {
     abrirRoleta,
     salvarUsuarioTelegram,
     registrarGiroPontosDiario,
+    registrarGiroPremiadaBonus,
     listarRankingPontos,
     obterPosicaoRankingPontos
 } = require("./database");
@@ -777,6 +778,54 @@ app.post(
             usuario.ultimoPeriodoDiario !==
             periodoDiarioAtual;
 
+
+        // ========================================
+        // ESTADO DA ROLETA PREMIADA
+        // ========================================
+
+        const estadoPremiada =
+            obterEstadoRoleta();
+
+
+        const giroNormalAnterior =
+            buscarGiroUsuarioCampanha(
+                String(
+                    usuario.usuarioId
+                ),
+                CAMPANHA_ATUAL
+            );
+
+
+        const premiosNormaisEsgotados =
+            contarGanhadoresCampanha(
+                CAMPANHA_ATUAL
+            ) >= MAX_GANHADORES;
+
+
+        const agora =
+            Date.now();
+
+
+        const chancePremiadaDisponivel =
+            Number(
+                usuario.girosPremiada || 0
+            ) >= 1 &&
+            Number(
+                usuario.giroPremiadaExpiraEm || 0
+            ) > agora;
+
+
+        const giroNormalDisponivel =
+            estadoPremiada.aberta === true &&
+            !giroNormalAnterior &&
+            !premiosNormaisEsgotados;
+
+
+        const podeGirarPremiada =
+            giroNormalDisponivel ||
+            chancePremiadaDisponivel;
+
+
         return res.json({
 
             usuario: {
@@ -801,6 +850,37 @@ app.post(
 
                 girosPremiada:
                     usuario.girosPremiada,
+
+                giroPremiadaExpiraEm:
+                    usuario.giroPremiadaExpiraEm,
+
+                roletaPremiada: {
+
+                    versao:
+                        estadoPremiada.versao,
+
+                    rodadaAberta:
+                        estadoPremiada.aberta,
+
+                    giroNormalUtilizado:
+                        Boolean(
+                            giroNormalAnterior
+                        ),
+
+                    giroNormalDisponivel,
+
+                    chancePremiadaDisponivel,
+
+                    chancePremiadaExpiraEm:
+                        chancePremiadaDisponivel
+                            ? usuario.giroPremiadaExpiraEm
+                            : null,
+
+                    premiosNormaisEsgotados,
+
+                    podeGirar:
+                        podeGirarPremiada
+                },
 
                 girosPontosExtras:
                     usuario.girosPontosExtras,
@@ -1040,6 +1120,9 @@ app.post(
                 girosPremiada:
                     registro.usuario.girosPremiada,
 
+                giroPremiadaExpiraEm:
+                    registro.usuario.giroPremiadaExpiraEm,
+
                 girosPontosExtras:
                     registro.usuario.girosPontosExtras,
 
@@ -1254,10 +1337,12 @@ app.post(
             versaoRodada
         } = req.body;
 
+
         const validacao =
             validarInitDataTelegram(
                 initData
             );
+
 
         if (!validacao.ok) {
 
@@ -1272,86 +1357,164 @@ app.post(
             });
         }
 
-        const usuario = validacao.usuario;
+
+        const usuarioTelegram =
+            validacao.usuario;
+
 
         if (
             !usuarioLiberadoPorId(
-                usuario.id
+                usuarioTelegram.id
             )
         ) {
-            console.log(
-                `⛔ Giro bloqueado pelo corte de ID: ${usuario.id}`
-            );
 
             return res.status(403).json({
                 erro:
                     "Esta conta não está habilitada para participar.",
-                acessoBloqueado: true
+
+                acessoBloqueado:
+                    true
             });
         }
 
-        const estadoRoleta =
+
+        let usuarioApp;
+
+        try {
+
+            usuarioApp =
+                salvarUsuarioTelegram(
+                    usuarioTelegram
+                );
+
+        } catch (erro) {
+
+            console.error(
+                "❌ Erro ao carregar usuário:",
+                erro
+            );
+
+            return res.status(500).json({
+                erro:
+                    "Não foi possível carregar seu usuário."
+            });
+        }
+
+
+        const usuarioId =
+            String(
+                usuarioTelegram.id
+            );
+
+
+        // ========================================
+        // ESTADO INICIAL
+        // ========================================
+
+        const estadoInicial =
             obterEstadoRoleta();
 
-        // A TELA É DE UMA RODADA ANTIGA?
+
         if (
             Number(versaoRodada) !==
-            estadoRoleta.versao
+            estadoInicial.versao
         ) {
-
-            console.log(
-                `🔄 Tela antiga bloqueada. ` +
-                `Cliente: ${versaoRodada} | ` +
-                `Servidor: ${estadoRoleta.versao}`
-            );
 
             return res.status(409).json({
                 erro:
                     "Uma nova rodada foi iniciada.",
 
-                rodadaAtualizada: true,
+                rodadaAtualizada:
+                    true,
 
                 versao:
-                    estadoRoleta.versao
+                    estadoInicial.versao
             });
         }
 
 
-        // A RODADA JÁ FOI LIBERADA?
-        if (!estadoRoleta.aberta) {
-
-            console.log(
-                `🔒 Giro bloqueado: rodada ${estadoRoleta.versao} fechada`
+        const giroNormalAnterior =
+            buscarGiroUsuarioCampanha(
+                usuarioId,
+                CAMPANHA_ATUAL
             );
 
-            return res.status(423).json({
+
+        const agoraInicial =
+            Date.now();
+
+
+        const chanceBonusInicial =
+            Number(
+                usuarioApp.girosPremiada || 0
+            ) >= 1 &&
+            Number(
+                usuarioApp.giroPremiadaExpiraEm || 0
+            ) > agoraInicial;
+
+
+        const normalInicialDisponivel =
+            estadoInicial.aberta === true &&
+            !giroNormalAnterior;
+
+
+        // ========================================
+        // NÃO POSSUI NENHUMA PORTA DE ENTRADA
+        // ========================================
+
+        if (
+            !normalInicialDisponivel &&
+            !chanceBonusInicial
+        ) {
+
+            if (!estadoInicial.aberta) {
+
+                return res.status(423).json({
+                    erro:
+                        "A nova rodada ainda não foi liberada.",
+
+                    rodadaFechada:
+                        true,
+
+                    versao:
+                        estadoInicial.versao
+                });
+            }
+
+
+            return res.status(409).json({
                 erro:
-                    "A nova rodada ainda não foi liberada.",
+                    "Você não possui chances disponíveis.",
 
-                rodadaFechada: true,
+                chanceEsgotada:
+                    true,
 
-                versao:
-                    estadoRoleta.versao
+                jaGirou:
+                    true
             });
         }
 
 
         const versaoDoGiro =
-            estadoRoleta.versao;
+            estadoInicial.versao;
 
-        // VERIFICA SE ESTÁ NOS CANAIS
+
+        // ========================================
+        // VERIFICA COMUNIDADE
+        // ========================================
+
         try {
 
             const canaisFaltando =
                 await verificarCanaisObrigatorios(
-                    usuario.id
+                    usuarioTelegram.id
                 );
 
-            if (canaisFaltando.length > 0) {
 
-                console.log(
-                    `🔒 ${usuario.id} não está em todos os canais`
-                );
+            if (
+                canaisFaltando.length >
+                0
+            ) {
 
                 return res.status(403).json({
                     erro:
@@ -1374,114 +1537,176 @@ app.post(
             });
         }
 
+
         // ========================================
-        // CONFIRMA A RODADA NOVAMENTE
+        // CONFIRMA TUDO DEPOIS DO AWAIT
         // ========================================
 
         const estadoConfirmado =
             obterEstadoRoleta();
+
 
         if (
             estadoConfirmado.versao !==
             versaoDoGiro
         ) {
 
-            console.log(
-                `🔄 Giro antigo cancelado. ` +
-                `Começou na rodada ${versaoDoGiro}, ` +
-                `mas agora estamos na ${estadoConfirmado.versao}`
-            );
-
             return res.status(409).json({
                 erro:
                     "Uma nova rodada foi iniciada.",
 
-                rodadaAtualizada: true,
+                rodadaAtualizada:
+                    true,
 
                 versao:
                     estadoConfirmado.versao
             });
         }
 
-        if (!estadoConfirmado.aberta) {
 
-            console.log(
-                `🔒 Giro cancelado: rodada ${estadoConfirmado.versao} fechada`
+        let usuarioConfirmado;
+
+        try {
+
+            usuarioConfirmado =
+                salvarUsuarioTelegram(
+                    usuarioTelegram
+                );
+
+        } catch (erro) {
+
+            console.error(
+                "❌ Erro ao confirmar usuário:",
+                erro
             );
 
-            return res.status(423).json({
+            return res.status(500).json({
                 erro:
-                    "A nova rodada ainda não foi liberada.",
-
-                rodadaFechada: true,
-
-                versao:
-                    estadoConfirmado.versao
+                    "Não foi possível confirmar sua participação."
             });
         }
 
-        const usuarioId =
-            String(usuario.id);
 
-
-        // ========================================
-        // JÁ UTILIZOU O GIRO?
-        // ========================================
-
-        const giroAnterior =
+        const giroNormalConfirmado =
             buscarGiroUsuarioCampanha(
                 usuarioId,
                 CAMPANHA_ATUAL
             );
 
-        if (giroAnterior) {
 
-            console.log(
-                `🔒 ${usuarioId} já utilizou o giro`
-            );
+        const agoraConfirmado =
+            Date.now();
+
+
+        let chanceBonusDisponivel =
+            Number(
+                usuarioConfirmado
+                    .girosPremiada || 0
+            ) >= 1 &&
+            Number(
+                usuarioConfirmado
+                    .giroPremiadaExpiraEm || 0
+            ) > agoraConfirmado;
+
+
+        let normalDisponivel =
+            estadoConfirmado.aberta ===
+            true &&
+            !giroNormalConfirmado;
+
+
+        if (
+            !normalDisponivel &&
+            !chanceBonusDisponivel
+        ) {
+
+            if (
+                !estadoConfirmado.aberta
+            ) {
+
+                return res.status(423).json({
+                    erro:
+                        "A nova rodada ainda não foi liberada.",
+
+                    rodadaFechada:
+                        true,
+
+                    versao:
+                        estadoConfirmado.versao
+                });
+            }
+
 
             return res.status(409).json({
                 erro:
-                    "Você já utilizou sua rodada.",
+                    "Você não possui chances disponíveis.",
 
-                jaGirou: true,
+                chanceEsgotada:
+                    true,
 
-                resultadoAnterior: {
-                    indice:
-                        giroAnterior.indice,
-
-                    premio:
-                        giroAnterior.premio
-                }
+                jaGirou:
+                    true
             });
         }
 
 
         // ========================================
-        // JÁ SAÍRAM OS 5 GANHADORES?
+        // ESCOLHE A ORIGEM
+        //
+        // NORMAL TEM PRIORIDADE ABSOLUTA
         // ========================================
 
-        const totalGanhadores =
-            contarGanhadoresCampanha(
-                CAMPANHA_ATUAL
-            );
+        let origemGiro;
 
-        if (
-            totalGanhadores >=
-            MAX_GANHADORES
-        ) {
 
-            console.log(
-                "🏁 Prêmios esgotados"
-            );
+        if (normalDisponivel) {
 
-            return res.status(410).json({
-                erro:
-                    "Os prêmios acabaram por enquanto. Talvez a roleta volte em breve 👀",
+            const totalGanhadores =
+                contarGanhadoresCampanha(
+                    CAMPANHA_ATUAL
+                );
 
-                premiosEsgotados: true
-            });
+
+            if (
+                totalGanhadores <
+                MAX_GANHADORES
+            ) {
+
+                origemGiro =
+                    "normal";
+
+            } else if (
+                chanceBonusDisponivel
+            ) {
+
+                // Estoque normal acabou,
+                // mas a chance pessoal
+                // continua independente.
+
+                origemGiro =
+                    "bonus";
+
+            } else {
+
+                return res.status(410).json({
+                    erro:
+                        "Os prêmios acabaram por enquanto. Talvez a roleta volte em breve 👀",
+
+                    premiosEsgotados:
+                        true
+                });
+            }
+
+        } else {
+
+            origemGiro =
+                "bonus";
         }
+
+
+        // ========================================
+        // SORTEIO
+        // ========================================
 
         const indice =
             crypto.randomInt(
@@ -1489,126 +1714,264 @@ app.post(
                 premios.length
             );
 
+
         const premio =
-            premios[indice];
+            premios[
+            indice
+            ];
+
 
         const ehPremio =
             PREMIOS_VALIDOS.has(
                 premio
             );
 
-        const registro =
-            registrarGiroCampanha({
-                usuarioId,
-                indice,
-                premio,
 
-                campanha:
-                    CAMPANHA_ATUAL,
+        let registro;
 
-                ehPremio,
 
-                maxGanhadores:
-                    MAX_GANHADORES
-            });
+        // ========================================
+        // GIRO NORMAL
+        // ========================================
 
-        if (!registro.ok) {
+        if (
+            origemGiro ===
+            "normal"
+        ) {
 
-            if (
-                registro.motivo ===
-                "ja_girou"
-            ) {
+            registro =
+                registrarGiroCampanha({
+                    usuarioId,
+                    indice,
+                    premio,
 
-                return res.status(409).json({
-                    erro:
-                        "Você já utilizou sua rodada.",
+                    campanha:
+                        CAMPANHA_ATUAL,
 
-                    jaGirou: true
+                    ehPremio,
+
+                    maxGanhadores:
+                        MAX_GANHADORES
                 });
+
+
+            // ========================================
+            // RACE:
+            // NORMAL SUMIU ENTRE A CHECAGEM
+            // E O REGISTRO.
+            //
+            // SE POSSUI BÔNUS, CAI PARA ELE.
+            // ========================================
+
+            if (!registro.ok) {
+
+                if (
+                    (
+                        registro.motivo ===
+                        "ja_girou" ||
+                        registro.motivo ===
+                        "esgotado"
+                    )
+                ) {
+
+                    const usuarioBonus =
+                        salvarUsuarioTelegram(
+                            usuarioTelegram
+                        );
+
+
+                    const agoraBonus =
+                        Date.now();
+
+
+                    chanceBonusDisponivel =
+                        Number(
+                            usuarioBonus
+                                .girosPremiada || 0
+                        ) >= 1 &&
+                        Number(
+                            usuarioBonus
+                                .giroPremiadaExpiraEm || 0
+                        ) > agoraBonus;
+
+
+                    if (
+                        chanceBonusDisponivel
+                    ) {
+
+                        origemGiro =
+                            "bonus";
+
+                        registro =
+                            registrarGiroPremiadaBonus({
+                                usuarioId,
+                                indice,
+                                premio,
+                                ehPremio
+                            });
+
+                    } else if (
+                        registro.motivo ===
+                        "esgotado"
+                    ) {
+
+                        return res.status(410).json({
+                            erro:
+                                "Os prêmios acabaram por enquanto. Talvez a roleta volte em breve 👀",
+
+                            premiosEsgotados:
+                                true
+                        });
+
+                    } else {
+
+                        return res.status(409).json({
+                            erro:
+                                "Você não possui chances disponíveis.",
+
+                            chanceEsgotada:
+                                true,
+
+                            jaGirou:
+                                true
+                        });
+                    }
+                }
             }
 
-            if (
-                registro.motivo ===
-                "esgotado"
-            ) {
+        } else {
 
-                return res.status(410).json({
-                    erro:
-                        "Os prêmios acabaram por enquanto. Talvez a roleta volte em breve 👀",
+            // ========================================
+            // GIRO BÔNUS
+            // ========================================
 
-                    premiosEsgotados: true
+            registro =
+                registrarGiroPremiadaBonus({
+                    usuarioId,
+                    indice,
+                    premio,
+                    ehPremio
                 });
-            }
         }
 
+
+        // ========================================
+        // BÔNUS JÁ FOI CONSUMIDO/EXPIROU
+        // ========================================
+
+        if (
+            !registro.ok
+        ) {
+
+            return res.status(409).json({
+                erro:
+                    "Sua chance conquistada não está mais disponível.",
+
+                chanceEsgotada:
+                    true
+            });
+        }
+
+
+        const usuarioFinal =
+            salvarUsuarioTelegram(
+                usuarioTelegram
+            );
+
+
         const giroId =
-            registro.giroId;
+            origemGiro ===
+                "normal"
+                ? registro.giroId
+                : registro.eventoId;
+
 
         console.log(
-            `✅ Telegram validado: ${usuario.id}`
+            `🎡 ROLETA PREMIADA | ` +
+            `${usuarioId} | ` +
+            `${origemGiro.toUpperCase()} | ` +
+            `${premio}`
         );
 
-        console.log(
-            `👤 Usuário: ${usuario.first_name}` +
-            (
-                usuario.username
-                    ? ` (@${usuario.username})`
-                    : ""
-            )
-        );
 
-        console.log(
-            `💾 Giro ${giroId} salvo`
-        );
-
-        console.log(
-            `🎡 Resultado: ${premio}`
-        );
+        // ========================================
+        // AVISO DE GANHADOR
+        // ========================================
 
         if (ehPremio) {
 
-            console.log(
-                `🏆 GANHADOR ${registro.totalGanhadores}/${MAX_GANHADORES}`
+            setTimeout(
+                () => {
+
+                    // A dinâmica normal continua
+                    // vinculada à versão da rodada.
+
+                    if (
+                        origemGiro ===
+                        "normal"
+                    ) {
+
+                        const estadoAtual =
+                            obterEstadoRoleta();
+
+
+                        if (
+                            estadoAtual.versao !==
+                            versaoDoGiro
+                        ) {
+
+                            console.log(
+                                "⏭️ Aviso antigo da rodada normal ignorado"
+                            );
+
+                            return;
+                        }
+                    }
+
+
+                    // O bônus é independente
+                    // da rodada administrativa.
+
+                    avisarGanhador(
+                        usuarioTelegram,
+                        premio
+                    ).catch(
+                        (erro) => {
+
+                            console.error(
+                                "❌ Erro ao anunciar ganhador:",
+                                erro
+                            );
+                        }
+                    );
+
+                },
+                5500
             );
-
-            setTimeout(() => {
-
-                const estadoAtual =
-                    obterEstadoRoleta();
-
-                if (
-                    estadoAtual.versao !==
-                    versaoDoGiro
-                ) {
-
-                    console.log(
-                        `⏭️ Aviso antigo ignorado. ` +
-                        `Giro da rodada ${versaoDoGiro}, ` +
-                        `rodada atual ${estadoAtual.versao}`
-                    );
-
-                    return;
-                }
-
-                avisarGanhador(
-                    usuario,
-                    premio
-                ).catch((erro) => {
-
-                    console.error(
-                        "❌ Erro ao anunciar ganhador:",
-                        erro
-                    );
-                });
-
-            }, 5500);
-
         }
 
-        res.json({
+
+        return res.json({
+
             giroId,
+
             indice,
-            premio
+
+            premio,
+
+            origem:
+                origemGiro,
+
+            usuario: {
+
+                girosPremiada:
+                    usuarioFinal
+                        .girosPremiada,
+
+                giroPremiadaExpiraEm:
+                    usuarioFinal
+                        .giroPremiadaExpiraEm
+            }
         });
     }
 );
