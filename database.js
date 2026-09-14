@@ -4,6 +4,13 @@ const db = new Database("roleta.db");
 
 db.pragma("journal_mode = WAL");
 
+const DURACAO_CHANCE_PREMIADA_MS =
+    (
+        23 * 60 +
+        59
+    ) *
+    60 *
+    1000;
 
 // ========================================
 // TABELA
@@ -144,6 +151,33 @@ db.exec(`
     )
 `);
 
+// ========================================
+// MIGRAÇÕES DA TABELA USUARIOS
+// ========================================
+
+const colunasUsuarios =
+    db.prepare(`
+        PRAGMA table_info(usuarios)
+    `).all();
+
+
+const nomesColunasUsuarios =
+    colunasUsuarios.map(
+        coluna => coluna.name
+    );
+
+
+if (
+    !nomesColunasUsuarios.includes(
+        "giro_premiada_expira_em"
+    )
+) {
+
+    db.exec(`
+        ALTER TABLE usuarios
+        ADD COLUMN giro_premiada_expira_em INTEGER
+    `);
+}
 
 // ========================================
 // HISTÓRICO GENÉRICO DO USUÁRIO
@@ -296,6 +330,13 @@ function montarObjetoUsuario(
                 linha.giros_premiada || 0
             ),
 
+        giroPremiadaExpiraEm:
+            linha.giro_premiada_expira_em
+                ? Number(
+                    linha.giro_premiada_expira_em
+                )
+                : null,
+
         girosPontosExtras:
             Number(
                 linha.giros_pontos_extras || 0
@@ -428,9 +469,45 @@ function salvarUsuarioTelegram(
         usuarioId,
         firstName,
         lastName,
-        username,
         nomeExibicao,
         agora,
+        agora
+    );
+
+
+    // ========================================
+    // REMOVE CHANCE PREMIADA EXPIRADA
+    // ========================================
+
+    db.prepare(`
+    UPDATE usuarios
+
+    SET
+        giros_premiada = 0,
+
+        giro_premiada_expira_em =
+            NULL,
+
+        atualizado_em =
+            ?
+
+    WHERE
+        usuario_id = ?
+
+        AND giros_premiada > 0
+
+        AND (
+            giro_premiada_expira_em
+                IS NULL
+
+            OR
+
+            giro_premiada_expira_em
+                <= ?
+        )
+`).run(
+        agora,
+        usuarioId,
         agora
     );
 
@@ -572,6 +649,11 @@ const registrarGiroPontosDiarioTransaction =
                     )
                 );
 
+            const giroPremiadaExpiraEm =
+                girosPremiada > 0
+                    ? criadoEm +
+                    DURACAO_CHANCE_PREMIADA_MS
+                    : null;
 
             // ========================================
             // USUÁRIO PRECISA EXISTIR
@@ -613,7 +695,26 @@ const registrarGiroPontosDiarioTransaction =
                             pontos + ?,
 
                         giros_premiada =
-                            giros_premiada + ?,
+                            CASE
+
+                                WHEN ? > 0
+                                THEN 1
+
+                                ELSE
+                                    giros_premiada
+
+                            END,
+
+                        giro_premiada_expira_em =
+                            CASE
+
+                                WHEN ? > 0
+                                THEN ?
+
+                                ELSE
+                                    giro_premiada_expira_em
+
+                            END,
 
                         atingiu_pontuacao_em =
                             CASE
@@ -644,10 +745,17 @@ const registrarGiroPontosDiarioTransaction =
                 `).run(
                     periodoDiario,
                     pontos,
+
                     girosPremiada,
+
+                    girosPremiada,
+                    giroPremiadaExpiraEm,
+
                     pontos,
                     criadoEm,
+
                     criadoEm,
+
                     id,
                     periodoDiario
                 );
@@ -703,7 +811,9 @@ const registrarGiroPontosDiarioTransaction =
                         pontos,
 
                     girosPremiadaGanhos:
-                        girosPremiada
+                        girosPremiada,
+
+                    giroPremiadaExpiraEm
                 },
 
                 criadoEm
@@ -747,6 +857,135 @@ function registrarGiroPontosDiario(
 ) {
 
     return registrarGiroPontosDiarioTransaction.immediate(
+        dados
+    );
+}
+
+// ========================================
+// CONSUMIR CHANCE PESSOAL
+// DA ROLETA PREMIADA
+// ========================================
+
+const registrarGiroPremiadaBonusTransaction =
+    db.transaction(
+        ({
+            usuarioId,
+            indice,
+            premio,
+            ehPremio,
+            criadoEm = Date.now()
+        }) => {
+
+            const id =
+                String(
+                    usuarioId
+                );
+
+
+            // ========================================
+            // CONSOME SOMENTE SE:
+            //
+            // - existe chance
+            // - ainda não expirou
+            // ========================================
+
+            const consumo =
+                db.prepare(`
+                    UPDATE usuarios
+
+                    SET
+                        giros_premiada = 0,
+
+                        giro_premiada_expira_em =
+                            NULL,
+
+                        atualizado_em =
+                            ?
+
+                    WHERE
+                        usuario_id = ?
+
+                        AND giros_premiada >= 1
+
+                        AND giro_premiada_expira_em
+                            IS NOT NULL
+
+                        AND giro_premiada_expira_em
+                            > ?
+                `).run(
+                    criadoEm,
+                    id,
+                    criadoEm
+                );
+
+
+            if (
+                consumo.changes !== 1
+            ) {
+
+                return {
+                    ok: false,
+                    motivo:
+                        "chance_bonus_indisponivel",
+
+                    usuario:
+                        buscarUsuario(
+                            id
+                        )
+                };
+            }
+
+
+            // ========================================
+            // GUARDA O GIRO BÔNUS
+            //
+            // NÃO VAI PARA A TABELA "giros".
+            // portanto NÃO interfere na rodada normal.
+            // ========================================
+
+            const evento =
+                registrarEventoUsuario({
+                    usuarioId:
+                        id,
+
+                    tipo:
+                        "GIRO_ROLETA_PREMIADA_BONUS",
+
+                    origem:
+                        "roleta_pontos",
+
+                    dados: {
+                        indice,
+                        premio,
+
+                        ehPremio:
+                            ehPremio === true
+                    },
+
+                    criadoEm
+                });
+
+
+            return {
+                ok: true,
+
+                eventoId:
+                    evento.id,
+
+                usuario:
+                    buscarUsuario(
+                        id
+                    )
+            };
+        }
+    );
+
+
+function registrarGiroPremiadaBonus(
+    dados
+) {
+
+    return registrarGiroPremiadaBonusTransaction.immediate(
         dados
     );
 }
@@ -1138,6 +1377,7 @@ module.exports = {
     salvarUsuarioTelegram,
     registrarEventoUsuario,
     registrarGiroPontosDiario,
+    registrarGiroPremiadaBonus,
     listarRankingPontos,
     obterPosicaoRankingPontos
 };
