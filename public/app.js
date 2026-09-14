@@ -83,6 +83,17 @@ const resultadoPontos =
         "resultado-pontos"
     );
 
+const historicoPontosLista =
+    document.getElementById(
+        "historico-pontos-lista"
+    );
+
+
+const historicoPremiadaLista =
+    document.getElementById(
+        "historico-premiada-lista"
+    );
+
 const botaoAbrirRoleta =
     document.getElementById(
         "abrir-roleta"
@@ -855,25 +866,335 @@ function voltarParaMenuRanking() {
         false;
 }
 
+// ========================================
+// HISTÓRICO PÚBLICO DOS JOGOS
+// ========================================
+
+function criarLinhaHistorico(
+    nome,
+    textoResultado
+) {
+
+    const linha =
+        document.createElement(
+            "div"
+        );
+
+
+    linha.className =
+        "historico-jogo-linha";
+
+
+    const elementoNome =
+        document.createElement(
+            "span"
+        );
+
+
+    elementoNome.className =
+        "historico-jogo-nome";
+
+
+    elementoNome.textContent =
+        nome ||
+        "Participante";
+
+
+    const elementoResultado =
+        document.createElement(
+            "strong"
+        );
+
+
+    elementoResultado.className =
+        "historico-jogo-resultado";
+
+
+    elementoResultado.textContent =
+        textoResultado;
+
+
+    linha.appendChild(
+        elementoNome
+    );
+
+
+    linha.appendChild(
+        elementoResultado
+    );
+
+
+    return linha;
+}
+
+
+// ========================================
+// 7 ÚLTIMOS DA ROLETA DE PONTOS
+// ========================================
+
+async function carregarHistoricoPontos() {
+
+    if (!historicoPontosLista) {
+        return;
+    }
+
+
+    try {
+
+        const resposta =
+            await fetch(
+                "/api/historico-pontos",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            initData
+                        })
+                }
+            );
+
+
+        const dados =
+            await resposta.json();
+
+
+        if (!resposta.ok) {
+
+            throw new Error(
+                dados.erro ||
+                "Histórico indisponível"
+            );
+        }
+
+
+        historicoPontosLista
+            .replaceChildren();
+
+
+        const resultados =
+            Array.isArray(
+                dados.resultados
+            )
+                ? dados.resultados
+                : [];
+
+
+        if (
+            resultados.length === 0
+        ) {
+
+            const vazio =
+                document.createElement(
+                    "span"
+                );
+
+
+            vazio.className =
+                "historico-vazio";
+
+
+            vazio.textContent =
+                "Nenhum giro ainda.";
+
+
+            historicoPontosLista
+                .appendChild(
+                    vazio
+                );
+
+
+            return;
+        }
+
+
+        for (
+            const item
+            of resultados
+        ) {
+
+            let textoResultado;
+
+
+            if (
+                item.tipo ===
+                "diamante"
+            ) {
+
+                textoResultado =
+                    `💎 +${Number(
+                        item.pontos || 1000
+                    ).toLocaleString(
+                        "pt-BR"
+                    )} pts`;
+
+            } else if (
+                item.tipo ===
+                "roleta_premiada"
+            ) {
+
+                textoResultado =
+                    "🎡 Roleta Premiada";
+
+            } else {
+
+                textoResultado =
+                    `+${Number(
+                        item.pontos || 0
+                    ).toLocaleString(
+                        "pt-BR"
+                    )} pts`;
+            }
+
+
+            historicoPontosLista
+                .appendChild(
+                    criarLinhaHistorico(
+                        item.nome,
+                        textoResultado
+                    )
+                );
+        }
+
+
+    } catch (erro) {
+
+        console.error(
+            "❌ Erro no histórico de pontos:",
+            erro
+        );
+    }
+}
+
+
+// ========================================
+// GANHADORES DA ROLETA PREMIADA
+// ========================================
+
+async function carregarHistoricoPremiada() {
+
+    if (!historicoPremiadaLista) {
+        return;
+    }
+
+
+    try {
+
+        const resposta =
+            await fetch(
+                "/api/historico-premiada",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            initData
+                        })
+                }
+            );
+
+
+        const dados =
+            await resposta.json();
+
+
+        if (!resposta.ok) {
+
+            throw new Error(
+                dados.erro ||
+                "Histórico indisponível"
+            );
+        }
+
+
+        historicoPremiadaLista
+            .replaceChildren();
+
+
+        const ganhadores =
+            Array.isArray(
+                dados.ganhadores
+            )
+                ? dados.ganhadores
+                : [];
+
+
+        if (
+            ganhadores.length === 0
+        ) {
+
+            const vazio =
+                document.createElement(
+                    "span"
+                );
+
+
+            vazio.className =
+                "historico-vazio";
+
+
+            vazio.textContent =
+                "Nenhum ganhador ainda.";
+
+
+            historicoPremiadaLista
+                .appendChild(
+                    vazio
+                );
+
+
+            return;
+        }
+
+
+        for (
+            const item
+            of ganhadores
+        ) {
+
+            historicoPremiadaLista
+                .appendChild(
+                    criarLinhaHistorico(
+                        item.nome,
+                        item.premio
+                    )
+                );
+        }
+
+    } catch (erro) {
+        console.error(
+            "❌ Erro no histórico da premiada:",
+            erro
+        );
+    }
+}
+
 function abrirTelaPontos() {
 
     telaMenu.hidden = true;
-
     telaRoleta.hidden = true;
-
     telaPontos.hidden = false;
-
     resultadoPontos.textContent = "";
 
     desenharRoletaPontos();
-
     carregarUsuario();
+    carregarHistoricoPontos();
 }
 
 function voltarParaMenuPontos() {
-
     telaPontos.hidden = true;
-
     telaMenu.hidden = false;
 }
 
@@ -883,25 +1204,21 @@ function abrirTelaRoleta() {
     telaRoleta.hidden = false;
     desenharRoleta();
     verificarEstadoRoleta();
+
+    carregarHistoricoPremiada();
 }
 
-
 function voltarParaMenu() {
-
     telaRoleta.hidden = true;
-
     telaMenu.hidden = false;
-
     verificarEstadoRoleta();
 }
 
 function desenharRoleta() {
     const centro =
         canvas.width / 2;
-
     const raio =
         centro - 10;
-
     ctx.clearRect(
         0,
         0,
@@ -932,24 +1249,20 @@ function desenharRoleta() {
                 canvas.width,
                 canvas.height
             );
-
         gradiente.addColorStop(
             0,
             parCores[0]
         );
-
         gradiente.addColorStop(
             1,
             parCores[1]
         );
 
         ctx.beginPath();
-
         ctx.moveTo(
             centro,
             centro
         );
-
         ctx.arc(
             centro,
             centro,
@@ -957,83 +1270,59 @@ function desenharRoleta() {
             inicio,
             fim
         );
-
         ctx.closePath();
-
         ctx.fillStyle =
             gradiente;
-
         ctx.fill();
-
         ctx.strokeStyle =
             "#d8c17c";
-
         ctx.lineWidth = 3;
-
         ctx.stroke();
-
         const meio =
             inicio +
             anguloPorItem / 2;
-
         const distanciaTexto =
             raio * 0.70;
-
         const xTexto =
             centro +
             Math.cos(meio) *
             distanciaTexto;
-
         const yTexto =
             centro +
             Math.sin(meio) *
             distanciaTexto;
-
         ctx.save();
-
         ctx.translate(
             xTexto,
             yTexto
         );
-
         ctx.rotate(meio);
-
         ctx.textAlign =
             "center";
-
         ctx.textBaseline =
             "middle";
-
         ctx.fillStyle =
             "#ffffff";
-
         const ehValor =
             itens[i].startsWith("R$");
-
         const tamanhoFonte =
             ehValor
                 ? 40
                 : 30;
-
         ctx.font =
             `bold ${tamanhoFonte}px Arial`;
-
         ctx.shadowColor =
             "rgba(0,0,0,0.7)";
-
         ctx.shadowBlur = 4;
-
         ctx.fillText(
             itens[i],
             0,
             0
         );
-
         ctx.restore();
     }
 
     const raioCentro = 44;
-
     ctx.beginPath();
     ctx.arc(
         centro,
@@ -1047,7 +1336,6 @@ function desenharRoleta() {
     ctx.strokeStyle = "#d8c17c";
     ctx.lineWidth = 5;
     ctx.stroke();
-
     ctx.save();
     ctx.beginPath();
     ctx.arc(
@@ -1061,7 +1349,6 @@ function desenharRoleta() {
 
     if (logoCentro.complete && logoCentro.naturalWidth > 0) {
         const tamanhoLogo = 90;
-
         ctx.drawImage(
             logoCentro,
             centro - tamanhoLogo / 2,
@@ -1070,7 +1357,6 @@ function desenharRoleta() {
             tamanhoLogo
         );
     }
-
     ctx.restore();
 }
 
@@ -1078,17 +1364,13 @@ function desenharRoletaPontos() {
 
     const centro =
         canvasPontos.width / 2;
-
     const raio =
         centro - 12;
-
     const quantidadePontos =
         itensPontos.length;
-
     const angulo =
         (Math.PI * 2) /
         quantidadePontos;
-
     ctxPontos.clearRect(
         0,
         0,
@@ -1101,20 +1383,15 @@ function desenharRoletaPontos() {
         i < quantidadePontos;
         i++
     ) {
-
         const inicio =
             -Math.PI / 2
             - angulo / 2
             + i * angulo;
-
         const fim =
             inicio + angulo;
-
         const item =
             itensPontos[i];
-
         ctxPontos.beginPath();
-
         ctxPontos.moveTo(
             centro,
             centro
@@ -1129,7 +1406,6 @@ function desenharRoletaPontos() {
         );
 
         ctxPontos.closePath();
-
         ctxPontos.fillStyle =
             item.tipo === "diamante" ||
                 item.tipo === "roleta"
@@ -1137,26 +1413,19 @@ function desenharRoletaPontos() {
                 : coresPontos[i];
 
         ctxPontos.fill();
-
         ctxPontos.strokeStyle =
             "#000000";
-
         ctxPontos.lineWidth = 3;
-
         ctxPontos.stroke();
-
         const meio =
             inicio +
             angulo / 2;
-
         const distancia =
             raio * 0.70;
-
         const x =
             centro +
             Math.cos(meio) *
             distancia;
-
         const y =
             centro +
             Math.sin(meio) *
@@ -1452,6 +1721,7 @@ async function girarPontos() {
             botaoGirarPontos.textContent =
                 "🔒 PRÓXIMO GIRO ÀS 08:30";
 
+            carregarHistoricoPontos();
         },
         5100
     );
@@ -1870,6 +2140,7 @@ async function girar() {
         }
 
         carregarUsuario();
+        carregarHistoricoPremiada();
 
     }, 5100);
 }

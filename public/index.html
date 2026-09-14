@@ -10,7 +10,7 @@
 
     <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
 
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=3">
 </head>
 
 <body>
@@ -171,6 +171,18 @@
 
             <p id="resultado-pontos" class="resultado-pontos"></p>
 
+            <div class="historico-jogo">
+                <strong class="historico-jogo-titulo">
+                    🎯 Últimos giros
+                </strong>
+
+                <div id="historico-pontos-lista" class="historico-jogo-lista">
+                    <span class="historico-vazio">
+                        Nenhum giro ainda.
+                    </span>
+                </div>
+            </div>
+
         </section>
 
         <!-- ========================= -->
@@ -230,11 +242,23 @@
 
             <p id="resultado" class="resultado"></p>
 
+            <div class="historico-jogo">
+                <strong class="historico-jogo-titulo">
+                    🏆 Ganhadores
+                </strong>
+
+                <div id="historico-premiada-lista" class="historico-jogo-lista">
+                    <span class="historico-vazio">
+                        Nenhum ganhador ainda.
+                    </span>
+                </div>
+            </div>
+
         </section>
 
     </main>
 
-    <script src="app.js?v=4"></script>
+    <script src="app.js?v=5"></script>
 
 </body>
 

@@ -1151,6 +1151,305 @@ function obterPosicaoRankingPontos(
     ) || null;
 }
 
+
+// ========================================
+// HISTÓRICO PÚBLICO
+// ROLETA PREMIADA
+// ========================================
+
+function listarGanhadoresPremiada() {
+
+    // ========================================
+    // GIROS DA DINÂMICA NORMAL
+    // ========================================
+
+    const normais =
+        db.prepare(`
+            SELECT
+                g.usuario_id,
+
+                COALESCE(
+                    u.nome_exibicao,
+                    'Participante'
+                ) AS nome,
+
+                g.premio,
+
+                CAST(
+                    strftime(
+                        '%s',
+                        g.criado_em
+                    )
+                    AS INTEGER
+                ) * 1000 AS criado_em
+
+            FROM giros g
+
+            LEFT JOIN usuarios u
+                ON u.usuario_id =
+                    g.usuario_id
+
+            WHERE
+                g.eh_premio = 1
+
+            ORDER BY
+                g.id ASC
+        `).all();
+
+
+    // ========================================
+    // GIROS GANHOS PELA ROLETA DE PONTOS
+    // ========================================
+
+    const bonusBrutos =
+        db.prepare(`
+            SELECT
+                e.usuario_id,
+
+                COALESCE(
+                    u.nome_exibicao,
+                    'Participante'
+                ) AS nome,
+
+                e.dados_json,
+
+                e.criado_em
+
+            FROM eventos_usuario e
+
+            LEFT JOIN usuarios u
+                ON u.usuario_id =
+                    e.usuario_id
+
+            WHERE
+                e.tipo =
+                    'GIRO_ROLETA_PREMIADA_BONUS'
+
+            ORDER BY
+                e.criado_em ASC
+        `).all();
+
+
+    const bonus = [];
+
+
+    for (
+        const evento
+        of bonusBrutos
+    ) {
+
+        let dados = {};
+
+        try {
+
+            dados =
+                JSON.parse(
+                    evento.dados_json ||
+                    "{}"
+                );
+
+        } catch {
+
+            dados = {};
+        }
+
+
+        const premio =
+            String(
+                dados.premio || ""
+            );
+
+
+        if (
+            !premio.startsWith(
+                "R$"
+            )
+        ) {
+
+            continue;
+        }
+
+
+        bonus.push({
+
+            usuario_id:
+                evento.usuario_id,
+
+            nome:
+                evento.nome,
+
+            premio,
+
+            criado_em:
+                Number(
+                    evento.criado_em || 0
+                )
+        });
+    }
+
+
+    // ========================================
+    // JUNTA AS DUAS DINÂMICAS
+    // ========================================
+
+    return [
+        ...normais,
+        ...bonus
+    ]
+        .filter(
+            item =>
+                String(
+                    item.premio || ""
+                ).startsWith(
+                    "R$"
+                )
+        )
+        .sort(
+            (a, b) =>
+                Number(
+                    a.criado_em || 0
+                ) -
+                Number(
+                    b.criado_em || 0
+                )
+        )
+        .map(
+            item => ({
+                usuarioId:
+                    item.usuario_id,
+
+                nome:
+                    item.nome,
+
+                premio:
+                    item.premio,
+
+                criadoEm:
+                    Number(
+                        item.criado_em || 0
+                    )
+            })
+        );
+}
+
+// ========================================
+// ÚLTIMOS RESULTADOS
+// ROLETA DE PONTOS
+// ========================================
+
+function listarUltimosResultadosPontos(
+    limite = 7
+) {
+
+    const limiteSeguro =
+        Math.max(
+            1,
+            Math.min(
+                20,
+                Math.trunc(
+                    Number(limite) || 7
+                )
+            )
+        );
+
+
+    const eventos =
+        db.prepare(`
+            SELECT
+                e.usuario_id,
+
+                COALESCE(
+                    u.nome_exibicao,
+                    'Participante'
+                ) AS nome,
+
+                e.dados_json,
+
+                e.criado_em
+
+            FROM eventos_usuario e
+
+            LEFT JOIN usuarios u
+                ON u.usuario_id =
+                    e.usuario_id
+
+            WHERE
+                e.tipo =
+                    'GIRO_ROLETA_PONTOS'
+
+            ORDER BY
+                e.criado_em DESC,
+                e.id DESC
+
+            LIMIT ?
+        `).all(
+            limiteSeguro
+        );
+
+
+    const resultados = [];
+
+
+    for (
+        const evento
+        of eventos
+    ) {
+
+        let dados = {};
+
+        try {
+
+            dados =
+                JSON.parse(
+                    evento.dados_json ||
+                    "{}"
+                );
+
+        } catch {
+
+            dados = {};
+        }
+
+
+        resultados.push({
+
+            usuarioId:
+                evento.usuario_id,
+
+            nome:
+                evento.nome,
+
+            tipo:
+                dados.tipoResultado ||
+                "pontos",
+
+            pontos:
+                Number(
+                    dados.pontosGanhos ||
+                    0
+                ),
+
+            girosPremiada:
+                Number(
+                    dados.girosPremiadaGanhos ||
+                    0
+                ),
+
+            criadoEm:
+                Number(
+                    evento.criado_em || 0
+                )
+        });
+    }
+
+
+    // SQL buscou do mais novo para o mais velho.
+    // Aqui invertemos SOMENTE os 7 encontrados,
+    // para o mais recente aparecer no final da lista.
+
+    return resultados.reverse();
+}
+
 function contarGanhadoresCampanha(
     campanha
 ) {
@@ -1380,5 +1679,8 @@ module.exports = {
     registrarGiroPontosDiario,
     registrarGiroPremiadaBonus,
     listarRankingPontos,
-    obterPosicaoRankingPontos
+    obterPosicaoRankingPontos,
+
+    listarGanhadoresPremiada,
+    listarUltimosResultadosPontos
 };

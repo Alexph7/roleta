@@ -18,7 +18,9 @@ const {
     registrarGiroPontosDiario,
     registrarGiroPremiadaBonus,
     listarRankingPontos,
-    obterPosicaoRankingPontos
+    obterPosicaoRankingPontos,
+    listarGanhadoresPremiada,
+    listarUltimosResultadosPontos
 } = require("./database");
 
 const app = express();
@@ -1244,6 +1246,143 @@ app.post(
             return res.status(500).json({
                 erro:
                     "Não foi possível carregar o ranking agora."
+            });
+        }
+    }
+);
+
+// ==============================
+// HISTÓRICO DA ROLETA PREMIADA
+// ==============================
+
+app.post(
+    "/api/historico-premiada",
+    (req, res) => {
+        const {
+            initData
+        } = req.body;
+
+        const validacao =
+            validarInitDataTelegram(
+                initData
+            );
+
+
+        if (!validacao.ok) {
+            return res.status(401).json({
+                erro:
+                    "Abra pelo Telegram."
+            });
+        }
+
+        const usuarioTelegram =
+            validacao.usuario;
+
+        if (
+            !usuarioLiberadoPorId(
+                usuarioTelegram.id
+            )
+        ) {
+            return res.status(403).json({
+                erro:
+                    "Esta conta não está habilitada.",
+                acessoBloqueado:
+                    true
+            });
+        }
+
+        try {
+            const ganhadores =
+                listarGanhadoresPremiada();
+
+            res.set(
+                "Cache-Control",
+                "no-store"
+            );
+
+            return res.json({
+                ganhadores
+            });
+
+        } catch (erro) {
+            console.error(
+                "❌ Erro ao carregar histórico da premiada:",
+                erro
+            );
+
+            return res.status(500).json({
+                erro:
+                    "Não foi possível carregar os vencedores."
+            });
+        }
+    }
+);
+
+
+// ==============================
+// HISTÓRICO DA ROLETA DE PONTOS
+// ==============================
+
+app.post(
+    "/api/historico-pontos",
+    (req, res) => {
+        const {
+            initData
+        } = req.body;
+
+        const validacao =
+            validarInitDataTelegram(
+                initData
+            );
+
+        if (!validacao.ok) {
+            return res.status(401).json({
+                erro:
+                    "Abra pelo Telegram."
+            });
+        }
+
+        const usuarioTelegram =
+            validacao.usuario;
+
+        if (
+            !usuarioLiberadoPorId(
+                usuarioTelegram.id
+            )
+        ) {
+            return res.status(403).json({
+                erro:
+                    "Esta conta não está habilitada.",
+                acessoBloqueado:
+                    true
+            });
+        }
+
+        try {
+            const resultados =
+                listarUltimosResultadosPontos(
+                    7
+                );
+
+            res.set(
+                "Cache-Control",
+                "no-store"
+            );
+
+            return res.json({
+                resultados
+            });
+
+        } catch (erro) {
+
+            console.error(
+                "❌ Erro ao carregar histórico de pontos:",
+                erro
+            );
+
+            return res.status(500).json({
+                erro:
+                    "Não foi possível carregar os últimos resultados."
             });
         }
     }

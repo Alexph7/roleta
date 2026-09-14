@@ -853,3 +853,128 @@ button.card-jogo:active {
     font-size: 21px;
     font-weight: bold;
 }
+
+/* ========================================
+   HISTÓRICO DOS JOGOS
+======================================== */
+
+.historico-jogo {
+    width: 100%;
+    max-width: 360px;
+
+    margin:
+        28px auto 0;
+
+    padding:
+        14px;
+
+    border:
+        1px solid rgba(255,
+            255,
+            255,
+            0.08);
+
+    border-radius:
+        14px;
+
+    background:
+        rgba(255,
+            255,
+            255,
+            0.035);
+
+    text-align: left;
+}
+
+.historico-jogo-titulo {
+    display: block;
+
+    margin-bottom:
+        12px;
+
+    color:
+        #ffffff;
+
+    font-size:
+        14px;
+
+    text-align:
+        center;
+}
+
+.historico-jogo-lista {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+.historico-jogo-linha {
+    width: 100%;
+
+    min-width: 0;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr) auto;
+
+    align-items:
+        center;
+
+    gap:
+        10px;
+
+    padding:
+        9px 10px;
+
+    border-radius:
+        9px;
+
+    background:
+        rgba(255,
+            255,
+            255,
+            0.045);
+}
+
+.historico-jogo-nome {
+    min-width: 0;
+
+    overflow: hidden;
+
+    text-overflow:
+        ellipsis;
+
+    white-space:
+        nowrap;
+
+    color:
+        #dedbe8;
+
+    font-size:
+        13px;
+}
+
+.historico-jogo-resultado {
+    white-space:
+        nowrap;
+    color:
+        #cffff0;
+    font-size:
+        13px;
+    font-weight:
+        bold;
+}
+
+.historico-vazio {
+    padding:
+        8px 0;
+    color:
+        #8e899d;
+    font-size:
+        12px;
+    text-align:
+        center;
+}
