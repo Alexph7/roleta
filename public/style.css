@@ -195,6 +195,41 @@ h1 {
     font-weight: bold;
 }
 
+.aviso-estoque-premiada {
+    width: 100%;
+    max-width: 340px;
+
+    margin:
+        -14px auto 18px;
+
+    padding:
+        10px 13px;
+
+    border:
+        1px solid rgba(255,
+            209,
+            102,
+            0.22);
+
+    border-radius:
+        11px;
+
+    background:
+        rgba(255,
+            209,
+            102,
+            0.07);
+
+    color:
+        #d8d3e5;
+
+    font-size:
+        12px;
+
+    line-height:
+        1.45;
+}
+
 .aviso {
     margin-top: 30px;
 

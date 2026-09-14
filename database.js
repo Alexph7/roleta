@@ -221,6 +221,142 @@ db.exec(`
 `);
 
 // ========================================
+// ESTOQUE DA ROLETA PREMIADA BÔNUS
+// ========================================
+
+const ESTOQUE_INICIAL_PREMIADA_BONUS = {
+    "R$ 50": 1,
+    "R$ 12": 2,
+    "R$ 10": 2,
+    "R$ 5": 15,
+    "R$ 7": 4
+};
+
+
+const FATIAS_PREMIADA_BASE = [
+    {
+        tipo: "dinheiro",
+        premio: "R$ 50"
+    },
+    {
+        tipo: "diamante",
+        premio: "💎",
+        pontos: 1000
+    },
+    {
+        tipo: "sem_premio",
+        premio: "QUASE"
+    },
+    {
+        tipo: "dinheiro",
+        premio: "R$ 5"
+    },
+    {
+        tipo: "sem_premio",
+        premio: "NÃO FOI"
+    },
+    {
+        tipo: "diamante",
+        premio: "💎",
+        pontos: 1000
+    },
+    {
+        tipo: "dinheiro",
+        premio: "R$ 12"
+    },
+    {
+        tipo: "sem_premio",
+        premio: "QUASE"
+    },
+    {
+        tipo: "dinheiro",
+        premio: "R$ 7"
+    },
+    {
+        tipo: "diamante",
+        premio: "💎",
+        pontos: 1000
+    },
+    {
+        tipo: "sem_premio",
+        premio: "NÃO DEU"
+    },
+    {
+        tipo: "dinheiro",
+        premio: "R$ 5"
+    },
+    {
+        tipo: "dinheiro",
+        premio: "R$ 10"
+    },
+    {
+        tipo: "sem_premio",
+        premio: "QUASE"
+    }
+];
+
+
+db.exec(`
+    CREATE TABLE IF NOT EXISTS
+    estoque_premiada_bonus (
+        premio TEXT PRIMARY KEY,
+
+        quantidade_inicial INTEGER
+            NOT NULL,
+
+        quantidade_restante INTEGER
+            NOT NULL,
+
+        atualizado_em INTEGER
+            NOT NULL
+    )
+`);
+
+
+const inserirEstoquePremiadaBonus =
+    db.prepare(`
+        INSERT OR IGNORE INTO
+        estoque_premiada_bonus (
+            premio,
+            quantidade_inicial,
+            quantidade_restante,
+            atualizado_em
+        )
+
+        VALUES (?, ?, ?, ?)
+    `);
+
+
+const inicializarEstoquePremiadaBonus =
+    db.transaction(() => {
+
+        const agora =
+            Date.now();
+
+
+        for (
+            const [
+                premio,
+                quantidade
+            ]
+            of Object.entries(
+                ESTOQUE_INICIAL_PREMIADA_BONUS
+            )
+        ) {
+
+            inserirEstoquePremiadaBonus.run(
+                premio,
+                quantidade,
+                quantidade,
+                agora
+            );
+        }
+    });
+
+
+inicializarEstoquePremiadaBonus.immediate();
+
+// ========================================
 // CONSULTAS
 // ========================================
 
@@ -863,6 +999,465 @@ function registrarGiroPontosDiario(
 }
 
 // ========================================
+// CONFIGURAÇÃO DINÂMICA
+// DA ROLETA PREMIADA BÔNUS
+// ========================================
+
+function obterConfiguracaoPremiadaBonus() {
+
+    const linhasEstoque =
+        db.prepare(`
+            SELECT
+                premio,
+                quantidade_inicial,
+                quantidade_restante
+
+            FROM estoque_premiada_bonus
+        `).all();
+
+
+    const estoque =
+    {};
+
+
+    for (
+        const linha
+        of linhasEstoque
+    ) {
+
+        estoque[
+            linha.premio
+        ] = {
+            inicial:
+                Number(
+                    linha.quantidade_inicial ||
+                    0
+                ),
+
+            restante:
+                Number(
+                    linha.quantidade_restante ||
+                    0
+                )
+        };
+    }
+
+
+    const fatias =
+        FATIAS_PREMIADA_BASE.map(
+            (
+                fatia,
+                indice
+            ) => {
+
+                // ========================================
+                // DIAMANTE ORIGINAL
+                // ========================================
+
+                if (
+                    fatia.tipo ===
+                    "diamante"
+                ) {
+
+                    return {
+                        indice,
+                        tipo:
+                            "diamante",
+                        premio:
+                            "💎",
+                        pontos:
+                            1000,
+                        substituiuPremio:
+                            null
+                    };
+                }
+
+
+                // ========================================
+                // FATIA SEM PRÊMIO
+                // ========================================
+
+                if (
+                    fatia.tipo !==
+                    "dinheiro"
+                ) {
+
+                    return {
+                        indice,
+                        tipo:
+                            "sem_premio",
+                        premio:
+                            fatia.premio,
+                        pontos:
+                            0,
+                        substituiuPremio:
+                            null
+                    };
+                }
+
+
+                const restante =
+                    Number(
+                        estoque[
+                            fatia.premio
+                        ]?.restante ||
+                        0
+                    );
+
+
+                // ========================================
+                // ESTOQUE ACABOU
+                // VIRA DIAMANTE
+                // ========================================
+
+                if (
+                    restante <= 0
+                ) {
+
+                    return {
+                        indice,
+                        tipo:
+                            "diamante",
+                        premio:
+                            "💎",
+                        pontos:
+                            1000,
+
+                        substituiuPremio:
+                            fatia.premio
+                    };
+                }
+
+
+                // ========================================
+                // AINDA TEM DINHEIRO
+                // ========================================
+
+                return {
+                    indice,
+                    tipo:
+                        "dinheiro",
+                    premio:
+                        fatia.premio,
+                    pontos:
+                        0,
+                    substituiuPremio:
+                        null
+                };
+            }
+        );
+
+
+    return {
+
+        fatias,
+
+        itens:
+            fatias.map(
+                fatia =>
+                    fatia.premio
+            ),
+
+        estoque
+    };
+}
+
+
+// ========================================
+// RESET MANUAL DO ESTOQUE BÔNUS
+// ========================================
+
+function resetarEstoquePremiadaBonus() {
+
+    const transaction =
+        db.transaction(() => {
+
+            const agora =
+                Date.now();
+
+
+            const salvar =
+                db.prepare(`
+                    INSERT INTO
+                    estoque_premiada_bonus (
+                        premio,
+                        quantidade_inicial,
+                        quantidade_restante,
+                        atualizado_em
+                    )
+
+                    VALUES (?, ?, ?, ?)
+
+                    ON CONFLICT(premio)
+
+                    DO UPDATE SET
+                        quantidade_inicial =
+                            excluded.quantidade_inicial,
+
+                        quantidade_restante =
+                            excluded.quantidade_restante,
+
+                        atualizado_em =
+                            excluded.atualizado_em
+                `);
+
+
+            for (
+                const [
+                    premio,
+                    quantidade
+                ]
+                of Object.entries(
+                    ESTOQUE_INICIAL_PREMIADA_BONUS
+                )
+            ) {
+
+                salvar.run(
+                    premio,
+                    quantidade,
+                    quantidade,
+                    agora
+                );
+            }
+
+
+            return obterConfiguracaoPremiadaBonus();
+        });
+
+
+    return transaction.immediate();
+}
+// ========================================
+// CONFIGURAÇÃO DINÂMICA
+// DA ROLETA PREMIADA BÔNUS
+// ========================================
+
+function obterConfiguracaoPremiadaBonus() {
+
+    const linhasEstoque =
+        db.prepare(`
+            SELECT
+                premio,
+                quantidade_inicial,
+                quantidade_restante
+
+            FROM estoque_premiada_bonus
+        `).all();
+
+
+    const estoque =
+    {};
+
+
+    for (
+        const linha
+        of linhasEstoque
+    ) {
+
+        estoque[
+            linha.premio
+        ] = {
+            inicial:
+                Number(
+                    linha.quantidade_inicial ||
+                    0
+                ),
+
+            restante:
+                Number(
+                    linha.quantidade_restante ||
+                    0
+                )
+        };
+    }
+
+
+    const fatias =
+        FATIAS_PREMIADA_BASE.map(
+            (
+                fatia,
+                indice
+            ) => {
+
+                // ========================================
+                // DIAMANTE ORIGINAL
+                // ========================================
+
+                if (
+                    fatia.tipo ===
+                    "diamante"
+                ) {
+
+                    return {
+                        indice,
+                        tipo:
+                            "diamante",
+                        premio:
+                            "💎",
+                        pontos:
+                            1000,
+                        substituiuPremio:
+                            null
+                    };
+                }
+
+
+                // ========================================
+                // FATIA SEM PRÊMIO
+                // ========================================
+
+                if (
+                    fatia.tipo !==
+                    "dinheiro"
+                ) {
+
+                    return {
+                        indice,
+                        tipo:
+                            "sem_premio",
+                        premio:
+                            fatia.premio,
+                        pontos:
+                            0,
+                        substituiuPremio:
+                            null
+                    };
+                }
+
+
+                const restante =
+                    Number(
+                        estoque[
+                            fatia.premio
+                        ]?.restante ||
+                        0
+                    );
+
+
+                // ========================================
+                // ESTOQUE ACABOU
+                // VIRA DIAMANTE
+                // ========================================
+
+                if (
+                    restante <= 0
+                ) {
+
+                    return {
+                        indice,
+                        tipo:
+                            "diamante",
+                        premio:
+                            "💎",
+                        pontos:
+                            1000,
+
+                        substituiuPremio:
+                            fatia.premio
+                    };
+                }
+
+
+                // ========================================
+                // AINDA TEM DINHEIRO
+                // ========================================
+
+                return {
+                    indice,
+                    tipo:
+                        "dinheiro",
+                    premio:
+                        fatia.premio,
+                    pontos:
+                        0,
+                    substituiuPremio:
+                        null
+                };
+            }
+        );
+
+
+    return {
+
+        fatias,
+
+        itens:
+            fatias.map(
+                fatia =>
+                    fatia.premio
+            ),
+
+        estoque
+    };
+}
+
+
+// ========================================
+// RESET MANUAL DO ESTOQUE BÔNUS
+// ========================================
+
+function resetarEstoquePremiadaBonus() {
+
+    const transaction =
+        db.transaction(() => {
+
+            const agora =
+                Date.now();
+
+
+            const salvar =
+                db.prepare(`
+                    INSERT INTO
+                    estoque_premiada_bonus (
+                        premio,
+                        quantidade_inicial,
+                        quantidade_restante,
+                        atualizado_em
+                    )
+
+                    VALUES (?, ?, ?, ?)
+
+                    ON CONFLICT(premio)
+
+                    DO UPDATE SET
+                        quantidade_inicial =
+                            excluded.quantidade_inicial,
+
+                        quantidade_restante =
+                            excluded.quantidade_restante,
+
+                        atualizado_em =
+                            excluded.atualizado_em
+                `);
+
+
+            for (
+                const [
+                    premio,
+                    quantidade
+                ]
+                of Object.entries(
+                    ESTOQUE_INICIAL_PREMIADA_BONUS
+                )
+            ) {
+
+                salvar.run(
+                    premio,
+                    quantidade,
+                    quantidade,
+                    agora
+                );
+            }
+
+
+            return obterConfiguracaoPremiadaBonus();
+        });
+
+
+    return transaction.immediate();
+}
+
+// ========================================
 // CONSUMIR CHANCE PESSOAL
 // DA ROLETA PREMIADA
 // ========================================
@@ -872,8 +1467,6 @@ const registrarGiroPremiadaBonusTransaction =
         ({
             usuarioId,
             indice,
-            premio,
-            ehPremio,
             criadoEm = Date.now()
         }) => {
 
@@ -883,11 +1476,69 @@ const registrarGiroPremiadaBonusTransaction =
                 );
 
 
+            const indiceSeguro =
+                Math.trunc(
+                    Number(
+                        indice
+                    )
+                );
+
+
+            const configuracaoAntes =
+                obterConfiguracaoPremiadaBonus();
+
+
+            if (
+                !Number.isInteger(
+                    indiceSeguro
+                ) ||
+                indiceSeguro < 0 ||
+                indiceSeguro >=
+                configuracaoAntes
+                    .fatias
+                    .length
+            ) {
+
+                return {
+                    ok: false,
+                    motivo:
+                        "indice_invalido"
+                };
+            }
+
+
+            const fatia =
+                configuracaoAntes
+                    .fatias[
+                indiceSeguro
+                ];
+
+
+            const premio =
+                fatia.premio;
+
+
+            const tipoResultado =
+                fatia.tipo;
+
+
+            const pontosGanhos =
+                tipoResultado ===
+                    "diamante"
+                    ? 1000
+                    : 0;
+
+
+            const ehPremio =
+                tipoResultado ===
+                "dinheiro";
+
+
             // ========================================
-            // CONSOME SOMENTE SE:
+            // CONSOME A CHANCE
             //
-            // - existe chance
-            // - ainda não expirou
+            // SE FOR DIAMANTE,
+            // JÁ ENTREGA OS 1000 PONTOS.
             // ========================================
 
             const consumo =
@@ -899,6 +1550,20 @@ const registrarGiroPremiadaBonusTransaction =
 
                         giro_premiada_expira_em =
                             NULL,
+
+                        pontos =
+                            pontos + ?,
+
+                        atingiu_pontuacao_em =
+                            CASE
+
+                                WHEN ? > 0
+                                THEN ?
+
+                                ELSE
+                                    atingiu_pontuacao_em
+
+                            END,
 
                         atualizado_em =
                             ?
@@ -914,7 +1579,13 @@ const registrarGiroPremiadaBonusTransaction =
                         AND giro_premiada_expira_em
                             > ?
                 `).run(
+                    pontosGanhos,
+
+                    pontosGanhos,
                     criadoEm,
+
+                    criadoEm,
+
                     id,
                     criadoEm
                 );
@@ -938,10 +1609,52 @@ const registrarGiroPremiadaBonusTransaction =
 
 
             // ========================================
-            // GUARDA O GIRO BÔNUS
+            // SE CAIU EM DINHEIRO,
+            // BAIXA UMA UNIDADE DO ESTOQUE.
             //
-            // NÃO VAI PARA A TABELA "giros".
-            // portanto NÃO interfere na rodada normal.
+            // COMO A TRANSAÇÃO É IMMEDIATE,
+            // DUAS PESSOAS NÃO LEVAM
+            // A ÚLTIMA UNIDADE.
+            // ========================================
+
+            if (ehPremio) {
+
+                const baixa =
+                    db.prepare(`
+                        UPDATE
+                            estoque_premiada_bonus
+
+                        SET
+                            quantidade_restante =
+                                quantidade_restante - 1,
+
+                            atualizado_em =
+                                ?
+
+                        WHERE
+                            premio = ?
+
+                            AND quantidade_restante
+                                > 0
+                    `).run(
+                        criadoEm,
+                        premio
+                    );
+
+
+                if (
+                    baixa.changes !== 1
+                ) {
+
+                    throw new Error(
+                        `Estoque inconsistente para ${premio}`
+                    );
+                }
+            }
+
+
+            // ========================================
+            // REGISTRA O RESULTADO
             // ========================================
 
             const evento =
@@ -955,16 +1668,39 @@ const registrarGiroPremiadaBonusTransaction =
                     origem:
                         "roleta_pontos",
 
+                    valor:
+                        pontosGanhos > 0
+                            ? pontosGanhos
+                            : null,
+
                     dados: {
-                        indice,
+                        indice:
+                            indiceSeguro,
+
                         premio,
 
-                        ehPremio:
-                            ehPremio === true
+                        ehPremio,
+
+                        tipoResultado,
+
+                        pontosGanhos,
+
+                        substituiuPremio:
+                            fatia
+                                .substituiuPremio ||
+                            null
                     },
 
                     criadoEm
                 });
+
+
+            // ========================================
+            // CONFIGURAÇÃO PARA O PRÓXIMO GIRO
+            // ========================================
+
+            const configuracaoDepois =
+                obterConfiguracaoPremiadaBonus();
 
 
             return {
@@ -972,6 +1708,31 @@ const registrarGiroPremiadaBonusTransaction =
 
                 eventoId:
                     evento.id,
+
+                indice:
+                    indiceSeguro,
+
+                premio,
+
+                ehPremio,
+
+                tipoResultado,
+
+                pontosGanhos,
+
+                substituiuPremio:
+                    fatia
+                        .substituiuPremio ||
+                    null,
+
+                itensGiro:
+                    configuracaoAntes.itens,
+
+                itensDepois:
+                    configuracaoDepois.itens,
+
+                estoque:
+                    configuracaoDepois.estoque,
 
                 usuario:
                     buscarUsuario(
@@ -1048,17 +1809,18 @@ function listarRankingPontos(
 
             FROM usuarios u
 
-            WHERE EXISTS (
+           WHERE
+                u.pontos > 0
 
-                SELECT 1
+                OR EXISTS (
 
-                FROM eventos_usuario e
+                    SELECT 1
+                    FROM eventos_usuario e
+                    WHERE
+                        e.usuario_id =
+                            u.usuario_id
 
-                WHERE
-                    e.usuario_id =
-                        u.usuario_id
-
-                    AND e.tipo =
+                        AND e.tipo =
                         'GIRO_ROLETA_PONTOS'
             )
         )
@@ -1481,28 +2243,53 @@ const registrarGiroTransaction =
             premio,
             campanha,
             ehPremio,
-            maxGanhadores
+            maxGanhadores,
+            tipoResultado = null,
+            pontosGanhos = 0,
+            criadoEm = Date.now()
         }) => {
+
+            const id =
+                String(
+                    usuarioId
+                );
+
+
+            const pontos =
+                Math.max(
+                    0,
+                    Math.trunc(
+                        Number(
+                            pontosGanhos
+                        ) || 0
+                    )
+                );
+
 
             const giroExistente =
                 buscarGiroUsuarioCampanha(
-                    usuarioId,
+                    id,
                     campanha
                 );
+
 
             if (giroExistente) {
 
                 return {
                     ok: false,
-                    motivo: "ja_girou",
-                    giro: giroExistente
+                    motivo:
+                        "ja_girou",
+                    giro:
+                        giroExistente
                 };
             }
+
 
             const totalGanhadores =
                 contarGanhadoresCampanha(
                     campanha
                 );
+
 
             if (
                 totalGanhadores >=
@@ -1511,10 +2298,12 @@ const registrarGiroTransaction =
 
                 return {
                     ok: false,
-                    motivo: "esgotado",
+                    motivo:
+                        "esgotado",
                     totalGanhadores
                 };
             }
+
 
             const resultado =
                 db.prepare(`
@@ -1528,12 +2317,90 @@ const registrarGiroTransaction =
 
                     VALUES (?, ?, ?, ?, ?)
                 `).run(
-                    usuarioId,
+                    id,
                     indice,
                     premio,
                     campanha,
                     ehPremio ? 1 : 0
                 );
+
+
+            // ========================================
+            // DIAMANTE DA RODADA MANUAL
+            // TAMBÉM VALE 1000 PONTOS
+            // ========================================
+
+            if (
+                pontos > 0
+            ) {
+
+                const atualizacao =
+                    db.prepare(`
+                        UPDATE usuarios
+
+                        SET
+                            pontos =
+                                pontos + ?,
+
+                            atingiu_pontuacao_em =
+                                ?,
+
+                            atualizado_em =
+                                ?
+
+                        WHERE
+                            usuario_id = ?
+                    `).run(
+                        pontos,
+                        criadoEm,
+                        criadoEm,
+                        id
+                    );
+
+
+                if (
+                    atualizacao.changes !==
+                    1
+                ) {
+
+                    throw new Error(
+                        "Usuário não encontrado ao creditar diamante"
+                    );
+                }
+            }
+
+
+            registrarEventoUsuario({
+                usuarioId:
+                    id,
+
+                tipo:
+                    "GIRO_ROLETA_PREMIADA_NORMAL",
+
+                origem:
+                    "rodada_manual",
+
+                valor:
+                    pontos > 0
+                        ? pontos
+                        : null,
+
+                dados: {
+                    indice,
+                    premio,
+
+                    ehPremio:
+                        ehPremio === true,
+
+                    tipoResultado,
+
+                    pontosGanhos:
+                        pontos
+                },
+
+                criadoEm
+            });
+
 
             return {
                 ok: true,
@@ -1543,11 +2410,19 @@ const registrarGiroTransaction =
 
                 totalGanhadores:
                     totalGanhadores +
-                    (ehPremio ? 1 : 0)
+                    (
+                        ehPremio
+                            ? 1
+                            : 0
+                    ),
+
+                usuario:
+                    buscarUsuario(
+                        id
+                    )
             };
         }
     );
-
 
 function registrarGiroCampanha(dados) {
 
@@ -1682,5 +2557,8 @@ module.exports = {
     obterPosicaoRankingPontos,
 
     listarGanhadoresPremiada,
-    listarUltimosResultadosPontos
+    listarUltimosResultadosPontos,
+
+    obterConfiguracaoPremiadaBonus,
+    resetarEstoquePremiadaBonus
 };

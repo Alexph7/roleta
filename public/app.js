@@ -141,17 +141,21 @@ const botaoVerificarInscricao =
         "verificar-inscricao"
     );
 
-const itens = [
+let itens = [
+    "R$ 50",
+    "💎",
     "QUASE",
     "R$ 5",
-    "NÃO",
-    "R$ 10",
+    "NÃO FOI",
+    "💎",
+    "R$ 12",
     "QUASE",
-    "R$ 6",
-    "R$ 9",
-    "TRAVEE",
-    "PRA FORA",
-    "R$ 7"
+    "R$ 7",
+    "💎",
+    "NÃO DEU",
+    "R$ 5",
+    "R$ 10",
+    "QUASE"
 ];
 
 const itensPontos = [
@@ -206,6 +210,11 @@ let usuarioAtual = null;
 let carregandoUsuario = false;
 let girandoPontos = false;
 
+let girandoPremiada = false;
+
+let itensPremiadaPendentes =
+    null;
+
 botaoGirar.disabled = true;
 botaoGirar.textContent =
     "⏳ CARREGANDO...";
@@ -237,33 +246,26 @@ async function verificarAcesso() {
 
         const dados =
             await resposta.json();
-
         if (
             !resposta.ok ||
             !dados.permitido
         ) {
-
             telaMenu.hidden = true;
             telaRoleta.hidden = true;
 
             statusAcesso.textContent =
                 "⛔ Hmm, Parece que essa conta é muito recente... Aguarde um tempo";
-
             return false;
         }
 
         telaAcesso.hidden = true;
         telaMenu.hidden = false;
-
         return true;
 
     } catch (erro) {
-
         telaMenu.hidden = true;
-
         statusAcesso.textContent =
             "❌ Não foi possível verificar o acesso agora.";
-
         return false;
     }
 }
@@ -321,35 +323,87 @@ function atualizarTelaPontos(
 }
 
 // ========================================
+// ATUALIZAR FATIAS DA ROLETA PREMIADA
+// ========================================
+
+function aplicarItensPremiada(
+    novosItens,
+    forcar = false
+) {
+    if (
+        !Array.isArray(
+            novosItens
+        ) ||
+        novosItens.length !==
+        quantidade
+    ) {
+        return;
+    }
+
+    const normalizados =
+        novosItens.map(
+            item =>
+                String(item)
+        );
+
+    if (
+        girandoPremiada &&
+        !forcar
+    ) {
+
+        itensPremiadaPendentes =
+            normalizados;
+        return;
+    }
+
+    const mudou =
+        normalizados.some(
+            (
+                item,
+                indice
+            ) =>
+                item !==
+                itens[indice]
+        );
+
+    if (!mudou) {
+        return;
+    }
+
+    itens =
+        normalizados;
+
+    desenharRoleta();
+}
+
+// ========================================
 // ESTADO DA ROLETA PREMIADA
 // ========================================
 
 function atualizarTelaPremiada(
     usuario
 ) {
-
     if (
         !usuario ||
         !usuario.roletaPremiada
     ) {
-
         return;
     }
-
 
     const estado =
         usuario.roletaPremiada;
 
+    aplicarItensPremiada(
+        estado.itens
+    );
 
     rodadaAberta =
         estado.rodadaAberta ===
         true;
 
-
     rodadaUtilizada =
         estado.giroNormalUtilizado ===
         true;
-
 
     // ========================================
     // EXISTE NORMAL OU BÔNUS
@@ -366,7 +420,6 @@ function atualizarTelaPremiada(
         return;
     }
 
-
     // ========================================
     // ESTOQUE NORMAL ESGOTADO
     // E NÃO POSSUI BÔNUS
@@ -375,19 +428,14 @@ function atualizarTelaPremiada(
     if (
         estado.premiosNormaisEsgotados
     ) {
-
         botaoGirar.disabled =
             true;
-
         botaoGirar.textContent =
             "🎁 PRÊMIOS ESGOTADOS";
-
         resultado.textContent =
             "🎁 Os prêmios acabaram por enquanto. Talvez a roleta volte em breve 👀";
-
         return;
     }
-
 
     // ========================================
     // SUA RODADA AINDA NÃO FOI ABERTA
@@ -397,16 +445,12 @@ function atualizarTelaPremiada(
     if (
         !estado.rodadaAberta
     ) {
-
         botaoGirar.disabled =
             true;
-
         botaoGirar.textContent =
             "🔒 AGUARDANDO LIBERAÇÃO";
-
         return;
     }
-
 
     // ========================================
     // NORMAL JÁ USADO E SEM BÔNUS
@@ -414,7 +458,6 @@ function atualizarTelaPremiada(
 
     botaoGirar.disabled =
         true;
-
     botaoGirar.textContent =
         "🔒 CHANCE ESGOTADA";
 }
@@ -425,12 +468,9 @@ async function carregarUsuario() {
         return usuarioAtual;
     }
 
-
     carregandoUsuario = true;
 
-
     try {
-
         const resposta =
             await fetch(
                 "/api/usuario",
@@ -450,16 +490,13 @@ async function carregarUsuario() {
                 }
             );
 
-
         const dados =
             await resposta.json();
-
 
         if (
             !resposta.ok ||
             !dados.usuario
         ) {
-
             throw new Error(
                 dados.erro ||
                 "Usuário não disponível"
@@ -483,18 +520,15 @@ async function carregarUsuario() {
             erro
         );
 
-
         botaoGirarPontos.disabled =
             true;
 
         botaoGirarPontos.textContent =
             "❌ INDISPONÍVEL";
 
-
         return null;
 
     } finally {
-
         carregandoUsuario =
             false;
     }
@@ -507,10 +541,8 @@ async function carregarUsuario() {
 function textoPosicaoRanking(
     posicao
 ) {
-
     const numero =
         Number(posicao);
-
 
     if (numero === 1) {
         return "🥇";
@@ -524,7 +556,6 @@ function textoPosicaoRanking(
         return "🥉";
     }
 
-
     return `${numero}º`;
 }
 
@@ -533,18 +564,15 @@ function criarLinhaRanking(
     item,
     destaque = false
 ) {
-
     const linha =
         document.createElement(
             "div"
         );
 
-
     linha.className =
         destaque
             ? "ranking-linha ranking-eu"
             : "ranking-linha";
-
 
     const posicao =
         document.createElement(
@@ -559,7 +587,6 @@ function criarLinhaRanking(
             item.posicao
         );
 
-
     const nome =
         document.createElement(
             "strong"
@@ -567,27 +594,21 @@ function criarLinhaRanking(
 
     nome.className =
         "ranking-nome";
-
     nome.textContent =
         item.nome ||
         "Participante";
-
-
     const pontos =
         document.createElement(
             "strong"
         );
-
     pontos.className =
         "ranking-pontos";
-
     pontos.textContent =
         `${Number(
             item.pontos || 0
         ).toLocaleString(
             "pt-BR"
         )} pts`;
-
 
     linha.appendChild(
         posicao
@@ -601,15 +622,12 @@ function criarLinhaRanking(
         pontos
     );
 
-
     return linha;
 }
 
 
 async function carregarRanking() {
-
     rankingLista.replaceChildren();
-
 
     const carregando =
         document.createElement(
@@ -1204,7 +1222,6 @@ function abrirTelaRoleta() {
     telaRoleta.hidden = false;
     desenharRoleta();
     verificarEstadoRoleta();
-
     carregarHistoricoPremiada();
 }
 
@@ -1215,10 +1232,13 @@ function voltarParaMenu() {
 }
 
 function desenharRoleta() {
+
     const centro =
         canvas.width / 2;
+
     const raio =
         centro - 10;
+
     ctx.clearRect(
         0,
         0,
@@ -1231,38 +1251,25 @@ function desenharRoleta() {
         i < quantidade;
         i++
     ) {
+        const itemAtual =
+            itens[i];
+
         const inicio =
             -Math.PI / 2
             - anguloPorItem / 2
             + i * anguloPorItem;
 
         const fim =
-            inicio + anguloPorItem;
-
-        const parCores =
-            coresBase[i % 2];
-
-        const gradiente =
-            ctx.createLinearGradient(
-                0,
-                0,
-                canvas.width,
-                canvas.height
-            );
-        gradiente.addColorStop(
-            0,
-            parCores[0]
-        );
-        gradiente.addColorStop(
-            1,
-            parCores[1]
-        );
+            inicio +
+            anguloPorItem;
 
         ctx.beginPath();
+
         ctx.moveTo(
             centro,
             centro
         );
+
         ctx.arc(
             centro,
             centro,
@@ -1271,59 +1278,148 @@ function desenharRoleta() {
             fim
         );
         ctx.closePath();
-        ctx.fillStyle =
-            gradiente;
+
+        // ========================================
+        // DIAMANTE = FUNDO PRETO
+        // ========================================
+
+        if (
+            itemAtual === "💎"
+        ) {
+
+            ctx.fillStyle =
+                "#111111";
+
+        } else {
+            const parCores =
+                coresBase[
+                i % 2
+                ];
+
+            const gradiente =
+                ctx.createLinearGradient(
+                    0,
+                    0,
+                    canvas.width,
+                    canvas.height
+                );
+
+            gradiente.addColorStop(
+                0,
+                parCores[0]
+            );
+
+            gradiente.addColorStop(
+                1,
+                parCores[1]
+            );
+
+            ctx.fillStyle =
+                gradiente;
+        }
+
         ctx.fill();
+
         ctx.strokeStyle =
             "#d8c17c";
-        ctx.lineWidth = 3;
+
+        ctx.lineWidth =
+            3;
+
         ctx.stroke();
+
         const meio =
             inicio +
             anguloPorItem / 2;
+
         const distanciaTexto =
             raio * 0.70;
+
         const xTexto =
             centro +
             Math.cos(meio) *
             distanciaTexto;
+
         const yTexto =
             centro +
             Math.sin(meio) *
             distanciaTexto;
+
         ctx.save();
+
         ctx.translate(
             xTexto,
             yTexto
         );
-        ctx.rotate(meio);
+
+        ctx.rotate(
+            meio
+        );
+
         ctx.textAlign =
             "center";
         ctx.textBaseline =
             "middle";
         ctx.fillStyle =
             "#ffffff";
-        const ehValor =
-            itens[i].startsWith("R$");
-        const tamanhoFonte =
-            ehValor
-                ? 40
-                : 30;
-        ctx.font =
-            `bold ${tamanhoFonte}px Arial`;
         ctx.shadowColor =
             "rgba(0,0,0,0.7)";
-        ctx.shadowBlur = 4;
-        ctx.fillText(
-            itens[i],
-            0,
-            0
-        );
+        ctx.shadowBlur =
+            4;
+
+        // ========================================
+        // DIAMANTE
+        // ========================================
+        if (
+            itemAtual ===
+            "💎"
+        ) {
+
+            ctx.save();
+
+            ctx.rotate(
+                Math.PI / 2
+            );
+
+            ctx.font =
+                "52px Arial";
+
+            ctx.fillText(
+                "💎",
+                0,
+                0
+            );
+            ctx.restore();
+
+        } else {
+            const ehValor =
+                itemAtual
+                    .startsWith(
+                        "R$"
+                    );
+
+            const tamanhoFonte =
+                ehValor
+                    ? 34
+                    : 24;
+
+            ctx.font =
+                `bold ${tamanhoFonte}px Arial`;
+
+            ctx.fillText(
+                itemAtual,
+                0,
+                0
+            );
+        }
         ctx.restore();
     }
 
-    const raioCentro = 44;
+    const raioCentro =
+        44;
+
     ctx.beginPath();
+
     ctx.arc(
         centro,
         centro,
@@ -1331,9 +1427,15 @@ function desenharRoleta() {
         0,
         Math.PI * 2
     );
-    ctx.fillStyle = "#17151d";
+
+    ctx.fillStyle =
+        "#17151d";
+
     ctx.fill();
-    ctx.strokeStyle = "#d8c17c";
+
+    ctx.strokeStyle =
+        "#d8c17c";
+
     ctx.lineWidth = 5;
     ctx.stroke();
     ctx.save();
@@ -1345,18 +1447,27 @@ function desenharRoleta() {
         0,
         Math.PI * 2
     );
+
     ctx.clip();
 
-    if (logoCentro.complete && logoCentro.naturalWidth > 0) {
-        const tamanhoLogo = 90;
+    if (
+        logoCentro.complete &&
+        logoCentro.naturalWidth > 0
+    ) {
+        const tamanhoLogo =
+            90;
+
         ctx.drawImage(
             logoCentro,
-            centro - tamanhoLogo / 2,
-            centro - tamanhoLogo / 2,
+            centro -
+            tamanhoLogo / 2,
+            centro -
+            tamanhoLogo / 2,
             tamanhoLogo,
             tamanhoLogo
         );
     }
+
     ctx.restore();
 }
 
@@ -1947,7 +2058,36 @@ async function verificarInscricao() {
 
 async function girar() {
 
-    botaoGirar.disabled = true;
+    if (girandoPremiada) {
+        return;
+    }
+
+    girandoPremiada =
+        true;
+
+    const liberarVisual =
+        () => {
+            girandoPremiada =
+                false;
+
+            if (
+                itensPremiadaPendentes
+            ) {
+                const pendentes =
+                    itensPremiadaPendentes;
+
+                itensPremiadaPendentes =
+                    null;
+
+                aplicarItensPremiada(
+                    pendentes,
+                    true
+                );
+            }
+        };
+
+    botaoGirar.disabled =
+        true;
 
     resultado.textContent =
         "Girando...";
@@ -1955,47 +2095,51 @@ async function girar() {
     let resposta;
     let dados;
 
+
     try {
 
-        resposta = await fetch(
-            "/api/girar",
-            {
-                method: "POST",
+        resposta =
+            await fetch(
+                "/api/girar",
+                {
+                    method:
+                        "POST",
 
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body: JSON.stringify({
-                    initData,
-                    versaoRodada
-                })
-            }
-        );
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body:
+                        JSON.stringify({
+                            initData,
+                            versaoRodada
+                        })
+                }
+            );
 
         dados =
             await resposta.json();
 
         if (!resposta.ok) {
+            liberarVisual();
 
             if (
-                resposta.status === 409 &&
+                resposta.status ===
+                409 &&
                 dados.rodadaAtualizada
             ) {
 
                 window.location.reload();
-
                 return;
             }
 
-
             if (
-                resposta.status === 423 &&
+                resposta.status ===
+                423 &&
                 dados.rodadaFechada
             ) {
-
-                rodadaAberta = false;
+                rodadaAberta =
+                    false;
 
                 botaoGirar.disabled =
                     true;
@@ -2004,17 +2148,18 @@ async function girar() {
                     "🔒 AGUARDANDO LIBERAÇÃO";
 
                 resultado.textContent =
-                    "🔒 A próxima rodada ainda não foi liberada.";
+                    "";
 
                 return;
             }
 
             if (
-                resposta.status === 410 &&
+                resposta.status ===
+                410 &&
                 dados.premiosEsgotados
             ) {
-
-                rodadaUtilizada = true;
+                rodadaUtilizada =
+                    true;
 
                 avisoComunidade.hidden =
                     true;
@@ -2028,12 +2173,13 @@ async function girar() {
                 return;
             }
 
-
             if (
-                resposta.status === 409 &&
+                resposta.status ===
+                409 &&
                 dados.jaGirou
             ) {
-                rodadaUtilizada = true;
+                rodadaUtilizada =
+                    true;
 
                 avisoComunidade.hidden =
                     true;
@@ -2048,12 +2194,12 @@ async function girar() {
             }
 
             if (
-                resposta.status === 403 &&
+                resposta.status ===
+                403 &&
                 Array.isArray(
                     dados.canaisFaltando
                 )
             ) {
-
                 mostrarCanaisFaltando(
                     dados.canaisFaltando
                 );
@@ -2062,42 +2208,66 @@ async function girar() {
                     "🔒 Você precisa estar inscrito para participar.";
 
             } else {
-
                 resultado.textContent =
                     dados.erro ||
                     "❌ Erro ao realizar o giro.";
             }
 
-            botaoGirar.disabled = false;
+            botaoGirar.disabled =
+                false;
 
             return;
         }
 
-    } catch {
+    } catch (erro) {
+
+        liberarVisual();
 
         resultado.textContent =
             "❌ Erro ao realizar o giro.";
 
-        botaoGirar.disabled = false;
+        botaoGirar.disabled =
+            false;
 
         return;
     }
 
-    rodadaUtilizada = true;
+    // ========================================
+    // O SERVIDOR ENVIA A CONFIGURAÇÃO
+    // EXATA USADA NESTE GIRO.
+    // ========================================
+    aplicarItensPremiada(
+        dados.itensGiro,
+        true
+    );
 
-    const indice = dados.indice;
+    if (
+        dados.origem ===
+        "normal"
+    ) {
+        rodadaUtilizada =
+            true;
+    }
+
+    const indice =
+        Number(
+            dados.indice
+        );
 
     const grausPorItem =
-        360 / quantidade;
+        360 /
+        quantidade;
 
     const destino =
         (
             360 -
-            indice * grausPorItem
+            indice *
+            grausPorItem
         ) % 360;
 
     const atualNormalizado =
-        rotacaoAtual % 360;
+        rotacaoAtual %
+        360;
 
     const ajuste =
         (
@@ -2106,7 +2276,8 @@ async function girar() {
             360
         ) % 360;
 
-    const voltasExtras = 6 * 360;
+    const voltasExtras =
+        6 * 360;
 
     rotacaoAtual +=
         voltasExtras +
@@ -2115,34 +2286,60 @@ async function girar() {
     canvas.style.transform =
         `rotate(${rotacaoAtual}deg)`;
 
-    setTimeout(() => {
+    setTimeout(
+        () => {
+            const premio =
+                dados.premio;
 
-        const premio =
-            dados.premio;
+            // ========================================
+            // DIAMANTE
+            // ========================================
+            if (
+                dados.tipoResultado ===
+                "diamante"
+            ) {
+                resultado.textContent =
+                    "💎 Você ganhou +1.000 pontos!";
 
-        const semPremio = [
-            "QUASE",
-            "NÃO",
-            "QUASE",
-            "TRAVEE",
-            "PRA FORA"
-        ];
+            } else if (
+                dados.tipoResultado ===
+                "dinheiro"
+            ) {
+                resultado.textContent =
+                    `🎉 Você ganhou ${premio}!`;
+            } else {
+                resultado.textContent =
+                    "😕 Não foi dessa vez!";
+            }
 
-        if (semPremio.includes(premio)) {
+            girandoPremiada =
+                false;
 
-            resultado.textContent =
-                "😕 Não foi dessa vez!";
+            itensPremiadaPendentes =
+                null;
 
-        } else {
+            // ========================================
+            // AGORA SIM PODE MOSTRAR
+            // A CONFIGURAÇÃO DO PRÓXIMO GIRO.
+            // ========================================
 
-            resultado.textContent =
-                `🎉 Você ganhou ${premio}!`;
-        }
+            if (
+                Array.isArray(
+                    dados.itensDepois
+                )
+            ) {
+                aplicarItensPremiada(
+                    dados.itensDepois,
+                    true
+                );
+            }
 
-        carregarUsuario();
-        carregarHistoricoPremiada();
+            carregarUsuario();
+            carregarHistoricoPremiada();
 
-    }, 5100);
+        },
+        5100
+    );
 }
 
 botaoGirarPontos.addEventListener(

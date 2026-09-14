@@ -20,7 +20,9 @@ const {
     listarRankingPontos,
     obterPosicaoRankingPontos,
     listarGanhadoresPremiada,
-    listarUltimosResultadosPontos
+    listarUltimosResultadosPontos,
+    obterConfiguracaoPremiadaBonus,
+    resetarEstoquePremiadaBonus
 } = require("./database");
 
 const app = express();
@@ -237,12 +239,12 @@ function obterPeriodoDiarioAtual(
     );
 }
 
-const PREMIOS_VALIDOS =
+const PREMIOS_DINHEIRO =
     new Set([
-        "R$ 5",
+        "R$ 50",
+        "R$ 12",
         "R$ 10",
-        "R$ 6",
-        "R$ 9",
+        "R$ 5",
         "R$ 7"
     ]);
 
@@ -539,16 +541,20 @@ app.use(limiter);
 // ==============================
 
 const premios = [
+    "R$ 50",
+    "💎",
     "QUASE",
     "R$ 5",
-    "NÃO",
-    "R$ 10",
+    "NÃO FOI",
+    "💎",
+    "R$ 12",
     "QUASE",
-    "R$ 6",
-    "R$ 9",
-    "TRAVEE",
-    "PRA FORA",
-    "R$ 7"
+    "R$ 7",
+    "💎",
+    "NÃO DEU",
+    "R$ 5",
+    "R$ 10",
+    "QUASE"
 ];
 
 // ==============================
@@ -561,12 +567,12 @@ const resultadosPontos = [
         pontos: 199
     },
     {
-        tipo: "pontos",
-        pontos: 500
-    },
-    {
         tipo: "diamante",
         pontos: 1000
+    },
+    {
+        tipo: "pontos",
+        pontos: 500
     },
     {
         tipo: "pontos",
@@ -827,6 +833,8 @@ app.post(
             giroNormalDisponivel ||
             chancePremiadaDisponivel;
 
+        const configuracaoPremiada =
+            obterConfiguracaoPremiadaBonus();
 
         return res.json({
 
@@ -881,7 +889,10 @@ app.post(
                     premiosNormaisEsgotados,
 
                     podeGirar:
-                        podeGirarPremiada
+                        podeGirarPremiada,
+
+                    itens:
+                        configuracaoPremiada.itens
                 },
 
                 girosPontosExtras:
@@ -1318,7 +1329,6 @@ app.post(
     }
 );
 
-
 // ==============================
 // HISTÓRICO DA ROLETA DE PONTOS
 // ==============================
@@ -1585,10 +1595,13 @@ app.post(
 
         const chanceBonusInicial =
             Number(
-                usuarioApp.girosPremiada || 0
+                usuarioApp.girosPremiada ||
+                0
             ) >= 1 &&
             Number(
-                usuarioApp.giroPremiadaExpiraEm || 0
+                usuarioApp
+                    .giroPremiadaExpiraEm ||
+                0
             ) > agoraInicial;
 
 
@@ -1597,16 +1610,14 @@ app.post(
             !giroNormalAnterior;
 
 
-        // ========================================
-        // NÃO POSSUI NENHUMA PORTA DE ENTRADA
-        // ========================================
-
         if (
             !normalInicialDisponivel &&
             !chanceBonusInicial
         ) {
 
-            if (!estadoInicial.aberta) {
+            if (
+                !estadoInicial.aberta
+            ) {
 
                 return res.status(423).json({
                     erro:
@@ -1639,7 +1650,7 @@ app.post(
 
 
         // ========================================
-        // VERIFICA COMUNIDADE
+        // COMUNIDADE
         // ========================================
 
         try {
@@ -1678,7 +1689,7 @@ app.post(
 
 
         // ========================================
-        // CONFIRMA TUDO DEPOIS DO AWAIT
+        // CONFIRMA ESTADO APÓS O AWAIT
         // ========================================
 
         const estadoConfirmado =
@@ -1740,11 +1751,13 @@ app.post(
         let chanceBonusDisponivel =
             Number(
                 usuarioConfirmado
-                    .girosPremiada || 0
+                    .girosPremiada ||
+                0
             ) >= 1 &&
             Number(
                 usuarioConfirmado
-                    .giroPremiadaExpiraEm || 0
+                    .giroPremiadaExpiraEm ||
+                0
             ) > agoraConfirmado;
 
 
@@ -1818,10 +1831,6 @@ app.post(
                 chanceBonusDisponivel
             ) {
 
-                // Estoque normal acabou,
-                // mas a chance pessoal
-                // continua independente.
-
                 origemGiro =
                     "bonus";
 
@@ -1844,27 +1853,22 @@ app.post(
 
 
         // ========================================
-        // SORTEIO
+        // VARIÁVEIS DO RESULTADO
         // ========================================
 
-        const indice =
-            crypto.randomInt(
-                0,
-                premios.length
-            );
+        let indice;
 
+        let premio;
 
-        const premio =
-            premios[
-            indice
-            ];
+        let tipoResultado;
 
+        let pontosGanhos = 0;
 
-        const ehPremio =
-            PREMIOS_VALIDOS.has(
-                premio
-            );
+        let ehPremio = false;
 
+        let itensGiro = null;
+
+        let itensDepois = null;
 
         let registro;
 
@@ -1878,10 +1882,61 @@ app.post(
             "normal"
         ) {
 
+            const configuracao =
+                obterConfiguracaoPremiadaBonus();
+
+
+            indice =
+                crypto.randomInt(
+                    0,
+                    configuracao
+                        .fatias
+                        .length
+                );
+
+
+            const fatia =
+                configuracao
+                    .fatias[
+                indice
+                ];
+
+
+            premio =
+                fatia.premio;
+
+
+            tipoResultado =
+                fatia.tipo;
+
+
+            pontosGanhos =
+                Number(
+                    fatia.pontos ||
+                    0
+                );
+
+
+            ehPremio =
+                PREMIOS_DINHEIRO.has(
+                    premio
+                );
+
+
+            itensGiro =
+                configuracao.itens;
+
+
+            itensDepois =
+                configuracao.itens;
+
+
             registro =
                 registrarGiroCampanha({
                     usuarioId,
+
                     indice,
+
                     premio,
 
                     campanha:
@@ -1890,27 +1945,29 @@ app.post(
                     ehPremio,
 
                     maxGanhadores:
-                        MAX_GANHADORES
+                        MAX_GANHADORES,
+
+                    tipoResultado,
+
+                    pontosGanhos
                 });
 
 
             // ========================================
             // RACE:
-            // NORMAL SUMIU ENTRE A CHECAGEM
-            // E O REGISTRO.
+            // NORMAL SUMIU.
             //
-            // SE POSSUI BÔNUS, CAI PARA ELE.
+            // SE AINDA HOUVER BÔNUS,
+            // USA A CHANCE PESSOAL.
             // ========================================
 
             if (!registro.ok) {
 
                 if (
-                    (
-                        registro.motivo ===
-                        "ja_girou" ||
-                        registro.motivo ===
-                        "esgotado"
-                    )
+                    registro.motivo ===
+                    "ja_girou" ||
+                    registro.motivo ===
+                    "esgotado"
                 ) {
 
                     const usuarioBonus =
@@ -1926,11 +1983,13 @@ app.post(
                     chanceBonusDisponivel =
                         Number(
                             usuarioBonus
-                                .girosPremiada || 0
+                                .girosPremiada ||
+                            0
                         ) >= 1 &&
                         Number(
                             usuarioBonus
-                                .giroPremiadaExpiraEm || 0
+                                .giroPremiadaExpiraEm ||
+                            0
                         ) > agoraBonus;
 
 
@@ -1941,13 +2000,43 @@ app.post(
                         origemGiro =
                             "bonus";
 
+
                         registro =
                             registrarGiroPremiadaBonus({
                                 usuarioId,
-                                indice,
-                                premio,
-                                ehPremio
+                                indice
                             });
+
+
+                        if (registro.ok) {
+
+                            premio =
+                                registro.premio;
+
+                            tipoResultado =
+                                registro
+                                    .tipoResultado;
+
+                            pontosGanhos =
+                                Number(
+                                    registro
+                                        .pontosGanhos ||
+                                    0
+                                );
+
+                            ehPremio =
+                                registro
+                                    .ehPremio ===
+                                true;
+
+                            itensGiro =
+                                registro
+                                    .itensGiro;
+
+                            itensDepois =
+                                registro
+                                    .itensDepois;
+                        }
 
                     } else if (
                         registro.motivo ===
@@ -1978,27 +2067,68 @@ app.post(
                 }
             }
 
+
         } else {
 
             // ========================================
             // GIRO BÔNUS
             // ========================================
 
+            const configuracao =
+                obterConfiguracaoPremiadaBonus();
+
+
+            indice =
+                crypto.randomInt(
+                    0,
+                    configuracao
+                        .fatias
+                        .length
+                );
+
+
             registro =
                 registrarGiroPremiadaBonus({
                     usuarioId,
-                    indice,
-                    premio,
-                    ehPremio
+                    indice
                 });
+
+
+            if (registro.ok) {
+
+                premio =
+                    registro.premio;
+
+                tipoResultado =
+                    registro
+                        .tipoResultado;
+
+                pontosGanhos =
+                    Number(
+                        registro
+                            .pontosGanhos ||
+                        0
+                    );
+
+                ehPremio =
+                    registro.ehPremio ===
+                    true;
+
+                itensGiro =
+                    registro.itensGiro;
+
+                itensDepois =
+                    registro.itensDepois;
+            }
         }
 
 
         // ========================================
-        // BÔNUS JÁ FOI CONSUMIDO/EXPIROU
+        // BÔNUS SUMIU / EXPIROU
         // ========================================
 
         if (
+            !registro ||
             !registro.ok
         ) {
 
@@ -2029,21 +2159,23 @@ app.post(
             `🎡 ROLETA PREMIADA | ` +
             `${usuarioId} | ` +
             `${origemGiro.toUpperCase()} | ` +
-            `${premio}`
+            `${premio} | ` +
+            `+${pontosGanhos} pts`
         );
 
 
         // ========================================
         // AVISO DE GANHADOR
+        //
+        // SOMENTE DINHEIRO.
+        // DIAMANTE NÃO VAI PARA
+        // LISTA DE GANHADORES EM R$.
         // ========================================
 
         if (ehPremio) {
 
             setTimeout(
                 () => {
-
-                    // A dinâmica normal continua
-                    // vinculada à versão da rodada.
 
                     if (
                         origemGiro ===
@@ -2067,9 +2199,6 @@ app.post(
                         }
                     }
 
-
-                    // O bônus é independente
-                    // da rodada administrativa.
 
                     avisarGanhador(
                         usuarioTelegram,
@@ -2098,10 +2227,21 @@ app.post(
 
             premio,
 
+            tipoResultado,
+
+            pontosGanhos,
+
             origem:
                 origemGiro,
 
+            itensGiro,
+
+            itensDepois,
+
             usuario: {
+
+                pontos:
+                    usuarioFinal.pontos,
 
                 girosPremiada:
                     usuarioFinal
