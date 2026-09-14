@@ -469,6 +469,7 @@ function salvarUsuarioTelegram(
         usuarioId,
         firstName,
         lastName,
+        username,
         nomeExibicao,
         agora,
         agora
