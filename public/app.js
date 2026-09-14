@@ -144,15 +144,15 @@ const itens = [
 ];
 
 const itensPontos = [
-    { tipo: "pontos", valor: 100 },
-    { tipo: "pontos", valor: 500 },
+    { tipo: "pontos", valor: 199 },
     { tipo: "diamante", valor: 1000 },
+    { tipo: "pontos", valor: 500 },
     { tipo: "pontos", valor: 300 },
     { tipo: "pontos", valor: 700 },
-    { tipo: "pontos", valor: 100 },
+    { tipo: "pontos", valor: 160 },
     { tipo: "pontos", valor: 500 },
     { tipo: "roleta" },
-    { tipo: "pontos", valor: 100 },
+    { tipo: "pontos", valor: 198 },
     { tipo: "pontos", valor: 700 },
     { tipo: "pontos", valor: 300 },
     { tipo: "pontos", valor: 100 }
@@ -1131,7 +1131,10 @@ function desenharRoletaPontos() {
         ctxPontos.closePath();
 
         ctxPontos.fillStyle =
-            coresPontos[i];
+            item.tipo === "diamante" ||
+                item.tipo === "roleta"
+                ? "#111111"
+                : coresPontos[i];
 
         ctxPontos.fill();
 

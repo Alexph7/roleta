@@ -556,7 +556,7 @@ const premios = [
 const resultadosPontos = [
     {
         tipo: "pontos",
-        pontos: 100
+        pontos: 199
     },
     {
         tipo: "pontos",
@@ -576,7 +576,7 @@ const resultadosPontos = [
     },
     {
         tipo: "pontos",
-        pontos: 100
+        pontos: 160
     },
     {
         tipo: "pontos",
@@ -588,7 +588,7 @@ const resultadosPontos = [
     },
     {
         tipo: "pontos",
-        pontos: 100
+        pontos: 198
     },
     {
         tipo: "pontos",
