@@ -751,6 +751,166 @@ function registrarGiroPontosDiario(
     );
 }
 
+// ========================================
+// RANKING DA ROLETA DE PONTOS
+// ========================================
+
+function listarRankingPontos(
+    limite = 20
+) {
+
+    const limiteSeguro =
+        Math.max(
+            1,
+            Math.min(
+                100,
+                Math.trunc(
+                    Number(limite) || 20
+                )
+            )
+        );
+
+
+    return db.prepare(`
+        WITH ranking AS (
+
+            SELECT
+                u.usuario_id,
+                u.nome_exibicao,
+                u.username,
+                u.pontos,
+                u.atingiu_pontuacao_em,
+                u.criado_em,
+
+                ROW_NUMBER() OVER (
+
+                    ORDER BY
+                        u.pontos DESC,
+
+                        CASE
+                            WHEN
+                                u.atingiu_pontuacao_em
+                                IS NULL
+                            THEN 1
+                            ELSE 0
+                        END ASC,
+
+                        u.atingiu_pontuacao_em
+                            ASC,
+
+                        u.criado_em
+                            ASC,
+
+                        u.usuario_id
+                            ASC
+
+                ) AS posicao
+
+            FROM usuarios u
+
+            WHERE EXISTS (
+
+                SELECT 1
+
+                FROM eventos_usuario e
+
+                WHERE
+                    e.usuario_id =
+                        u.usuario_id
+
+                    AND e.tipo =
+                        'GIRO_ROLETA_PONTOS'
+            )
+        )
+
+        SELECT
+            usuario_id,
+            nome_exibicao,
+            username,
+            pontos,
+            posicao
+
+        FROM ranking
+
+        ORDER BY posicao ASC
+
+        LIMIT ?
+    `).all(
+        limiteSeguro
+    );
+}
+
+function obterPosicaoRankingPontos(
+    usuarioId
+) {
+
+    return db.prepare(`
+        WITH ranking AS (
+
+            SELECT
+                u.usuario_id,
+                u.nome_exibicao,
+                u.username,
+                u.pontos,
+
+                ROW_NUMBER() OVER (
+
+                    ORDER BY
+                        u.pontos DESC,
+
+                        CASE
+                            WHEN
+                                u.atingiu_pontuacao_em
+                                IS NULL
+                            THEN 1
+                            ELSE 0
+                        END ASC,
+
+                        u.atingiu_pontuacao_em
+                            ASC,
+
+                        u.criado_em
+                            ASC,
+
+                        u.usuario_id
+                            ASC
+
+                ) AS posicao
+
+            FROM usuarios u
+
+            WHERE EXISTS (
+
+                SELECT 1
+
+                FROM eventos_usuario e
+
+                WHERE
+                    e.usuario_id =
+                        u.usuario_id
+
+                    AND e.tipo =
+                        'GIRO_ROLETA_PONTOS'
+            )
+        )
+
+        SELECT
+            usuario_id,
+            nome_exibicao,
+            username,
+            pontos,
+            posicao
+
+        FROM ranking
+
+        WHERE usuario_id = ?
+
+        LIMIT 1
+    `).get(
+        String(usuarioId)
+    ) || null;
+}
+
 function contarGanhadoresCampanha(
     campanha
 ) {
@@ -977,5 +1137,7 @@ module.exports = {
     buscarUsuario,
     salvarUsuarioTelegram,
     registrarEventoUsuario,
-    registrarGiroPontosDiario
+    registrarGiroPontosDiario,
+    listarRankingPontos,
+    obterPosicaoRankingPontos
 };

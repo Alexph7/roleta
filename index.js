@@ -15,7 +15,9 @@ const {
     obterEstadoRoleta,
     abrirRoleta,
     salvarUsuarioTelegram,
-    registrarGiroPontosDiario
+    registrarGiroPontosDiario,
+    listarRankingPontos,
+    obterPosicaoRankingPontos
 } = require("./database");
 
 const app = express();
@@ -1045,6 +1047,122 @@ app.post(
                     registro.usuario.ultimoPeriodoDiario
             }
         });
+    }
+);
+
+// ==============================
+// RANKING DE PONTOS
+// ==============================
+
+app.post(
+    "/api/ranking",
+    (req, res) => {
+        const {
+            initData
+        } = req.body;
+
+
+        const validacao =
+            validarInitDataTelegram(
+                initData
+            );
+
+        if (!validacao.ok) {
+            return res.status(401).json({
+                erro:
+                    "Abra pelo Telegram."
+            });
+        }
+
+        const usuarioTelegram =
+            validacao.usuario;
+
+        if (
+            !usuarioLiberadoPorId(
+                usuarioTelegram.id
+            )
+        ) {
+            return res.status(403).json({
+                erro:
+                    "Esta conta não está habilitada.",
+                acessoBloqueado: true
+            });
+        }
+
+        try {
+            // Atualiza nome / username,
+            // sem alterar pontos ou chances.
+
+            salvarUsuarioTelegram(
+                usuarioTelegram
+            );
+
+            const ranking =
+                listarRankingPontos(
+                    20
+                );
+
+            const minhaPosicao =
+                obterPosicaoRankingPontos(
+                    usuarioTelegram.id
+                );
+
+            return res.json({
+                ranking:
+                    ranking.map(
+                        item => ({
+                            posicao:
+                                Number(
+                                    item.posicao
+                                ),
+
+                            nome:
+                                item.nome_exibicao,
+
+                            username:
+                                item.username,
+
+                            pontos:
+                                Number(
+                                    item.pontos || 0
+                                )
+                        })
+                    ),
+
+
+                usuario:
+                    minhaPosicao
+                        ? {
+                            posicao:
+                                Number(
+                                    minhaPosicao.posicao
+                                ),
+
+                            nome:
+                                minhaPosicao.nome_exibicao,
+
+                            username:
+                                minhaPosicao.username,
+
+                            pontos:
+                                Number(
+                                    minhaPosicao.pontos || 0
+                                )
+                        }
+                        : null
+            });
+
+        } catch (erro) {
+            console.error(
+                "❌ Erro ao carregar ranking:",
+                erro
+            );
+
+            return res.status(500).json({
+                erro:
+                    "Não foi possível carregar o ranking agora."
+            });
+        }
     }
 );
 

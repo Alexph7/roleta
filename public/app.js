@@ -23,6 +23,31 @@ const telaPontos =
         "tela-pontos"
     );
 
+const telaRanking =
+    document.getElementById(
+        "tela-ranking"
+    );
+
+const botaoAbrirRanking =
+    document.getElementById(
+        "abrir-ranking"
+    );
+
+const botaoVoltarMenuRanking =
+    document.getElementById(
+        "voltar-menu-ranking"
+    );
+
+const rankingLista =
+    document.getElementById(
+        "ranking-lista"
+    );
+
+const minhaPosicaoRanking =
+    document.getElementById(
+        "minha-posicao-ranking"
+    );
+
 const botaoAbrirPontos =
     document.getElementById(
         "abrir-pontos"
@@ -362,6 +387,372 @@ async function carregarUsuario() {
         carregandoUsuario =
             false;
     }
+}
+
+// ========================================
+// RANKING
+// ========================================
+
+function textoPosicaoRanking(
+    posicao
+) {
+
+    const numero =
+        Number(posicao);
+
+
+    if (numero === 1) {
+        return "🥇";
+    }
+
+    if (numero === 2) {
+        return "🥈";
+    }
+
+    if (numero === 3) {
+        return "🥉";
+    }
+
+
+    return `${numero}º`;
+}
+
+
+function criarLinhaRanking(
+    item,
+    destaque = false
+) {
+
+    const linha =
+        document.createElement(
+            "div"
+        );
+
+
+    linha.className =
+        destaque
+            ? "ranking-linha ranking-eu"
+            : "ranking-linha";
+
+
+    const posicao =
+        document.createElement(
+            "span"
+        );
+
+    posicao.className =
+        "ranking-posicao";
+
+    posicao.textContent =
+        textoPosicaoRanking(
+            item.posicao
+        );
+
+
+    const nome =
+        document.createElement(
+            "strong"
+        );
+
+    nome.className =
+        "ranking-nome";
+
+    nome.textContent =
+        item.nome ||
+        "Participante";
+
+
+    const pontos =
+        document.createElement(
+            "strong"
+        );
+
+    pontos.className =
+        "ranking-pontos";
+
+    pontos.textContent =
+        `${Number(
+            item.pontos || 0
+        ).toLocaleString(
+            "pt-BR"
+        )} pts`;
+
+
+    linha.appendChild(
+        posicao
+    );
+
+    linha.appendChild(
+        nome
+    );
+
+    linha.appendChild(
+        pontos
+    );
+
+
+    return linha;
+}
+
+
+async function carregarRanking() {
+
+    rankingLista.replaceChildren();
+
+
+    const carregando =
+        document.createElement(
+            "p"
+        );
+
+    carregando.className =
+        "ranking-carregando";
+
+    carregando.textContent =
+        "Carregando ranking...";
+
+
+    rankingLista.appendChild(
+        carregando
+    );
+
+
+    minhaPosicaoRanking.hidden =
+        true;
+
+    minhaPosicaoRanking
+        .replaceChildren();
+
+
+    try {
+
+        const resposta =
+            await fetch(
+                "/api/ranking",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            initData
+                        })
+                }
+            );
+
+
+        const dados =
+            await resposta.json();
+
+
+        if (
+            !resposta.ok
+        ) {
+
+            throw new Error(
+                dados.erro ||
+                "Ranking indisponível"
+            );
+        }
+
+
+        rankingLista
+            .replaceChildren();
+
+
+        const ranking =
+            Array.isArray(
+                dados.ranking
+            )
+                ? dados.ranking
+                : [];
+
+
+        const minhaPosicao =
+            dados.usuario ||
+            null;
+
+
+        if (
+            ranking.length === 0
+        ) {
+
+            const vazio =
+                document.createElement(
+                    "p"
+                );
+
+            vazio.className =
+                "ranking-vazio";
+
+            vazio.textContent =
+                "Ainda não há participantes no ranking.";
+
+
+            rankingLista.appendChild(
+                vazio
+            );
+
+        } else {
+
+            for (
+                const item
+                of ranking
+            ) {
+
+                const souEu =
+                    minhaPosicao &&
+                    Number(
+                        item.posicao
+                    ) ===
+                    Number(
+                        minhaPosicao
+                            .posicao
+                    );
+
+
+                rankingLista.appendChild(
+                    criarLinhaRanking(
+                        item,
+                        souEu
+                    )
+                );
+            }
+        }
+
+
+        // ========================================
+        // POSIÇÃO DO PRÓPRIO USUÁRIO
+        // ========================================
+
+        if (minhaPosicao) {
+
+            const posicao =
+                document.createElement(
+                    "span"
+                );
+
+            posicao.className =
+                "ranking-posicao";
+
+            posicao.textContent =
+                textoPosicaoRanking(
+                    minhaPosicao.posicao
+                );
+
+
+            const nome =
+                document.createElement(
+                    "strong"
+                );
+
+            nome.className =
+                "ranking-nome";
+
+            nome.textContent =
+                minhaPosicao.nome ||
+                "Você";
+
+
+            const pontos =
+                document.createElement(
+                    "strong"
+                );
+
+            pontos.className =
+                "ranking-pontos";
+
+            pontos.textContent =
+                `${Number(
+                    minhaPosicao
+                        .pontos || 0
+                ).toLocaleString(
+                    "pt-BR"
+                )} pts`;
+
+
+            minhaPosicaoRanking
+                .appendChild(
+                    posicao
+                );
+
+            minhaPosicaoRanking
+                .appendChild(
+                    nome
+                );
+
+            minhaPosicaoRanking
+                .appendChild(
+                    pontos
+                );
+
+
+            minhaPosicaoRanking.hidden =
+                false;
+        }
+
+
+    } catch (erro) {
+
+        console.error(
+            "❌ Erro ao carregar ranking:",
+            erro
+        );
+
+
+        rankingLista
+            .replaceChildren();
+
+
+        const erroElemento =
+            document.createElement(
+                "p"
+            );
+
+        erroElemento.className =
+            "ranking-vazio";
+
+        erroElemento.textContent =
+            "❌ Não foi possível carregar o ranking.";
+
+
+        rankingLista.appendChild(
+            erroElemento
+        );
+    }
+}
+
+
+function abrirTelaRanking() {
+
+    telaMenu.hidden =
+        true;
+
+    telaRoleta.hidden =
+        true;
+
+    telaPontos.hidden =
+        true;
+
+    telaRanking.hidden =
+        false;
+
+
+    carregarRanking();
+}
+
+function voltarParaMenuRanking() {
+
+    telaRanking.hidden =
+        true;
+
+    telaMenu.hidden =
+        false;
 }
 
 function abrirTelaPontos() {
@@ -1386,6 +1777,16 @@ async function girar() {
 botaoGirarPontos.addEventListener(
     "click",
     girarPontos
+);
+
+botaoAbrirRanking.addEventListener(
+    "click",
+    abrirTelaRanking
+);
+
+botaoVoltarMenuRanking.addEventListener(
+    "click",
+    voltarParaMenuRanking
 );
 
 botaoAbrirPontos.addEventListener(

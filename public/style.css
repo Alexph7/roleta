@@ -522,6 +522,198 @@ button.card-jogo:active {
 }
 
 /* ========================================
+   RANKING
+======================================== */
+
+#tela-ranking {
+    width: 100%;
+}
+
+.ranking-titulo {
+    margin:
+        4px 0 3px;
+}
+
+.ranking-subtitulo {
+    margin:
+        0 0 22px;
+
+    color:
+        #aaa6b8;
+
+    font-size:
+        14px;
+}
+
+.minha-posicao-ranking {
+    width: 100%;
+
+    margin:
+        0 auto 18px;
+
+    padding:
+        14px 16px;
+
+    display: grid;
+
+    grid-template-columns:
+        auto 1fr auto;
+
+    align-items:
+        center;
+
+    gap:
+        12px;
+
+    border:
+        1px solid rgba(255,
+            209,
+            102,
+            0.38);
+
+    border-radius:
+        14px;
+
+    background:
+        rgba(255,
+            209,
+            102,
+            0.10);
+
+    text-align:
+        left;
+}
+
+.minha-posicao-ranking .ranking-posicao {
+    color:
+        #ffd166;
+
+    font-size:
+        20px;
+
+    font-weight:
+        bold;
+}
+
+.minha-posicao-ranking .ranking-pontos {
+    color:
+        #ffd166;
+}
+
+.ranking-lista {
+    width: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+.ranking-linha {
+    width: 100%;
+
+    min-width: 0;
+
+    padding:
+        12px 14px;
+
+    display: grid;
+
+    grid-template-columns:
+        46px minmax(0, 1fr) auto;
+
+    align-items:
+        center;
+
+    gap:
+        10px;
+
+    border:
+        1px solid rgba(255,
+            255,
+            255,
+            0.08);
+
+    border-radius:
+        13px;
+
+    background:
+        linear-gradient(135deg,
+            #211d35,
+            #151222);
+
+    text-align:
+        left;
+}
+
+.ranking-linha.ranking-eu {
+    border-color:
+        rgba(124,
+            92,
+            255,
+            0.65);
+
+    background:
+        rgba(124,
+            92,
+            255,
+            0.14);
+}
+
+.ranking-posicao {
+    text-align:
+        center;
+
+    font-size:
+        16px;
+
+    font-weight:
+        bold;
+}
+
+.ranking-nome {
+    min-width: 0;
+
+    overflow: hidden;
+
+    text-overflow:
+        ellipsis;
+
+    white-space:
+        nowrap;
+
+    font-size:
+        14px;
+}
+
+.ranking-pontos {
+    white-space:
+        nowrap;
+
+    color:
+        #cffff0;
+
+    font-size:
+        14px;
+
+    font-weight:
+        bold;
+}
+
+.ranking-carregando,
+.ranking-vazio {
+    margin:
+        25px 0;
+
+    color:
+        #aaa6b8;
+
+    font-size:
+        14px;
+}
+
+/* ========================================
    ROLETA DE PONTOS
 ======================================== */
 

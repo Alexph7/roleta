@@ -82,26 +82,18 @@
                     </div>
                 </button>
 
-                <!-- 3 - SURPRESA -->
-                <div class="card-jogo card-bloqueado">
-
+                <!-- 3 - RANKING -->
+                <button id="abrir-ranking" class="card-jogo" type="button">
                     <div class="card-jogo-icone">
-                        🎁
+                        🏆
                     </div>
 
                     <div class="card-jogo-conteudo">
-
                         <strong>
-                            Surpresa
+                            Ranking
                         </strong>
-
-                        <small>
-                            EM BREVE
-                        </small>
-
                     </div>
-
-                </div>
+                </button>
 
                 <!-- 4 - VAZIO -->
                 <div class="card-jogo card-vazio"></div>
@@ -118,6 +110,30 @@
 
         </section>
 
+        <!-- ========================= -->
+        <!-- RANKING -->
+        <!-- ========================= -->
+        <section id="tela-ranking" class="tela" hidden>
+            <button id="voltar-menu-ranking" class="voltar-menu" type="button">
+                ← MENU
+            </button>
+
+            <h1 class="ranking-titulo">
+                🏆 Ranking
+            </h1>
+
+            <p class="ranking-subtitulo">
+                Campeonato de pontos
+            </p>
+
+            <div id="minha-posicao-ranking" class="minha-posicao-ranking" hidden></div>
+
+            <div id="ranking-lista" class="ranking-lista">
+                <p class="ranking-carregando">
+                    Carregando...
+                </p>
+            </div>
+        </section>
 
         <!-- ========================= -->
         <!-- ROLETA DE PONTOS -->
@@ -164,7 +180,6 @@
             <button id="voltar-menu" class="voltar-menu" type="button">
                 ← MENU
             </button>
-
 
             <h1>
                 🎁 Roleta Premiada
