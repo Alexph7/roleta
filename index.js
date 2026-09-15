@@ -561,56 +561,186 @@ const premios = [
 // ROLETA DE PONTOS
 // ==============================
 
-const resultadosPontos = [
+const resultadosPontosPrimeiroGiro = [
+    {
+        tipo: "multiplicador",
+        multiplicador: 1.5
+    },
+
     {
         tipo: "pontos",
         pontos: 199
     },
+
     {
         tipo: "diamante",
         pontos: 1000
     },
+
     {
         tipo: "pontos",
         pontos: 500
     },
+
     {
         tipo: "pontos",
         pontos: 300
     },
+
     {
         tipo: "pontos",
         pontos: 700
     },
+
     {
         tipo: "pontos",
         pontos: 160
     },
+
+    {
+        tipo: "multiplicador",
+        multiplicador: 1.8
+    },
+
     {
         tipo: "pontos",
         pontos: 500
     },
+
     {
         tipo: "roleta_premiada",
         girosPremiada: 1
     },
+
     {
         tipo: "pontos",
         pontos: 198
     },
+
     {
         tipo: "pontos",
         pontos: 700
     },
+
     {
         tipo: "pontos",
         pontos: 300
     },
+
     {
         tipo: "pontos",
         pontos: 100
     }
 ];
+
+
+const resultadosPontosSegundoGiro = [
+    {
+        tipo: "pontos",
+        pontos: 199
+    },
+
+    {
+        tipo: "diamante",
+        pontos: 1000
+    },
+
+    {
+        tipo: "pontos",
+        pontos: 500
+    },
+
+    {
+        tipo: "pontos",
+        pontos: 300
+    },
+
+    {
+        tipo: "pontos",
+        pontos: 700
+    },
+
+    {
+        tipo: "pontos",
+        pontos: 160
+    },
+
+    {
+        tipo: "pontos",
+        pontos: 500
+    },
+
+    {
+        tipo: "roleta_premiada",
+        girosPremiada: 1
+    },
+
+    {
+        tipo: "pontos",
+        pontos: 198
+    },
+
+    {
+        tipo: "pontos",
+        pontos: 700
+    },
+
+    {
+        tipo: "pontos",
+        pontos: 300
+    },
+
+    {
+        tipo: "pontos",
+        pontos: 100
+    }
+];
+
+
+// ==============================
+// MULTIPLICADOR DE PONTOS
+// ==============================
+
+function aplicarMultiplicadorPontos(
+    pontos,
+    multiplicador
+) {
+    const valor =
+        Math.max(
+            0,
+            Math.trunc(
+                Number(
+                    pontos
+                ) || 0
+            )
+        );
+
+    // 1.5 = 3 / 2
+    if (
+        multiplicador ===
+        1.5
+    ) {
+        return Math.ceil(
+            (
+                valor * 3
+            ) / 2
+        );
+    }
+
+    // 1.8 = 9 / 5
+    if (
+        multiplicador ===
+        1.8
+    ) {
+        return Math.ceil(
+            (
+                valor * 9
+            ) / 5
+        );
+    }
+
+    return valor;
+}
 
 app.post(
     "/api/verificar-acesso",
@@ -1009,32 +1139,133 @@ app.post(
 
 
         // ========================================
-        // SORTEIO FEITO NO SERVIDOR
+        // PRIMEIRO GIRO
         // ========================================
 
         const indice =
             crypto.randomInt(
                 0,
-                resultadosPontos.length
+                resultadosPontosPrimeiroGiro
+                    .length
             );
 
 
-        const resultado =
-            resultadosPontos[
+        const resultadoPrimeiroGiro =
+            resultadosPontosPrimeiroGiro[
             indice
             ];
 
 
-        const pontosGanhos =
+        // ========================================
+        // VERIFICA MULTIPLICADOR
+        // ========================================
+
+        let teveMultiplicador =
+            false;
+
+
+        let multiplicador =
+            null;
+
+
+        let indiceSegundoGiro =
+            null;
+
+
+        let resultadoSegundoGiro =
+            null;
+
+
+        let resultadoFinal =
+            resultadoPrimeiroGiro;
+
+
+        if (
+            resultadoPrimeiroGiro.tipo ===
+            "multiplicador"
+        ) {
+
+            teveMultiplicador =
+                true;
+
+
+            multiplicador =
+                Number(
+                    resultadoPrimeiroGiro
+                        .multiplicador
+                );
+
+
+            // ========================================
+            // SEGUNDO GIRO
+            //
+            // ESTA LISTA NÃO POSSUI
+            // 1.5x NEM 1.8x.
+            // ========================================
+
+            indiceSegundoGiro =
+                crypto.randomInt(
+                    0,
+                    resultadosPontosSegundoGiro
+                        .length
+                );
+
+
+            resultadoSegundoGiro =
+                resultadosPontosSegundoGiro[
+                indiceSegundoGiro
+                ];
+
+
+            resultadoFinal =
+                resultadoSegundoGiro;
+        }
+
+
+        // ========================================
+        // RESULTADO FINAL
+        // ========================================
+
+        const tipoResultado =
+            resultadoFinal.tipo;
+
+
+        const pontosBase =
             Number(
-                resultado.pontos || 0
+                resultadoFinal.pontos ||
+                0
             );
+
+
+        let pontosGanhos =
+            pontosBase;
 
 
         const girosPremiadaGanhos =
             Number(
-                resultado.girosPremiada || 0
+                resultadoFinal
+                    .girosPremiada ||
+                0
             );
+
+
+        // ========================================
+        // MULTIPLICADOR SOMENTE EM PONTOS
+        //
+        // ROLETINHA PREMIADA NÃO MULTIPLICA.
+        // ========================================
+
+        if (
+            teveMultiplicador &&
+            pontosBase > 0
+        ) {
+
+            pontosGanhos =
+                aplicarMultiplicadorPontos(
+                    pontosBase,
+                    multiplicador
+                );
+        }
 
 
         // ========================================
@@ -1047,19 +1278,21 @@ app.post(
 
             registro =
                 registrarGiroPontosDiario({
-                    usuarioId:
-                        usuario.usuarioId,
-
+                    usuarioId: usuario.usuarioId,
                     periodoDiario,
-
                     indice,
-
-                    tipoResultado:
-                        resultado.tipo,
-
+                    tipoResultado,
                     pontosGanhos,
-
-                    girosPremiadaGanhos
+                    girosPremiadaGanhos,
+                    teveMultiplicador,
+                    multiplicador,
+                    indiceSegundoGiro,
+                    tipoPrimeiroGiro: resultadoPrimeiroGiro.tipo,
+                    tipoSegundoGiro:
+                        resultadoSegundoGiro
+                            ? resultadoSegundoGiro.tipo
+                            : null,
+                    pontosBase
                 });
 
         } catch (erro) {
@@ -1102,29 +1335,47 @@ app.post(
         }
 
 
-        console.log(
-            `🎯 ROLETA DE PONTOS | ` +
-            `${usuario.usuarioId} | ` +
-            `índice ${indice} | ` +
-            `${resultado.tipo} | ` +
-            `+${pontosGanhos} pts | ` +
-            `+${girosPremiadaGanhos} giro premiada`
-        );
+        if (
+            teveMultiplicador
+        ) {
+
+            console.log(
+                `🎯 ROLETA DE PONTOS | ` +
+                `${usuario.usuarioId} | ` +
+                `1º índice ${indice} | ` +
+                `${multiplicador}x | ` +
+                `2º índice ${indiceSegundoGiro} | ` +
+                `${tipoResultado} | ` +
+                `base ${pontosBase} | ` +
+                `final +${pontosGanhos} pts | ` +
+                `+${girosPremiadaGanhos} giro premiada`
+            );
+
+        } else {
+
+            console.log(
+                `🎯 ROLETA DE PONTOS | ` +
+                `${usuario.usuarioId} | ` +
+                `índice ${indice} | ` +
+                `${tipoResultado} | ` +
+                `+${pontosGanhos} pts | ` +
+                `+${girosPremiadaGanhos} giro premiada`
+            );
+        }
 
 
         return res.json({
 
             indice,
-
-            tipo:
-                resultado.tipo,
-
+            tipo: tipoResultado,
+            tipoFinal: tipoResultado,
             pontosGanhos,
-
+            pontosBase,
             girosPremiadaGanhos,
-
             periodoDiario,
-
+            teveMultiplicador,
+            multiplicador,
+            indiceSegundoGiro,
             usuario: {
 
                 pontos:

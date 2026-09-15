@@ -173,7 +173,36 @@ let itens = [
     "💎"
 ];
 
-const itensPontos = [
+const itensPontosPrimeiroGiro = [
+    {
+        tipo: "multiplicador",
+        valor: 1.5,
+        texto: "1.5x"
+    },
+
+    { tipo: "pontos", valor: 199 },
+    { tipo: "diamante", valor: 1000 },
+    { tipo: "pontos", valor: 500 },
+    { tipo: "pontos", valor: 300 },
+    { tipo: "pontos", valor: 700 },
+    { tipo: "pontos", valor: 160 },
+
+    {
+        tipo: "multiplicador",
+        valor: 1.8,
+        texto: "1.8x"
+    },
+
+    { tipo: "pontos", valor: 500 },
+    { tipo: "roleta" },
+    { tipo: "pontos", valor: 198 },
+    { tipo: "pontos", valor: 700 },
+    { tipo: "pontos", valor: 300 },
+    { tipo: "pontos", valor: 100 }
+];
+
+
+const itensPontosSegundoGiro = [
     { tipo: "pontos", valor: 199 },
     { tipo: "diamante", valor: 1000 },
     { tipo: "pontos", valor: 500 },
@@ -187,6 +216,10 @@ const itensPontos = [
     { tipo: "pontos", valor: 300 },
     { tipo: "pontos", valor: 100 }
 ];
+
+
+let itensPontosAtuais =
+    itensPontosPrimeiroGiro;
 
 const coresPontos = [
     "#ff6b6b", // vermelho coral
@@ -986,9 +1019,7 @@ async function carregarHistoricoPontos() {
         return;
     }
 
-
     try {
-
         const resposta =
             await fetch(
                 "/api/historico-pontos",
@@ -1008,23 +1039,18 @@ async function carregarHistoricoPontos() {
                 }
             );
 
-
         const dados =
             await resposta.json();
 
-
         if (!resposta.ok) {
-
             throw new Error(
                 dados.erro ||
                 "Histórico indisponível"
             );
         }
 
-
         historicoPontosLista
             .replaceChildren();
-
 
         const resultados =
             Array.isArray(
@@ -1033,34 +1059,27 @@ async function carregarHistoricoPontos() {
                 ? dados.resultados
                 : [];
 
-
         if (
             resultados.length === 0
         ) {
-
             const vazio =
                 document.createElement(
                     "span"
                 );
 
-
             vazio.className =
                 "historico-vazio";
 
-
             vazio.textContent =
                 "Nenhum giro ainda.";
-
 
             historicoPontosLista
                 .appendChild(
                     vazio
                 );
 
-
             return;
         }
-
 
         for (
             const item
@@ -1069,6 +1088,16 @@ async function carregarHistoricoPontos() {
 
             let textoResultado;
 
+            const multiplicador =
+                Number(
+                    item.multiplicador ||
+                    0
+                );
+
+            const prefixoMultiplicador =
+                multiplicador > 0
+                    ? `${multiplicador.toFixed(1)}x → `
+                    : "";
 
             if (
                 item.tipo ===
@@ -1076,7 +1105,7 @@ async function carregarHistoricoPontos() {
             ) {
 
                 textoResultado =
-                    `💎 +${Number(
+                    `${prefixoMultiplicador}💎 +${Number(
                         item.pontos || 1000
                     ).toLocaleString(
                         "pt-BR"
@@ -1088,18 +1117,17 @@ async function carregarHistoricoPontos() {
             ) {
 
                 textoResultado =
-                    "🎡 Roleta Premiada";
+                    `${prefixoMultiplicador}🎡 Roleta Premiada`;
 
             } else {
 
                 textoResultado =
-                    `+${Number(
+                    `${prefixoMultiplicador}+${Number(
                         item.pontos || 0
                     ).toLocaleString(
                         "pt-BR"
                     )} pts`;
             }
-
 
             historicoPontosLista
                 .appendChild(
@@ -1235,6 +1263,8 @@ function abrirTelaPontos() {
     telaRoleta.hidden = true;
     telaPontos.hidden = false;
     resultadoPontos.textContent = "";
+    itensPontosAtuais =
+        itensPontosPrimeiroGiro;
 
     desenharRoletaPontos();
     carregarUsuario();
@@ -1508,7 +1538,7 @@ function desenharRoletaPontos() {
     const raio =
         centro - 12;
     const quantidadePontos =
-        itensPontos.length;
+        itensPontosAtuais.length;
     const angulo =
         (Math.PI * 2) /
         quantidadePontos;
@@ -1531,7 +1561,7 @@ function desenharRoletaPontos() {
         const fim =
             inicio + angulo;
         const item =
-            itensPontos[i];
+            itensPontosAtuais[i];
         ctxPontos.beginPath();
         ctxPontos.moveTo(
             centro,
@@ -1549,9 +1579,13 @@ function desenharRoletaPontos() {
         ctxPontos.closePath();
         ctxPontos.fillStyle =
             item.tipo === "diamante" ||
-                item.tipo === "roleta"
+                item.tipo === "roleta" ||
+                item.tipo === "multiplicador"
                 ? "#111111"
-                : coresPontos[i];
+                : coresPontos[
+                i %
+                coresPontos.length
+                ];;
 
         ctxPontos.fill();
         ctxPontos.strokeStyle =
@@ -1620,11 +1654,38 @@ function desenharRoletaPontos() {
 
         if (item.tipo === "roleta") {
             ctxPontos.save();
-            ctxPontos.rotate(Math.PI / 2);
-            ctxPontos.font = "70px Arial";
-            ctxPontos.fillText("🎡", 0, 0);
+
+            ctxPontos.rotate(
+                Math.PI / 2
+            );
+
+            ctxPontos.font =
+                "70px Arial";
+
+            ctxPontos.fillText(
+                "🎡",
+                0,
+                0
+            );
+
             ctxPontos.restore();
         }
+
+        if (
+            item.tipo ===
+            "multiplicador"
+        ) {
+
+            ctxPontos.font =
+                "bold 46px Arial";
+
+            ctxPontos.fillText(
+                item.texto,
+                0,
+                0
+            );
+        }
+
         ctxPontos.restore();
     }
 
@@ -1676,19 +1737,39 @@ async function girarPontos() {
         return;
     }
 
-    girandoPontos = true;
+
+    girandoPontos =
+        true;
+
 
     botaoGirarPontos.disabled =
         true;
 
+
     botaoGirarPontos.textContent =
         "⏳ GIRANDO...";
+
 
     resultadoPontos.textContent =
         "";
 
+
+    // ========================================
+    // TODO NOVO GIRO COMEÇA COM
+    // OS DOIS MULTIPLICADORES
+    // ========================================
+
+    itensPontosAtuais =
+        itensPontosPrimeiroGiro;
+
+
+    desenharRoletaPontos();
+
+
     let resposta;
+
     let dados;
+
 
     try {
 
@@ -1722,20 +1803,26 @@ async function girarPontos() {
             erro
         );
 
+
         resultadoPontos.textContent =
             "❌ Não foi possível realizar o giro.";
+
 
         girandoPontos =
             false;
 
+
         await carregarUsuario();
+
         return;
     }
+
 
     if (!resposta.ok) {
 
         if (
-            resposta.status === 409 &&
+            resposta.status ===
+            409 &&
             dados.jaGirouHoje
         ) {
 
@@ -1749,120 +1836,311 @@ async function girarPontos() {
                 "❌ Não foi possível realizar o giro.";
         }
 
+
         girandoPontos =
             false;
 
 
         await carregarUsuario();
+
         return;
     }
 
-    const indice =
+
+    // ========================================
+    // FUNÇÃO QUE MOVE A ROLETA
+    // PARA UM ÍNDICE
+    // ========================================
+
+    function animarParaIndice(
+        indice,
+        quantidadeItens
+    ) {
+
+        const grausPorItem =
+            360 /
+            quantidadeItens;
+
+
+        const destino =
+            (
+                360 -
+                indice *
+                grausPorItem
+            ) % 360;
+
+
+        const atualNormalizado =
+            rotacaoPontosAtual %
+            360;
+
+
+        const ajuste =
+            (
+                destino -
+                atualNormalizado +
+                360
+            ) % 360;
+
+
+        const voltasExtras =
+            6 * 360;
+
+
+        rotacaoPontosAtual +=
+            voltasExtras +
+            ajuste;
+
+
+        canvasPontos.style.transform =
+            `rotate(${rotacaoPontosAtual}deg)`;
+    }
+
+
+    // ========================================
+    // FINALIZA O RESULTADO REAL
+    // ========================================
+
+    function finalizarGiro() {
+
+        const pontosAtualizados =
+            Number(
+                dados.usuario
+                    ?.pontos ||
+                0
+            );
+
+
+        const pontosGanhos =
+            Number(
+                dados.pontosGanhos ||
+                0
+            );
+
+
+        const tipoFinal =
+            dados.tipoFinal ||
+            dados.tipo;
+
+
+        const multiplicador =
+            Number(
+                dados.multiplicador ||
+                0
+            );
+
+
+        const textoMultiplicador =
+            multiplicador > 0
+                ? `${multiplicador.toFixed(1)}x`
+                : null;
+
+
+        totalPontosElemento.textContent =
+            `${pontosAtualizados.toLocaleString(
+                "pt-BR"
+            )} pts`;
+
+
+        // ========================================
+        // ROLETA PREMIADA
+        //
+        // O MULTIPLICADOR É PERDIDO.
+        // CONTINUA SENDO SÓ 1 CHANCE.
+        // ========================================
+
+        if (
+            tipoFinal ===
+            "roleta_premiada"
+        ) {
+
+            if (
+                dados.teveMultiplicador
+            ) {
+
+                resultadoPontos.textContent =
+                    `🎡 Caiu na Roleta Premiada! ` +
+                    `${textoMultiplicador} não se aplica. ` +
+                    `Você ganhou 1 chance para usar em até 23h59.`;
+
+            } else {
+
+                resultadoPontos.textContent =
+                    "🎡 1 chance na Roleta Premiada! Use em até 23h59. Essa chance não acumula.";
+            }
+
+
+        } else if (
+            tipoFinal ===
+            "diamante"
+        ) {
+
+            if (
+                dados.teveMultiplicador
+            ) {
+
+                resultadoPontos.textContent =
+                    `💎 ${textoMultiplicador} aplicado: ` +
+                    `+${pontosGanhos.toLocaleString(
+                        "pt-BR"
+                    )} pontos!`;
+
+            } else {
+
+                resultadoPontos.textContent =
+                    "💎 +1.000 pontos!";
+            }
+
+
+        } else {
+
+            if (
+                dados.teveMultiplicador
+            ) {
+
+                resultadoPontos.textContent =
+                    `✨ ${textoMultiplicador} aplicado: ` +
+                    `+${pontosGanhos.toLocaleString(
+                        "pt-BR"
+                    )} pontos!`;
+
+            } else {
+
+                resultadoPontos.textContent =
+                    `🎉 +${pontosGanhos.toLocaleString(
+                        "pt-BR"
+                    )} pontos!`;
+            }
+        }
+
+
+        if (usuarioAtual) {
+
+            usuarioAtual.pontos =
+                pontosAtualizados;
+
+
+            usuarioAtual.girosPremiada =
+                Number(
+                    dados.usuario
+                        ?.girosPremiada ??
+                    usuarioAtual
+                        .girosPremiada ??
+                    0
+                );
+
+
+            usuarioAtual
+                .ultimoPeriodoDiario =
+                dados.periodoDiario;
+
+
+            usuarioAtual
+                .giroDiarioDisponivel =
+                false;
+        }
+
+
+        girandoPontos =
+            false;
+
+
+        botaoGirarPontos.disabled =
+            true;
+
+
+        botaoGirarPontos.textContent =
+            "🔒 PRÓXIMO GIRO ÀS 08:30";
+
+
+        carregarHistoricoPontos();
+    }
+
+
+    // ========================================
+    // PRIMEIRO GIRO
+    // 14 FATIAS
+    // ========================================
+
+    animarParaIndice(
         Number(
             dados.indice
-        );
+        ),
+        itensPontosPrimeiroGiro.length
+    );
 
-    const grausPorItem =
-        360 /
-        itensPontos.length;
-
-    const destino =
-        (
-            360 -
-            indice *
-            grausPorItem
-        ) % 360;
-
-    const atualNormalizado =
-        rotacaoPontosAtual %
-        360;
-
-    const ajuste =
-        (
-            destino -
-            atualNormalizado +
-            360
-        ) % 360;
-
-    const voltasExtras =
-        6 * 360;
-
-    rotacaoPontosAtual +=
-        voltasExtras +
-        ajuste;
-
-    canvasPontos.style.transform =
-        `rotate(${rotacaoPontosAtual}deg)`;
 
     setTimeout(
         () => {
 
-            const pontosAtualizados =
-                Number(
-                    dados.usuario
-                        ?.pontos || 0
-                );
-
-            totalPontosElemento.textContent =
-                `${pontosAtualizados.toLocaleString("pt-BR")} pts`;
+            // ========================================
+            // NÃO CAIU EM MULTIPLICADOR
+            // TERMINA NORMALMENTE.
+            // ========================================
 
             if (
-                dados.tipo ===
-                "roleta_premiada"
+                !dados.teveMultiplicador
             ) {
 
-                resultadoPontos.textContent =
-                    "🎡 1 chance na Roleta Premiada! Use em até 23h59. Essa chance não acumula.";
+                finalizarGiro();
 
-            } else if (
-                dados.tipo ===
-                "diamante"
-            ) {
-                resultadoPontos.textContent =
-                    "💎 +1.000 pontos!";
-
-            } else {
-                resultadoPontos.textContent =
-                    `🎉 +${Number(
-                        dados.pontosGanhos || 0
-                    ).toLocaleString(
-                        "pt-BR"
-                    )} pontos!`;
+                return;
             }
 
-            if (usuarioAtual) {
 
-                usuarioAtual.pontos =
-                    pontosAtualizados;
+            const multiplicador =
+                Number(
+                    dados.multiplicador
+                );
 
-                usuarioAtual.girosPremiada =
-                    Number(
-                        dados.usuario
-                            ?.girosPremiada ||
-                        usuarioAtual
-                            .girosPremiada ||
-                        0
+
+            resultadoPontos.textContent =
+                `✨ ${multiplicador.toFixed(1)}x! ` +
+                `Você ganhou mais um giro!`;
+
+
+            // ========================================
+            // MULTIPLICADORES SOMEM
+            // ANTES DO SEGUNDO GIRO
+            // ========================================
+
+            itensPontosAtuais =
+                itensPontosSegundoGiro;
+
+
+            desenharRoletaPontos();
+
+
+            // Pequena pausa para a pessoa
+            // perceber a mudança da roda.
+
+            setTimeout(
+                () => {
+
+                    botaoGirarPontos.textContent =
+                        "✨ GIRO MULTIPLICADO";
+
+
+                    // ========================================
+                    // SEGUNDO GIRO
+                    // AGORA COM 12 FATIAS
+                    // ========================================
+
+                    animarParaIndice(
+                        Number(
+                            dados.indiceSegundoGiro
+                        ),
+                        itensPontosSegundoGiro.length
                     );
 
-                usuarioAtual
-                    .ultimoPeriodoDiario =
-                    dados.periodoDiario;
 
-                usuarioAtual
-                    .giroDiarioDisponivel =
-                    false;
-            }
-
-            girandoPontos =
-                false;
-
-            botaoGirarPontos.disabled =
-                true;
-
-            botaoGirarPontos.textContent =
-                "🔒 PRÓXIMO GIRO ÀS 08:30";
-
-            carregarHistoricoPontos();
+                    setTimeout(
+                        finalizarGiro,
+                        5100
+                    );
+                },
+                900
+            );
         },
         5100
     );
