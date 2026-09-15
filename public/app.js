@@ -222,7 +222,6 @@ const itensPontosPrimeiroGiro = [
     { tipo: "pontos", valor: 500 },
     { tipo: "pontos", valor: 300 },
     { tipo: "pontos", valor: 700 },
-    { tipo: "pontos", valor: 160 },
 
     {
         tipo: "multiplicador",
@@ -245,7 +244,6 @@ const itensPontosSegundoGiro = [
     { tipo: "pontos", valor: 500 },
     { tipo: "pontos", valor: 300 },
     { tipo: "pontos", valor: 700 },
-    { tipo: "pontos", valor: 160 },
     { tipo: "pontos", valor: 500 },
     { tipo: "roleta" },
     { tipo: "pontos", valor: 198 },
