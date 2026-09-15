@@ -1457,6 +1457,9 @@ const registrarBauSegundaChanceTransaction =
 
                     girosPontosExtrasGanhos,
 
+                    girosPontosExtrasGanhos,
+                    periodoDiario,
+
                     pontosGanhos,
                     criadoEm,
 
