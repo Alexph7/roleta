@@ -2429,7 +2429,7 @@ function listarGanhadoresPremiada() {
 // ========================================
 
 function listarUltimosResultadosPontos(
-    limite = 7
+    limite = 20
 ) {
 
     const limiteSeguro =
