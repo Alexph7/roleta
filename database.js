@@ -248,8 +248,9 @@ const FATIAS_PREMIADA_BASE = [
         pontos: 1000
     },
     {
-        tipo: "sem_premio",
-        premio: "QUASE"
+        tipo: "diamante",
+        premio: "💎",
+        pontos: 1000
     },
     {
         tipo: "dinheiro",
@@ -282,8 +283,9 @@ const FATIAS_PREMIADA_BASE = [
         pontos: 1000
     },
     {
-        tipo: "sem_premio",
-        premio: "NÃO DEU"
+        tipo: "diamante",
+        premio: "💎",
+        pontos: 1000
     },
     {
         tipo: "dinheiro",

@@ -159,7 +159,7 @@ const botaoVerificarInscricao =
 let itens = [
     "R$ 50",
     "💎",
-    "QUASE",
+    "💎",
     "R$ 5",
     "NÃO FOI",
     "💎",
@@ -167,7 +167,7 @@ let itens = [
     "QUASE",
     "R$ 7",
     "💎",
-    "NÃO DEU",
+    "💎",
     "R$ 5",
     "R$ 10",
     "QUASE"
