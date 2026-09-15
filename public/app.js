@@ -225,8 +225,8 @@ const itensPontosPrimeiroGiro = [
 
     {
         tipo: "multiplicador",
-        valor: 1.8,
-        texto: "1.8x"
+        valor: 1.6,
+        texto: "1.6x"
     },
 
     { tipo: "pontos", valor: 500 },

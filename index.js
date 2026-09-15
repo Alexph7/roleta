@@ -596,7 +596,7 @@ const resultadosPontosPrimeiroGiro = [
 
     {
         tipo: "multiplicador",
-        multiplicador: 1.8
+        multiplicador: 1.6
     },
 
     {
@@ -709,14 +709,14 @@ function aplicarMultiplicadorPontos(
         );
     }
 
-    // 1.8 = 9 / 5
+    // 1.6 = 8 / 5
     if (
         multiplicador ===
-        1.8
+        1.6
     ) {
         return Math.ceil(
             (
-                valor * 9
+                valor * 8
             ) / 5
         );
     }
@@ -1239,7 +1239,7 @@ app.post(
             // SEGUNDO GIRO
             //
             // ESTA LISTA NÃO POSSUI
-            // 1.5x NEM 1.8x.
+            // 1.5x NEM 1.6x.
             // ========================================
 
             indiceSegundoGiro =
