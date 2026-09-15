@@ -1869,7 +1869,7 @@ app.post(
         try {
             const resultados =
                 listarUltimosResultadosPontos(
-                    7
+                    20
                 );
 
             res.set(
