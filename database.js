@@ -138,9 +138,13 @@ db.exec(`
             NOT NULL DEFAULT 0,
 
         giros_pontos_extras INTEGER
-            NOT NULL DEFAULT 0,
+        NOT NULL DEFAULT 0,
+
+        giro_pontos_extra_periodo TEXT,
 
         ultimo_periodo_diario TEXT,
+
+        bau_ultimo_periodo TEXT,
 
         atingiu_pontuacao_em INTEGER,
 
@@ -180,6 +184,30 @@ if (
     db.exec(`
         ALTER TABLE usuarios
         ADD COLUMN giro_premiada_expira_em INTEGER
+    `);
+}
+
+if (
+    !nomesColunasUsuarios.includes(
+        "bau_ultimo_periodo"
+    )
+) {
+
+    db.exec(`
+        ALTER TABLE usuarios
+        ADD COLUMN bau_ultimo_periodo TEXT
+    `);
+}
+
+if (
+    !nomesColunasUsuarios.includes(
+        "giro_pontos_extra_periodo"
+    )
+) {
+
+    db.exec(`
+        ALTER TABLE usuarios
+        ADD COLUMN giro_pontos_extra_periodo TEXT
     `);
 }
 
@@ -489,8 +517,14 @@ function montarObjetoUsuario(
                 linha.giros_pontos_extras || 0
             ),
 
+        giroPontosExtraPeriodo:
+            linha.giro_pontos_extra_periodo,
+
         ultimoPeriodoDiario:
             linha.ultimo_periodo_diario,
+
+        bauUltimoPeriodo:
+            linha.bau_ultimo_periodo,
 
         atingiuPontuacaoEm:
             linha.atingiu_pontuacao_em,
@@ -898,19 +932,23 @@ const registrarGiroPontosDiarioTransaction =
                         )
                 `).run(
                     periodoDiario,
-                    pontos,
 
-                    girosPremiada,
+                    pontosGanhos,
 
-                    girosPremiada,
-                    giroPremiadaExpiraEm,
+                    girosPontosExtrasGanhos,
 
-                    pontos,
+                    girosPontosExtrasGanhos,
+                    periodoDiario,
+
+                    pontosGanhos,
                     criadoEm,
 
                     criadoEm,
 
                     id,
+
+                    periodoDiario,
+
                     periodoDiario
                 );
 
@@ -1018,6 +1056,503 @@ function registrarGiroPontosDiario(
 ) {
 
     return registrarGiroPontosDiarioTransaction.immediate(
+        dados
+    );
+}
+
+// ========================================
+// GIRO EXTRA DA ROLETA DE PONTOS
+// GANHO NO BAÚ
+// ========================================
+
+const registrarGiroPontosExtraTransaction =
+    db.transaction(
+        ({
+            usuarioId,
+            periodoDiario,
+            indice,
+            tipoResultado,
+            pontosGanhos = 0,
+            girosPremiadaGanhos = 0,
+            teveMultiplicador = false,
+            multiplicador = null,
+            indiceSegundoGiro = null,
+            tipoPrimeiroGiro = null,
+            tipoSegundoGiro = null,
+            pontosBase = 0,
+            criadoEm = Date.now()
+        }) => {
+
+            const id =
+                String(usuarioId);
+
+
+            const pontos =
+                Math.max(
+                    0,
+                    Math.trunc(
+                        Number(
+                            pontosGanhos
+                        ) || 0
+                    )
+                );
+
+
+            const girosPremiada =
+                Math.max(
+                    0,
+                    Math.trunc(
+                        Number(
+                            girosPremiadaGanhos
+                        ) || 0
+                    )
+                );
+
+
+            const giroPremiadaExpiraEm =
+                girosPremiada > 0
+                    ? criadoEm +
+                    DURACAO_CHANCE_PREMIADA_MS
+                    : null;
+
+
+            const atualizacao =
+                db.prepare(`
+                    UPDATE usuarios
+
+                    SET
+                    giros_pontos_extras =
+                        0,
+
+                    giro_pontos_extra_periodo =
+                        NULL,
+
+                    pontos =
+                        pontos + ?,
+
+                        giros_premiada =
+                            CASE
+
+                                WHEN ? > 0
+                                THEN 1
+
+                                ELSE
+                                    giros_premiada
+
+                            END,
+
+                        giro_premiada_expira_em =
+                            CASE
+
+                                WHEN ? > 0
+                                THEN ?
+
+                                ELSE
+                                    giro_premiada_expira_em
+
+                            END,
+
+                        atingiu_pontuacao_em =
+                            CASE
+
+                                WHEN ? > 0
+                                THEN ?
+
+                                ELSE
+                                    atingiu_pontuacao_em
+
+                            END,
+
+                        atualizado_em =
+                            ?
+
+                    WHERE
+                    usuario_id = ?
+
+                    AND giros_pontos_extras > 0
+
+                    AND giro_pontos_extra_periodo = ?
+
+                `).run(
+                    pontos,
+
+                    girosPremiada,
+
+                    girosPremiada,
+                    giroPremiadaExpiraEm,
+
+                    pontos,
+                    criadoEm,
+
+                    criadoEm,
+
+                    id,
+
+                    periodoDiario
+                );
+
+
+            if (
+                atualizacao.changes !== 1
+            ) {
+
+                return {
+                    ok: false,
+                    motivo:
+                        "giro_extra_indisponivel",
+                    usuario:
+                        buscarUsuario(
+                            id
+                        )
+                };
+            }
+
+
+            registrarEventoUsuario({
+                usuarioId:
+                    id,
+
+                tipo:
+                    "GIRO_ROLETA_PONTOS",
+
+                origem:
+                    "giro_extra_bau",
+
+                valor:
+                    pontos > 0
+                        ? pontos
+                        : girosPremiada,
+
+                dados: {
+                    periodoDiario,
+                    indice,
+                    tipoResultado,
+                    pontosGanhos:
+                        pontos,
+                    girosPremiadaGanhos:
+                        girosPremiada,
+                    giroPremiadaExpiraEm,
+                    teveMultiplicador:
+                        teveMultiplicador === true,
+                    multiplicador,
+                    indiceSegundoGiro,
+                    tipoPrimeiroGiro,
+                    tipoSegundoGiro,
+                    pontosBase:
+                        Number(
+                            pontosBase || 0
+                        ),
+                    giroExtra:
+                        true
+                },
+
+                criadoEm
+            });
+
+
+            return {
+                ok: true,
+
+                periodoDiario,
+
+                indice,
+
+                tipoResultado,
+
+                pontosGanhos:
+                    pontos,
+
+                girosPremiadaGanhos:
+                    girosPremiada,
+
+                usuario:
+                    buscarUsuario(
+                        id
+                    )
+            };
+        }
+    );
+
+
+function registrarGiroPontosExtra(
+    dados
+) {
+
+    return registrarGiroPontosExtraTransaction.immediate(
+        dados
+    );
+}
+
+
+// ========================================
+// BAÚ DA SEGUNDA CHANCE
+// ========================================
+
+const registrarBauSegundaChanceTransaction =
+    db.transaction(
+        ({
+            usuarioId,
+            periodoDiario,
+            indiceEscolhido,
+            indiceBauPontos,
+            pontosSorteados,
+            criadoEm = Date.now()
+        }) => {
+
+            const id =
+                String(usuarioId);
+
+
+            const usuarioAntes =
+                buscarUsuario(
+                    id
+                );
+
+
+            if (!usuarioAntes) {
+
+                return {
+                    ok: false,
+                    motivo:
+                        "usuario_nao_encontrado"
+                };
+            }
+
+
+            if (
+                usuarioAntes
+                    .ultimoPeriodoDiario !==
+                periodoDiario
+            ) {
+
+                return {
+                    ok: false,
+                    motivo:
+                        "giro_diario_necessario"
+                };
+            }
+
+
+            if (
+                usuarioAntes
+                    .bauUltimoPeriodo ===
+                periodoDiario
+            ) {
+
+                return {
+                    ok: false,
+                    motivo:
+                        "bau_ja_usado"
+                };
+            }
+
+
+            const escolhido =
+                Math.trunc(
+                    Number(
+                        indiceEscolhido
+                    )
+                );
+
+
+            const bauPontos =
+                Math.trunc(
+                    Number(
+                        indiceBauPontos
+                    )
+                );
+
+
+            const ganhouPontos =
+                escolhido ===
+                bauPontos;
+
+
+            const pontosGanhos =
+                ganhouPontos
+                    ? Math.max(
+                        200,
+                        Math.min(
+                            400,
+                            Math.trunc(
+                                Number(
+                                    pontosSorteados
+                                ) || 200
+                            )
+                        )
+                    )
+                    : 0;
+
+
+            const girosPontosExtrasGanhos =
+                ganhouPontos
+                    ? 0
+                    : 1;
+
+
+            const atualizacao =
+                db.prepare(`
+                    UPDATE usuarios
+
+                    SET
+                        bau_ultimo_periodo =
+                            ?,
+
+                        pontos =
+                            pontos + ?,
+
+                        giros_pontos_extras =
+                        CASE
+
+                            WHEN ? > 0
+                            THEN 1
+
+                            ELSE 0
+
+                        END,
+
+                    giro_pontos_extra_periodo =
+                        CASE
+
+                            WHEN ? > 0
+                            THEN ?
+
+                            ELSE NULL
+
+                        END,
+
+                    atingiu_pontuacao_em =
+                            CASE
+
+                                WHEN ? > 0
+                                THEN ?
+
+                                ELSE
+                                    atingiu_pontuacao_em
+
+                            END,
+
+                        atualizado_em =
+                            ?
+
+                    WHERE
+                        usuario_id = ?
+
+                        AND ultimo_periodo_diario =
+                            ?
+
+                        AND (
+                            bau_ultimo_periodo
+                                IS NULL
+
+                            OR
+
+                            bau_ultimo_periodo
+                                <> ?
+                        )
+                `).run(
+                    periodoDiario,
+
+                    pontosGanhos,
+
+                    girosPontosExtrasGanhos,
+
+                    pontosGanhos,
+                    criadoEm,
+
+                    criadoEm,
+
+                    id,
+
+                    periodoDiario,
+
+                    periodoDiario
+                );
+
+
+            if (
+                atualizacao.changes !== 1
+            ) {
+
+                return {
+                    ok: false,
+                    motivo:
+                        "bau_indisponivel",
+                    usuario:
+                        buscarUsuario(
+                            id
+                        )
+                };
+            }
+
+
+            registrarEventoUsuario({
+                usuarioId:
+                    id,
+
+                tipo:
+                    "BAU_SEGUNDA_CHANCE",
+
+                origem:
+                    "bau_segunda_chance",
+
+                valor:
+                    pontosGanhos > 0
+                        ? pontosGanhos
+                        : girosPontosExtrasGanhos,
+
+                dados: {
+                    periodoDiario,
+                    indiceEscolhido:
+                        escolhido,
+                    indiceBauPontos:
+                        bauPontos,
+                    tipoPremio:
+                        ganhouPontos
+                            ? "pontos"
+                            : "giro_extra",
+                    pontosGanhos,
+                    girosPontosExtrasGanhos
+                },
+
+                criadoEm
+            });
+
+
+            return {
+                ok: true,
+
+                periodoDiario,
+
+                indiceEscolhido:
+                    escolhido,
+
+                indiceBauPontos:
+                    bauPontos,
+
+                tipoPremio:
+                    ganhouPontos
+                        ? "pontos"
+                        : "giro_extra",
+
+                pontosGanhos,
+
+                girosPontosExtrasGanhos,
+
+                usuario:
+                    buscarUsuario(
+                        id
+                    )
+            };
+        }
+    );
+
+
+function registrarBauSegundaChance(
+    dados
+) {
+
+    return registrarBauSegundaChanceTransaction.immediate(
         dados
     );
 }
@@ -2363,6 +2898,8 @@ module.exports = {
     salvarUsuarioTelegram,
     registrarEventoUsuario,
     registrarGiroPontosDiario,
+    registrarGiroPontosExtra,
+    registrarBauSegundaChance,
     registrarGiroPremiadaBonus,
     listarRankingPontos,
     obterPosicaoRankingPontos,

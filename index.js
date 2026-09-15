@@ -16,6 +16,8 @@ const {
     abrirRoleta,
     salvarUsuarioTelegram,
     registrarGiroPontosDiario,
+    registrarGiroPontosExtra,
+    registrarBauSegundaChance,
     registrarGiroPremiadaBonus,
     listarRankingPontos,
     obterPosicaoRankingPontos,
@@ -916,6 +918,27 @@ app.post(
             usuario.ultimoPeriodoDiario !==
             periodoDiarioAtual;
 
+        const giroExtraDisponivel =
+            Number(
+                usuario.girosPontosExtras || 0
+            ) > 0 &&
+            usuario.giroPontosExtraPeriodo ===
+            periodoDiarioAtual;
+
+        const podeGirarPontos =
+            giroDiarioDisponivel ||
+            giroExtraDisponivel;
+
+
+        const bauUsadoHoje =
+            usuario.bauUltimoPeriodo ===
+            periodoDiarioAtual;
+
+
+        const bauDisponivel =
+            usuario.ultimoPeriodoDiario ===
+            periodoDiarioAtual &&
+            !bauUsadoHoje;
 
         // ========================================
         // ESTADO DA ROLETA PREMIADA
@@ -1026,7 +1049,15 @@ app.post(
                 },
 
                 girosPontosExtras:
-                    usuario.girosPontosExtras,
+                    giroExtraDisponivel
+                        ? usuario.girosPontosExtras
+                        : 0,
+
+                giroExtraDisponivel:
+                    giroExtraDisponivel,
+
+                podeGirarPontos:
+                    podeGirarPontos,
 
                 ultimoPeriodoDiario:
                     usuario.ultimoPeriodoDiario,
@@ -1036,6 +1067,18 @@ app.post(
 
                 giroDiarioDisponivel:
                     giroDiarioDisponivel,
+
+                bauSegundaChance: {
+                    disponivel:
+                        bauDisponivel,
+
+                    usadoHoje:
+                        bauUsadoHoje,
+
+                    precisaGirar:
+                        usuario.ultimoPeriodoDiario !==
+                        periodoDiarioAtual
+                },
 
                 dados:
                     usuario.dados
@@ -1121,21 +1164,37 @@ app.post(
         // JÁ GIROU NESTE PERÍODO?
         // ========================================
 
-        if (
-            usuario.ultimoPeriodoDiario ===
-            periodoDiario
-        ) {
+        const giroDiarioDisponivel =
+            usuario.ultimoPeriodoDiario !==
+            periodoDiario;
 
+
+        const giroExtraDisponivel =
+            Number(
+                usuario.girosPontosExtras || 0
+            ) > 0 &&
+            usuario.giroPontosExtraPeriodo ===
+            periodoDiario;
+
+        if (
+            !giroDiarioDisponivel &&
+            !giroExtraDisponivel
+        ) {
             return res.status(409).json({
                 erro:
-                    "Você já utilizou seu giro diário.",
+                    "Você não possui giros disponíveis agora.",
 
-                jaGirouHoje:
+                semGirosPontos:
                     true,
 
                 periodoDiario
             });
         }
+
+        const tipoGiro =
+            giroDiarioDisponivel
+                ? "diario"
+                : "extra";
 
 
         // ========================================
@@ -1276,24 +1335,46 @@ app.post(
 
         try {
 
+            const dadosRegistro = {
+                usuarioId:
+                    usuario.usuarioId,
+
+                periodoDiario,
+
+                indice,
+
+                tipoResultado,
+
+                pontosGanhos,
+
+                girosPremiadaGanhos,
+
+                teveMultiplicador,
+
+                multiplicador,
+
+                indiceSegundoGiro,
+
+                tipoPrimeiroGiro:
+                    resultadoPrimeiroGiro.tipo,
+
+                tipoSegundoGiro:
+                    resultadoSegundoGiro
+                        ? resultadoSegundoGiro.tipo
+                        : null,
+
+                pontosBase
+            };
+
+
             registro =
-                registrarGiroPontosDiario({
-                    usuarioId: usuario.usuarioId,
-                    periodoDiario,
-                    indice,
-                    tipoResultado,
-                    pontosGanhos,
-                    girosPremiadaGanhos,
-                    teveMultiplicador,
-                    multiplicador,
-                    indiceSegundoGiro,
-                    tipoPrimeiroGiro: resultadoPrimeiroGiro.tipo,
-                    tipoSegundoGiro:
-                        resultadoSegundoGiro
-                            ? resultadoSegundoGiro.tipo
-                            : null,
-                    pontosBase
-                });
+                tipoGiro === "diario"
+                    ? registrarGiroPontosDiario(
+                        dadosRegistro
+                    )
+                    : registrarGiroPontosExtra(
+                        dadosRegistro
+                    );
 
         } catch (erro) {
 
@@ -1376,6 +1457,10 @@ app.post(
             teveMultiplicador,
             multiplicador,
             indiceSegundoGiro,
+            tipoGiro,
+
+            bauLiberado:
+                tipoGiro === "diario",
             usuario: {
 
                 pontos:
@@ -1392,6 +1477,168 @@ app.post(
 
                 ultimoPeriodoDiario:
                     registro.usuario.ultimoPeriodoDiario
+            }
+        });
+    }
+);
+
+// ==============================
+// BAÚ DA SEGUNDA CHANCE
+// ==============================
+
+app.post(
+    "/api/abrir-bau",
+    (req, res) => {
+
+        const {
+            initData,
+            indiceBau
+        } = req.body;
+
+        const validacao =
+            validarInitDataTelegram(
+                initData
+            );
+
+        if (!validacao.ok) {
+
+            return res.status(401).json({
+                erro:
+                    "Abra pelo Telegram."
+            });
+        }
+        const usuarioTelegram =
+            validacao.usuario;
+
+        if (
+            !usuarioLiberadoPorId(
+                usuarioTelegram.id
+            )
+        ) {
+            return res.status(403).json({
+                erro:
+                    "Esta conta não está habilitada.",
+                acessoBloqueado:
+                    true
+            });
+        }
+
+        const indiceEscolhido =
+            Math.trunc(
+                Number(
+                    indiceBau
+                )
+            );
+
+
+        if (
+            !Number.isInteger(
+                indiceEscolhido
+            ) ||
+            indiceEscolhido < 0 ||
+            indiceEscolhido > 2
+        ) {
+
+            return res.status(400).json({
+                erro:
+                    "Baú inválido."
+            });
+        }
+
+
+        const usuario =
+            salvarUsuarioTelegram(
+                usuarioTelegram
+            );
+
+
+        const periodoDiario =
+            obterPeriodoDiarioAtual();
+
+
+        const indiceBauPontos =
+            crypto.randomInt(
+                0,
+                3
+            );
+
+
+        const pontosSorteados =
+            crypto.randomInt(
+                200,
+                401
+            );
+
+
+        const registro =
+            registrarBauSegundaChance({
+                usuarioId:
+                    usuario.usuarioId,
+
+                periodoDiario,
+
+                indiceEscolhido,
+
+                indiceBauPontos,
+
+                pontosSorteados
+            });
+
+
+        if (!registro.ok) {
+
+            if (
+                registro.motivo ===
+                "giro_diario_necessario"
+            ) {
+
+                return res.status(409).json({
+                    erro:
+                        "Gire a Roleta de Pontos primeiro."
+                });
+            }
+
+
+            return res.status(409).json({
+                erro:
+                    "Você já abriu seu baú deste período."
+            });
+        }
+
+
+        console.log(
+            `🎁 BAÚ | ` +
+            `${usuario.usuarioId} | ` +
+            `${registro.tipoPremio} | ` +
+            `+${registro.pontosGanhos} pts | ` +
+            `+${registro.girosPontosExtrasGanhos} giro extra`
+        );
+
+
+        return res.json({
+            periodoDiario,
+
+            indiceEscolhido,
+
+            indiceBauPontos,
+
+            pontosSorteados,
+
+            tipoPremio:
+                registro.tipoPremio,
+
+            pontosGanhos:
+                registro.pontosGanhos,
+
+            girosPontosExtrasGanhos:
+                registro.girosPontosExtrasGanhos,
+
+            usuario: {
+                pontos:
+                    registro.usuario.pontos,
+
+                girosPontosExtras:
+                    registro.usuario.girosPontosExtras
             }
         });
     }

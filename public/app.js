@@ -28,6 +28,43 @@ const telaComoGanhar =
         "tela-como-ganhar"
     );
 
+const telaBau =
+    document.getElementById(
+        "tela-bau"
+    );
+
+
+const botaoAbrirBau =
+    document.getElementById(
+        "abrir-bau"
+    );
+
+
+const statusBauMenu =
+    document.getElementById(
+        "status-bau-menu"
+    );
+
+
+const botaoVoltarMenuBau =
+    document.getElementById(
+        "voltar-menu-bau"
+    );
+
+
+const resultadoBau =
+    document.getElementById(
+        "resultado-bau"
+    );
+
+
+const botoesBau =
+    Array.from(
+        document.querySelectorAll(
+            ".bau-opcao"
+        )
+    );
+
 const botaoAbrirComoGanhar =
     document.getElementById(
         "abrir-como-ganhar"
@@ -257,6 +294,7 @@ let verificandoEstado = false;
 let usuarioAtual = null;
 let carregandoUsuario = false;
 let girandoPontos = false;
+let abrindoBau = false;
 
 let girandoPremiada = false;
 
@@ -341,8 +379,23 @@ function atualizarTelaPontos(
         );
 
 
+    const girosExtras =
+        Math.max(
+            0,
+            Number(
+                usuario.girosPontosExtras ||
+                0
+            )
+        );
+
+
     totalPontosElemento.textContent =
         `${pontos.toLocaleString("pt-BR")} pts`;
+
+
+    atualizarTelaBau(
+        usuario
+    );
 
 
     if (girandoPontos) {
@@ -360,13 +413,78 @@ function atualizarTelaPontos(
         botaoGirarPontos.textContent =
             "🎡 GIRAR";
 
-    } else {
+        return;
+    }
+
+
+    if (
+        girosExtras > 0
+    ) {
 
         botaoGirarPontos.disabled =
-            true;
+            false;
 
         botaoGirarPontos.textContent =
-            "🔒 PRÓXIMO GIRO ÀS 08:30";
+            "🎁 USAR GIRO EXTRA";
+
+        return;
+    }
+
+
+    botaoGirarPontos.disabled =
+        true;
+
+    botaoGirarPontos.textContent =
+        "🔒 PRÓXIMO GIRO ÀS 08:30";
+}
+
+
+function atualizarTelaBau(
+    usuario
+) {
+
+    const estado =
+        usuario.bauSegundaChance ||
+        {};
+
+
+    if (
+        estado.disponivel === true
+    ) {
+
+        botaoAbrirBau.disabled =
+            false;
+
+        botaoAbrirBau.classList.remove(
+            "card-bloqueado"
+        );
+
+        statusBauMenu.textContent =
+            "🎁 DISPONÍVEL AGORA";
+
+        return;
+    }
+
+
+    botaoAbrirBau.disabled =
+        true;
+
+    botaoAbrirBau.classList.add(
+        "card-bloqueado"
+    );
+
+
+    if (
+        estado.usadoHoje === true
+    ) {
+
+        statusBauMenu.textContent =
+            "✅ BAÚ USADO HOJE";
+
+    } else {
+
+        statusBauMenu.textContent =
+            "🔒 GIRE A ROLETA DE PONTOS PRIMEIRO";
     }
 }
 
@@ -902,6 +1020,195 @@ async function carregarRanking() {
             erroElemento
         );
     }
+}
+
+// ========================================
+// BAÚ DA SEGUNDA CHANCE
+// ========================================
+
+function abrirTelaBau() {
+
+    if (
+        !usuarioAtual
+            ?.bauSegundaChance
+            ?.disponivel
+    ) {
+        return;
+    }
+
+
+    telaMenu.hidden = true;
+    telaBau.hidden = false;
+
+    resultadoBau.textContent =
+        "Escolha um dos 3 baús.";
+
+
+    for (
+        let i = 0;
+        i < botoesBau.length;
+        i++
+    ) {
+
+        const botao =
+            botoesBau[i];
+
+        botao.disabled =
+            false;
+
+        botao.querySelector(
+            ".card-jogo-icone"
+        ).textContent =
+            "🎁";
+
+        botao.querySelector(
+            "strong"
+        ).textContent =
+            `Baú ${i + 1}`;
+    }
+}
+
+
+function voltarParaMenuBau() {
+
+    telaBau.hidden =
+        true;
+
+    telaMenu.hidden =
+        false;
+
+    carregarUsuario();
+}
+
+
+async function escolherBau(
+    indiceBau
+) {
+
+    if (abrindoBau) {
+        return;
+    }
+
+
+    abrindoBau =
+        true;
+
+
+    for (
+        const botao
+        of botoesBau
+    ) {
+
+        botao.disabled =
+            true;
+    }
+
+
+    resultadoBau.textContent =
+        "🎁 Abrindo baú...";
+
+
+    const resposta =
+        await fetch(
+            "/api/abrir-bau",
+            {
+                method:
+                    "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify({
+                        initData,
+                        indiceBau
+                    })
+            }
+        );
+
+    const dados =
+        await resposta.json();
+
+    if (!resposta.ok) {
+        resultadoBau.textContent =
+            dados.erro ||
+            "❌ Não foi possível abrir o baú.";
+
+        abrindoBau =
+            false;
+
+        await carregarUsuario();
+
+        return;
+    }
+
+    const indiceBauPontos =
+        Number(
+            dados.indiceBauPontos
+        );
+
+    const pontosSorteados =
+        Number(
+            dados.pontosSorteados ||
+            0
+        );
+
+    for (
+        let i = 0;
+        i < botoesBau.length;
+        i++
+    ) {
+        const botao =
+            botoesBau[i];
+
+        if (
+            i ===
+            indiceBauPontos
+        ) {
+
+            botao.querySelector(
+                ".card-jogo-icone"
+            ).textContent =
+                "✨";
+            botao.querySelector(
+                "strong"
+            ).textContent =
+                `+${pontosSorteados} pontos`;
+        } else {
+            botao.querySelector(
+                ".card-jogo-icone"
+            ).textContent =
+                "🎡";
+
+            botao.querySelector(
+                "strong"
+            ).textContent =
+                "+1 giro extra";
+        }
+    }
+
+    if (
+        dados.tipoPremio ===
+        "giro_extra"
+    ) {
+        resultadoBau.textContent =
+            "🎡 Você ganhou +1 giro extra na Roleta de Pontos!";
+
+    } else {
+        resultadoBau.textContent =
+            `✨ Você ganhou +${Number(
+                dados.pontosGanhos
+            ).toLocaleString(
+                "pt-BR"
+            )} pontos!`;
+    }
+
+    abrindoBau =
+        false;
+
+    await carregarUsuario();
 }
 
 // ========================================
@@ -1823,11 +2130,11 @@ async function girarPontos() {
         if (
             resposta.status ===
             409 &&
-            dados.jaGirouHoje
+            dados.semGirosPontos
         ) {
 
             resultadoPontos.textContent =
-                "🔒 Você já utilizou seu giro diário.";
+                "🔒 Você não possui giros disponíveis agora.";
 
         } else {
 
@@ -2013,12 +2320,25 @@ async function girarPontos() {
             }
         }
 
+        if (
+            dados.bauLiberado ===
+            true
+        ) {
+
+            resultadoPontos.textContent +=
+                " 🎁 O Baú da Segunda Chance foi liberado no menu!";
+        }
 
         if (usuarioAtual) {
+            usuarioAtual.girosPontosExtras =
+                Number(
+                    dados.usuario
+                        ?.girosPontosExtras ||
+                    0
+                );
 
             usuarioAtual.pontos =
                 pontosAtualizados;
-
 
             usuarioAtual.girosPremiada =
                 Number(
@@ -2029,31 +2349,27 @@ async function girarPontos() {
                     0
                 );
 
-
             usuarioAtual
                 .ultimoPeriodoDiario =
                 dados.periodoDiario;
-
 
             usuarioAtual
                 .giroDiarioDisponivel =
                 false;
         }
 
-
         girandoPontos =
             false;
-
 
         botaoGirarPontos.disabled =
             true;
 
-
         botaoGirarPontos.textContent =
             "🔒 PRÓXIMO GIRO ÀS 08:30";
 
-
         carregarHistoricoPontos();
+
+        carregarUsuario();
     }
 
 
@@ -2654,6 +2970,33 @@ botaoGirarPontos.addEventListener(
     "click",
     girarPontos
 );
+
+botaoAbrirBau.addEventListener(
+    "click",
+    abrirTelaBau
+);
+
+
+botaoVoltarMenuBau.addEventListener(
+    "click",
+    voltarParaMenuBau
+);
+
+
+for (
+    let i = 0;
+    i < botoesBau.length;
+    i++
+) {
+
+    botoesBau[i]
+        .addEventListener(
+            "click",
+            () => escolherBau(
+                i
+            )
+        );
+}
 
 botaoAbrirComoGanhar.addEventListener(
     "click",

@@ -97,19 +97,22 @@
                     </div>
                 </button>
 
-                <!-- 4 - NOVO JOGO EM BREVE -->
-                <div class="card-jogo card-bloqueado">
+                <!-- 4 - BAÚ DA SEGUNDA CHANCE -->
+                <button id="abrir-bau" class="card-jogo card-bloqueado" type="button" disabled>
                     <div class="card-jogo-icone">
-                        🎮
+                        🎁
                     </div>
 
                     <div class="card-jogo-conteudo">
                         <strong>
-                            Em breve
+                            Baú da Segunda Chance
                         </strong>
-                    </div>
-                </div>
 
+                        <small id="status-bau-menu">
+                            🔒 Gire a Roleta de Pontos primeiro
+                        </small>
+                    </div>
+                </button>
 
                 <!-- 5 - COMO GANHAR -->
                 <button id="abrir-como-ganhar" class="card-jogo" type="button">
@@ -129,6 +132,66 @@
                 <div class="card-jogo card-vazio"></div>
 
             </div>
+
+        </section>
+
+        <!-- ========================= -->
+        <!-- BAÚ DA SEGUNDA CHANCE -->
+        <!-- ========================= -->
+
+        <section id="tela-bau" class="tela" hidden>
+
+            <button id="voltar-menu-bau" class="voltar-menu" type="button">
+                ← MENU
+            </button>
+
+            <h1>
+                🎁 Baú da Segunda Chance
+            </h1>
+
+            <p class="subtitulo">
+                Escolha um baú.
+                Dois escondem +1 giro extra
+                e um esconde entre 200 e 400 pontos.
+            </p>
+
+            <div class="grade-jogos">
+
+                <button class="card-jogo bau-opcao" type="button">
+                    <div class="card-jogo-icone">
+                        🎁
+                    </div>
+
+                    <div class="card-jogo-conteudo">
+                        <strong>Baú 1</strong>
+                    </div>
+                </button>
+
+
+                <button class="card-jogo bau-opcao" type="button">
+                    <div class="card-jogo-icone">
+                        🎁
+                    </div>
+
+                    <div class="card-jogo-conteudo">
+                        <strong>Baú 2</strong>
+                    </div>
+                </button>
+
+
+                <button class="card-jogo bau-opcao" type="button">
+                    <div class="card-jogo-icone">
+                        🎁
+                    </div>
+
+                    <div class="card-jogo-conteudo">
+                        <strong>Baú 3</strong>
+                    </div>
+                </button>
+
+            </div>
+
+            <p id="resultado-bau" class="resultado-pontos"></p>
 
         </section>
 
@@ -283,8 +346,6 @@
 
             </div>
 
-            </div>
-
             <p class="aviso-estoque-premiada">
                 💎 Quando os prêmios se esgotam,
                 suas fatias se transformam em
@@ -329,7 +390,7 @@
 
     </main>
 
-    <script src="app.js?v=7"></script>
+    <script src="app.js?v=8"></script>
 
 </body>
 
