@@ -641,6 +641,12 @@ button.card-jogo:active {
         none;
 }
 
+.link-telegram {
+    color: #ffffff;
+    font-weight: bold;
+    text-decoration: none;
+}
+
 /* ========================================
    RANKING
 ======================================== */
