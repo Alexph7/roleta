@@ -240,7 +240,8 @@ const ESTOQUE_INICIAL_PREMIADA_BONUS = {
 const FATIAS_PREMIADA_BASE = [
     {
         tipo: "dinheiro",
-        premio: "R$ 50"
+        premio: "R$ 50",
+        estoqueInicial: 1
     },
     {
         tipo: "diamante",
@@ -248,26 +249,32 @@ const FATIAS_PREMIADA_BASE = [
         pontos: 1000
     },
     {
-        tipo: "diamante",
-        premio: "💎",
-        pontos: 1000
+        tipo: "sem_premio",
+        premio: "QUASE"
     },
     {
         tipo: "dinheiro",
-        premio: "R$ 5"
+        premio: "R$ 5",
+        estoqueInicial: 15
+    },
+    {
+        tipo: "diamante",
+        premio: "💎",
+        pontos: 1000
     },
     {
         tipo: "sem_premio",
         premio: "NÃO FOI"
     },
     {
+        tipo: "dinheiro",
+        premio: "R$ 12",
+        estoqueInicial: 2
+    },
+    {
         tipo: "diamante",
         premio: "💎",
         pontos: 1000
-    },
-    {
-        tipo: "dinheiro",
-        premio: "R$ 12"
     },
     {
         tipo: "sem_premio",
@@ -275,12 +282,8 @@ const FATIAS_PREMIADA_BASE = [
     },
     {
         tipo: "dinheiro",
-        premio: "R$ 7"
-    },
-    {
-        tipo: "diamante",
-        premio: "💎",
-        pontos: 1000
+        premio: "R$ 7",
+        estoqueInicial: 4
     },
     {
         tipo: "diamante",
@@ -289,18 +292,20 @@ const FATIAS_PREMIADA_BASE = [
     },
     {
         tipo: "dinheiro",
-        premio: "R$ 5"
+        premio: "R$ 5",
+        estoqueInicial: 15
     },
     {
         tipo: "dinheiro",
-        premio: "R$ 10"
+        premio: "R$ 10",
+        estoqueInicial: 2
     },
     {
-        tipo: "sem_premio",
-        premio: "QUASE"
+        tipo: "diamante",
+        premio: "💎",
+        pontos: 1000
     }
 ];
-
 
 db.exec(`
     CREATE TABLE IF NOT EXISTS
