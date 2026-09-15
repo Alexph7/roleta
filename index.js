@@ -622,11 +622,6 @@ const resultadosPontosPrimeiroGiro = [
     {
         tipo: "pontos",
         pontos: 300
-    },
-
-    {
-        tipo: "pontos",
-        pontos: 100
     }
 ];
 
@@ -680,11 +675,6 @@ const resultadosPontosSegundoGiro = [
     {
         tipo: "pontos",
         pontos: 300
-    },
-
-    {
-        tipo: "pontos",
-        pontos: 100
     }
 ];
 
