@@ -1450,28 +1450,25 @@ const registrarBauSegundaChanceTransaction =
                             bau_ultimo_periodo
                                 <> ?
                         )
-                `).run(
+               `).run(
                     periodoDiario,
 
-                    pontosGanhos,
+                    pontos,
 
-                    girosPontosExtrasGanhos,
+                    girosPremiada,
 
-                    girosPontosExtrasGanhos,
-                    periodoDiario,
+                    girosPremiada,
+                    giroPremiadaExpiraEm,
 
-                    pontosGanhos,
+                    pontos,
                     criadoEm,
 
                     criadoEm,
 
                     id,
 
-                    periodoDiario,
-
                     periodoDiario
                 );
-
 
             if (
                 atualizacao.changes !== 1
