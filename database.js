@@ -930,24 +930,22 @@ const registrarGiroPontosDiarioTransaction =
                             ultimo_periodo_diario
                                 <> ?
                         )
-                `).run(
+               `).run(
                     periodoDiario,
 
-                    pontosGanhos,
+                    pontos,
 
-                    girosPontosExtrasGanhos,
+                    girosPremiada,
 
-                    girosPontosExtrasGanhos,
-                    periodoDiario,
+                    girosPremiada,
+                    giroPremiadaExpiraEm,
 
-                    pontosGanhos,
+                    pontos,
                     criadoEm,
 
                     criadoEm,
 
                     id,
-
-                    periodoDiario,
 
                     periodoDiario
                 );
@@ -1450,22 +1448,24 @@ const registrarBauSegundaChanceTransaction =
                             bau_ultimo_periodo
                                 <> ?
                         )
-               `).run(
+              `).run(
                     periodoDiario,
 
-                    pontos,
+                    pontosGanhos,
 
-                    girosPremiada,
+                    girosPontosExtrasGanhos,
 
-                    girosPremiada,
-                    giroPremiadaExpiraEm,
+                    girosPontosExtrasGanhos,
+                    periodoDiario,
 
-                    pontos,
+                    pontosGanhos,
                     criadoEm,
 
                     criadoEm,
 
                     id,
+
+                    periodoDiario,
 
                     periodoDiario
                 );
