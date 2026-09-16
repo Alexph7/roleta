@@ -192,10 +192,6 @@
                     <h1 id="perfil-nome">
                         Carregando...
                     </h1>
-
-                    <p id="perfil-username">
-                    </p>
-
                     
                 </div>
 
@@ -377,13 +373,6 @@
         ).textContent =
             perfil.nome ||
             "Participante";
-
-        document.getElementById(
-            "perfil-username"
-        ).textContent =
-            perfil.username
-                ? `@${perfil.username}`
-                : "sem @username";
 
         document.getElementById(
             "perfil-ranking"
