@@ -1,0 +1,208 @@
+#tela-perfil[hidden] {
+    display: none !important;
+}
+
+#tela-perfil {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding:
+        24px 16px 40px;
+    background:
+        radial-gradient(circle at top,
+            #25212f 0%,
+            #121116 55%,
+            #09090c 100%);
+    color: #fff;
+}
+
+.perfil-conteudo {
+    width: 100%;
+    max-width: 520px;
+    margin:
+        0 auto;
+}
+
+.perfil-cabecalho {
+    text-align: center;
+    padding:
+        22px 18px;
+    border:
+        1px solid rgba(216,
+            193,
+            124,
+            0.55);
+    border-radius: 20px;
+    background:
+        rgba(255,
+            255,
+            255,
+            0.04);
+}
+
+.perfil-avatar {
+    width: 92px;
+    height: 92px;
+    margin:
+        0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 48px;
+    border:
+        3px solid #d8c17c;
+    background:
+        #17151d;
+}
+
+#perfil-nome {
+    margin:
+        4px 0;
+    font-size: 26px;
+}
+
+#perfil-username {
+    margin:
+        4px 0 16px;
+    opacity: 0.7;
+}
+
+.perfil-resumo {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.perfil-resumo strong {
+    padding:
+        8px 12px;
+    border-radius: 12px;
+    background:
+        rgba(216,
+            193,
+            124,
+            0.12);
+    color:
+        #f4da8d;
+}
+
+.perfil-titulo-secao {
+    margin:
+        24px 0 12px;
+    text-align: center;
+    font-size: 16px;
+    letter-spacing: 1px;
+    color:
+        #d8c17c;
+}
+
+.perfil-estatisticas {
+    display: grid;
+    grid-template-columns:
+        repeat(2,
+            minmax(0,
+                1fr));
+    gap: 12px;
+}
+
+.perfil-estatistica {
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 14px;
+    box-sizing: border-box;
+    border-radius: 17px;
+    border:
+        1px solid rgba(216,
+            193,
+            124,
+            0.32);
+    background:
+        rgba(255,
+            255,
+            255,
+            0.045);
+}
+
+.perfil-estatistica span {
+    font-size: 30px;
+}
+
+.perfil-estatistica strong {
+    font-size: 24px;
+    color:
+        #f4da8d;
+}
+
+.perfil-estatistica small {
+    text-align: center;
+    opacity: 0.72;
+}
+
+.perfil-desde {
+    margin-top: 18px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding:
+        15px 16px;
+    border-radius: 14px;
+    background:
+        rgba(255,
+            255,
+            255,
+            0.04);
+}
+
+.perfil-desde span {
+    opacity: 0.68;
+}
+
+.perfil-desde strong {
+    color:
+        #f4da8d;
+}
+
+.perfil-status {
+    min-height: 24px;
+    text-align: center;
+    margin:
+        14px 0;
+}
+
+.perfil-voltar {
+    width: 100%;
+    padding:
+        15px;
+    border: 0;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+    color:
+        #17151d;
+    background:
+        #d8c17c;
+}
+
+/* ========================================
+   BOTÃO DO PERFIL NO MENU
+======================================== */
+
+.perfil-card-menu {
+    cursor: pointer;
+}
+
+.perfil-card-subtitulo {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    opacity: 0.68;
+}

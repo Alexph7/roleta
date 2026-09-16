@@ -4,6 +4,7 @@ const express = require("express");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const crypto = require("crypto");
+const registrarRotaPerfil = require("./routes/perfil");
 
 const { Bot } = require("node-telegram-bot-api");
 
@@ -537,6 +538,13 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
+registrarRotaPerfil(
+    app,
+    {
+        validarInitDataTelegram,
+        usuarioLiberadoPorId
+    }
+);
 
 // ==============================
 // PRÊMIOS
@@ -1234,10 +1242,8 @@ app.post(
                         .multiplicador
                 );
 
-
             // ========================================
             // SEGUNDO GIRO
-            //
             // ESTA LISTA NÃO POSSUI
             // 1.5x NEM 1.6x.
             // ========================================
