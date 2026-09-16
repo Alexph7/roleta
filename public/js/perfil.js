@@ -200,11 +200,13 @@
                 </div>
 
                 <h2 class="perfil-titulo-secao">
-                    ESTATÍSTICAS
-                </h2>
+                ESTATÍSTICAS
+            </h2>
 
-            <div class="perfil-estatistica">
-                <span>🏆</span>
+            <div class="perfil-estatisticas">
+
+                <div class="perfil-estatistica">
+                    <span>🏆</span>
 
                 <strong id="perfil-ranking">
                     -
