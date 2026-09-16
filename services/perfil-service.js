@@ -97,25 +97,27 @@ const contarBaus =
     `);
 
 
-const buscarGirosPremiada =
+const buscarGirosPremiadaNormal =
     db.prepare(`
         SELECT
-            tipo,
-            dados_json
-
-        FROM eventos_usuario
-
+            premio
+        FROM giros
         WHERE
             usuario_id = ?
-
-            AND tipo IN (
-                'GIRO_ROLETA_PREMIADA_NORMAL',
-                'GIRO_ROLETA_PREMIADA_BONUS'
-            )
-
         ORDER BY id ASC
     `);
 
+const buscarGirosPremiadaBonus =
+    db.prepare(`
+        SELECT
+            dados_json
+        FROM eventos_usuario
+        WHERE
+            usuario_id = ?
+            AND tipo =
+                'GIRO_ROLETA_PREMIADA_BONUS'
+        ORDER BY id ASC
+    `);
 
 const buscarPosicaoRanking =
     db.prepare(`
@@ -199,118 +201,106 @@ function obterPerfilUsuario(
         return null;
     }
 
-
     const girosPontos =
         buscarGirosPontos.all(
             id
         );
-
-
-    const girosPremiada =
-        buscarGirosPremiada.all(
+    const girosPremiadaNormal =
+        buscarGirosPremiadaNormal.all(
             id
         );
-
-
+    const girosPremiadaBonus =
+        buscarGirosPremiadaBonus.all(
+            id
+        );
     const bau =
         contarBaus.get(
             id
         );
-
-
     const ranking =
         buscarPosicaoRanking.get(
             id
         );
 
-
     let diamantes = 0;
-
-    let chancesPremiada = 0;
-
-    let premiosDinheiro = 0;
-
+    let totalPontosGanhos = 0;
 
     // ========================================
     // ROLETA DE PONTOS
     // ========================================
-
     for (
         const evento
         of girosPontos
     ) {
-
         const dados =
             lerDadosJson(
                 evento.dados_json
             );
-
-
+        totalPontosGanhos +=
+            Math.max(
+                0,
+                Number(
+                    dados.pontosGanhos || 0
+                )
+            );
         if (
             dados.tipoResultado ===
             "diamante"
         ) {
-
             diamantes++;
-        }
-
-
-        if (
-            dados.tipoResultado ===
-            "roleta_premiada" ||
-
-            Number(
-                dados.girosPremiadaGanhos ||
-                0
-            ) > 0
-        ) {
-
-            chancesPremiada++;
         }
     }
 
+    // ========================================
+    // ROLETA PREMIADA NORMAL
+    // ========================================
+    for (
+        const giro
+        of girosPremiadaNormal
+    ) {
+        const premio =
+            String(
+                giro.premio || ""
+            );
+        if (
+            premio === "💎"
+        ) {
+            diamantes++;
+        }
+    }
 
     // ========================================
-    // ROLETA PREMIADA
+    // ROLETA PREMIADA BÔNUS
     // ========================================
-
     for (
         const evento
-        of girosPremiada
+        of girosPremiadaBonus
     ) {
-
         const dados =
             lerDadosJson(
                 evento.dados_json
             );
-
 
         const premio =
             String(
                 dados.premio || ""
             );
-
-
         if (
             dados.tipoResultado ===
             "diamante" ||
             premio === "💎"
         ) {
-
             diamantes++;
-        }
-
-
-        if (
-            premio.startsWith(
-                "R$"
-            )
-        ) {
-
-            premiosDinheiro++;
         }
     }
 
+    const mediaPontosPorGiro =
+        girosPontos.length > 0
+            ? Math.round(
+                totalPontosGanhos /
+                girosPontos.length
+            )
+            : 0;
 
     return {
 
@@ -331,18 +321,17 @@ function obterPerfilUsuario(
                 : null,
         girosPontos:
             girosPontos.length,
-
+        mediaPontosPorGiro,
         diamantes,
         bausAbertos:
             Number(
                 bau?.total || 0
             ),
 
-        chancesPremiada,
         girosPremiada:
-            girosPremiada.length,
+            girosPremiadaNormal.length +
+            girosPremiadaBonus.length,
 
-        premiosDinheiro,
         criadoEm:
             Number(
                 usuario.criado_em || 0

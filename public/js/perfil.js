@@ -196,84 +196,95 @@
                     <p id="perfil-username">
                     </p>
 
-                    <div class="perfil-resumo">
-
-                        <strong id="perfil-ranking">
-                            🏆 -
-                        </strong>
-
-                        <strong id="perfil-pontos">
-                            ⭐ 0 pontos
-                        </strong>
-                    </div>
+                    
                 </div>
 
                 <h2 class="perfil-titulo-secao">
                     ESTATÍSTICAS
                 </h2>
 
+            <div class="perfil-estatistica">
+                <span>🏆</span>
 
-                <div class="perfil-estatisticas">
-                    <div class="perfil-estatistica">
-                        <span>🎡</span>
-                        <strong id="perfil-giros-pontos">
-                            0
-                        </strong>
-                        <small>
-                            Giros
-                        </small>
-                    </div>
+                <strong id="perfil-ranking">
+                    -
+                </strong>
 
-                    <div class="perfil-estatistica">
-                        <span>💎</span>
-                        <strong id="perfil-diamantes">
-                            0
-                        </strong>
-                        <small>
-                            Diamantes
-                        </small>
-                    </div>
+                <small>
+                    Posição Ranking
+                </small>
+            </div>
 
-                    <div class="perfil-estatistica">
-                        <span>🎁</span>
-                        <strong id="perfil-baus">
-                            0
-                        </strong>
-                        <small>
-                            Baús
-                        </small>
-                    </div>
 
-                    <div class="perfil-estatistica">
-                        <span>🎟️</span>
-                        <strong id="perfil-chances-premiada">
-                            0
-                        </strong>
-                        <small>
-                            Chances Premiada
-                        </small>
-                    </div>
+            <div class="perfil-estatistica">
+                <span>⭐</span>
 
-                    <div class="perfil-estatistica">
-                        <span>🎰</span>
-                        <strong id="perfil-giros-premiada">
-                            0
-                        </strong>
-                        <small>
-                            Giros Premiada
-                        </small>
-                    </div>
+                <strong id="perfil-pontos">
+                    0
+                </strong>
 
-                    <div class="perfil-estatistica">
-                        <span>💰</span>
-                        <strong id="perfil-premios-dinheiro">
-                            0
-                        </strong>
-                        <small>
-                            Prêmios
-                        </small>
-                    </div>
-                </div>
+                <small>
+                    Pontos atuais
+                </small>
+
+                <small id="perfil-media-pontos">
+                    Média por giro: 0
+                </small>
+            </div>
+
+
+            <div class="perfil-estatistica">
+                <span>🎯</span>
+
+                <strong id="perfil-giros-pontos">
+                    0
+                </strong>
+
+                <small>
+                    Giros
+                </small>
+            </div>
+
+
+            <div class="perfil-estatistica">
+                <span>💎</span>
+
+                <strong id="perfil-diamantes">
+                    0
+                </strong>
+
+                <small>
+                    Diamantes
+                </small>
+            </div>
+
+
+            <div class="perfil-estatistica">
+                <span>🎁</span>
+
+                <strong id="perfil-baus">
+                    0
+                </strong>
+
+                <small>
+                    Baús
+                </small>
+            </div>
+
+
+            <div class="perfil-estatistica">
+                <span>🎡</span>
+
+                <strong id="perfil-giros-premiada">
+                    0
+                </strong>
+
+                <small>
+                    Roleta Premiada
+                </small>
+            </div>
+
+        </div>
 
                 <div class="perfil-desde">
                     <span>
@@ -376,17 +387,26 @@
             "perfil-ranking"
         ).textContent =
             perfil.posicao
-                ? `🏆 ${perfil.posicao}º no ranking`
-                : "🏆 Sem posição";
+                ? `${perfil.posicao}º`
+                : "-";
 
         document.getElementById(
             "perfil-pontos"
         ).textContent =
-            `⭐ ${Number(
+            Number(
                 perfil.pontos || 0
             ).toLocaleString(
                 "pt-BR"
-            )} pontos`;
+            );
+
+        document.getElementById(
+            "perfil-media-pontos"
+        ).textContent =
+            `Média por giro: ${Number(
+                perfil.mediaPontosPorGiro || 0
+            ).toLocaleString(
+                "pt-BR"
+            )}`;
 
         document.getElementById(
             "perfil-giros-pontos"
@@ -416,30 +436,10 @@
             );
 
         document.getElementById(
-            "perfil-chances-premiada"
-        ).textContent =
-            Number(
-                perfil.chancesPremiada ||
-                0
-            ).toLocaleString(
-                "pt-BR"
-            );
-
-        document.getElementById(
             "perfil-giros-premiada"
         ).textContent =
             Number(
                 perfil.girosPremiada || 0
-            ).toLocaleString(
-                "pt-BR"
-            );
-
-        document.getElementById(
-            "perfil-premios-dinheiro"
-        ).textContent =
-            Number(
-                perfil.premiosDinheiro ||
-                0
             ).toLocaleString(
                 "pt-BR"
             );
