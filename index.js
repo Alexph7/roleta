@@ -1691,6 +1691,10 @@ app.post(
                 ranking:
                     ranking.map(
                         item => ({
+                            usuarioId:
+                                String(
+                                    item.usuario_id
+                                ),
                             posicao:
                                 Number(
                                     item.posicao
@@ -1713,6 +1717,10 @@ app.post(
                 usuario:
                     minhaPosicao
                         ? {
+                            usuarioId:
+                                String(
+                                    minhaPosicao.usuario_id
+                                ),
                             posicao:
                                 Number(
                                     minhaPosicao.posicao

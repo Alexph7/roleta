@@ -447,7 +447,9 @@
     // CARREGAR PERFIL
     // ========================================
 
-    async function carregarPerfil() {
+    async function carregarPerfil(
+        usuarioIdAlvo = null
+    ) {
         status.textContent =
             "Carregando perfil...";
 
@@ -465,7 +467,10 @@
                         body:
                             JSON.stringify({
                                 initData:
-                                    initDataPerfil
+                                    initDataPerfil,
+
+                                usuarioIdAlvo:
+                                    usuarioIdAlvo
                             })
                     }
                 );
@@ -504,6 +509,28 @@
     // ========================================
     // ABRIR / FECHAR
     // ========================================
+
+    window.abrirPerfilPublico =
+        function (
+            usuarioId
+        ) {
+            const id =
+                String(
+                    usuarioId || ""
+                ).trim();
+            if (
+                !/^\d{1,20}$/.test(
+                    id
+                )
+            ) {
+                return;
+            }
+            telaPerfil.hidden =
+                false;
+            carregarPerfil(
+                id
+            );
+        };
 
     botaoAbrirPerfil
         .addEventListener(

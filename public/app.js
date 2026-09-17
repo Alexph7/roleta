@@ -755,9 +755,35 @@ function criarLinhaRanking(
 
     nome.className =
         "ranking-nome";
+
     nome.textContent =
         item.nome ||
         "Participante";
+
+    if (
+        item.usuarioId
+    ) {
+        nome.style.cursor =
+            "pointer";
+
+        nome.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    typeof window
+                        .abrirPerfilPublico ===
+                    "function"
+                ) {
+                    window
+                        .abrirPerfilPublico(
+                            item.usuarioId
+                        );
+                }
+            }
+        );
+    }
+
     const pontos =
         document.createElement(
             "strong"
@@ -948,6 +974,30 @@ async function carregarRanking() {
                 minhaPosicao.nome ||
                 "Você";
 
+            if (
+                minhaPosicao.usuarioId
+            ) {
+                nome.style.cursor =
+                    "pointer";
+
+                nome.addEventListener(
+                    "click",
+                    () => {
+
+                        if (
+                            typeof window
+                                .abrirPerfilPublico ===
+                            "function"
+                        ) {
+                            window
+                                .abrirPerfilPublico(
+                                    minhaPosicao
+                                        .usuarioId
+                                );
+                        }
+                    }
+                );
+            }
 
             const pontos =
                 document.createElement(
