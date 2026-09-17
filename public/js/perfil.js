@@ -282,10 +282,27 @@
                 </small>
             </div>
 
+            </div>
+
+            <div class="perfil-historico">
+
+            <div class="perfil-historico-titulo">
+                HISTÓRICO DE PONTOS
+            </div>
+
+            <div
+                id="perfil-historico-lista"
+                class="perfil-historico-lista"
+            >
+                <div class="perfil-historico-vazio">
+                    Nenhum ponto ganho ainda.
+                </div>
+            </div>
+
         </div>
 
-                <div class="perfil-desde">
-                    <span>
+        <div class="perfil-desde">
+                 <span>
                         Jogando desde
                     </span>
                     <strong id="perfil-desde">
@@ -317,7 +334,6 @@
     // ========================================
     // ELEMENTOS
     // ========================================
-
     const botaoVoltar =
         document.getElementById(
             "voltar-menu-perfil"
@@ -338,7 +354,6 @@
     // ========================================
     // FORMATAR DATA
     // ========================================
-
     function formatarData(
         timestamp
     ) {
@@ -349,7 +364,6 @@
 
             return "-";
         }
-
         return new Date(
             numero
         ).toLocaleDateString(
@@ -359,6 +373,167 @@
                     "America/Sao_Paulo"
             }
         );
+    }
+
+    function formatarDataHistorico(
+        timestamp
+    ) {
+        const numero =
+            Number(
+                timestamp || 0
+            );
+        if (!numero) {
+            return "";
+        }
+
+        return new Date(
+            numero
+        ).toLocaleString(
+            "pt-BR",
+            {
+                timeZone:
+                    "America/Sao_Paulo",
+                day:
+                    "2-digit",
+                month:
+                    "2-digit",
+                hour:
+                    "2-digit",
+                minute:
+                    "2-digit"
+            }
+        );
+    }
+
+    function preencherHistoricoPontos(
+        historico
+    ) {
+        const lista =
+            document.getElementById(
+                "perfil-historico-lista"
+            );
+        if (!lista) {
+            return;
+        }
+
+        lista.replaceChildren();
+
+        const itens =
+            Array.isArray(
+                historico
+            )
+                ? historico
+                : [];
+
+        if (
+            itens.length === 0
+        ) {
+            const vazio =
+                document.createElement(
+                    "div"
+                );
+
+            vazio.className =
+                "perfil-historico-vazio";
+
+            vazio.textContent =
+                "Nenhum ponto ganho ainda.";
+
+            lista.appendChild(
+                vazio
+            );
+            return;
+        }
+
+        for (
+            const item
+            of itens
+        ) {
+            const linha =
+                document.createElement(
+                    "div"
+                );
+
+            linha.className =
+                "perfil-historico-linha";
+
+            const esquerda =
+                document.createElement(
+                    "div"
+                );
+
+            esquerda.className =
+                "perfil-historico-info";
+
+            const valor =
+                document.createElement(
+                    "strong"
+                );
+
+            const pontos =
+                Number(
+                    item.pontos || 0
+                );
+
+            const multiplicador =
+                Number(
+                    item.multiplicador || 0
+                );
+
+            const textoMultiplicador =
+                multiplicador > 0
+                    ? `${multiplicador.toFixed(1)}x → `
+                    : "";
+
+            valor.textContent =
+                `${item.icone || "🎯"} ` +
+                `${textoMultiplicador}` +
+                `+${pontos.toLocaleString(
+                    "pt-BR"
+                )} pts`;
+
+            const origem =
+                document.createElement(
+                    "small"
+                );
+
+            origem.textContent =
+                item.origem ||
+                "Pontos";
+
+            const data =
+                document.createElement(
+                    "span"
+                );
+
+            data.className =
+                "perfil-historico-data";
+
+            data.textContent =
+                formatarDataHistorico(
+                    item.criadoEm
+                );
+
+            esquerda.appendChild(
+                valor
+            );
+
+            esquerda.appendChild(
+                origem
+            );
+
+            linha.appendChild(
+                esquerda
+            );
+
+            linha.appendChild(
+                data
+            );
+
+            lista.appendChild(
+                linha
+            );
+        }
     }
 
     // ========================================
@@ -434,6 +609,10 @@
             ).toLocaleString(
                 "pt-BR"
             );
+
+        preencherHistoricoPontos(
+            perfil.historicoPontos
+        );
 
         document.getElementById(
             "perfil-desde"

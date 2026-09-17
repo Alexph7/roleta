@@ -156,6 +156,14 @@ function registrarRotaPerfil(
                         perfil.bausAbertos,
                     girosPremiada:
                         perfil.girosPremiada,
+
+                    historicoPontos:
+                        Array.isArray(
+                            perfil.historicoPontos
+                        )
+                            ? perfil.historicoPontos
+                            : [],
+
                     criadoEm:
                         perfil.criadoEm
                 };

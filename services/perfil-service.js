@@ -96,6 +96,28 @@ const contarBaus =
                 'BAU_SEGUNDA_CHANCE'
     `);
 
+const buscarHistoricoPontosPerfil =
+    db.prepare(`
+        SELECT
+            tipo,
+            origem,
+            valor,
+            dados_json,
+            criado_em
+        FROM eventos_usuario
+        WHERE
+            usuario_id = ?
+            AND tipo IN (
+                'GIRO_ROLETA_PONTOS',
+                'BAU_SEGUNDA_CHANCE',
+                'GIRO_ROLETA_PREMIADA_NORMAL',
+                'GIRO_ROLETA_PREMIADA_BONUS'
+            )
+        ORDER BY
+            criado_em DESC,
+            id DESC
+        LIMIT 100
+    `);
 
 const buscarGirosPremiadaNormal =
     db.prepare(`
@@ -221,6 +243,10 @@ function obterPerfilUsuario(
         buscarPosicaoRanking.get(
             id
         );
+    const eventosHistorico =
+        buscarHistoricoPontosPerfil.all(
+            id
+        );
 
     let diamantes = 0;
     let totalPontosGanhos = 0;
@@ -302,6 +328,124 @@ function obterPerfilUsuario(
             )
             : 0;
 
+    const historicoPontos = [];
+
+    for (
+        const evento
+        of eventosHistorico
+    ) {
+        const dados =
+            lerDadosJson(
+                evento.dados_json
+            );
+
+        const pontos =
+            Math.max(
+                0,
+                Math.trunc(
+                    Number(
+                        dados.pontosGanhos ??
+                        evento.valor ??
+                        0
+                    ) || 0
+                )
+            );
+
+        // Só mostra eventos que
+        // realmente deram pontos.
+        if (pontos <= 0) {
+            continue;
+        }
+
+        let icone =
+            "🎯";
+
+        let origem =
+            "Roleta de Pontos";
+
+        let multiplicador =
+            null;
+
+        // ========================================
+        // ROLETA DE PONTOS
+        // ========================================
+        if (
+            evento.tipo ===
+            "GIRO_ROLETA_PONTOS"
+        ) {
+            if (
+                dados.tipoResultado ===
+                "diamante"
+            ) {
+                icone =
+                    "💎";
+            }
+            if (
+                dados.teveMultiplicador ===
+                true &&
+                Number(
+                    dados.multiplicador || 0
+                ) > 0
+            ) {
+                multiplicador =
+                    Number(
+                        dados.multiplicador
+                    );
+            }
+        }
+
+        // ========================================
+        // BAÚ
+        // ========================================
+        if (
+            evento.tipo ===
+            "BAU_SEGUNDA_CHANCE"
+        ) {
+            icone =
+                "🎁";
+
+            origem =
+                "Baú da Segunda Chance";
+        }
+
+        // ========================================
+        // ROLETA PREMIADA
+        // ========================================
+        if (
+            evento.tipo ===
+            "GIRO_ROLETA_PREMIADA_NORMAL" ||
+            evento.tipo ===
+            "GIRO_ROLETA_PREMIADA_BONUS"
+        ) {
+            icone =
+                dados.tipoResultado ===
+                    "diamante"
+                    ? "🎡💎"
+                    : "🎡";
+
+            origem =
+                "Roleta Premiada";
+        }
+
+        historicoPontos.push({
+            icone,
+            origem,
+            pontos,
+            multiplicador,
+            criadoEm:
+                Number(
+                    evento.criado_em || 0
+                )
+        });
+
+        // Só os 10 ganhos mais recentes.
+        if (
+            historicoPontos.length >= 10
+        ) {
+            break;
+        }
+    }
+
     return {
 
         id,
@@ -331,6 +475,8 @@ function obterPerfilUsuario(
         girosPremiada:
             girosPremiadaNormal.length +
             girosPremiadaBonus.length,
+
+        historicoPontos,
 
         criadoEm:
             Number(
