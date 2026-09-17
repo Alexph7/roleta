@@ -1,46 +1,43 @@
 (() => {
-
     const abaPontos =
         document.getElementById(
             "ranking-aba-pontos"
         );
-
 
     const abaDiamantes =
         document.getElementById(
             "ranking-aba-diamantes"
         );
 
-
     const rankingLista =
         document.getElementById(
             "ranking-lista"
         );
-
 
     const minhaPosicaoRanking =
         document.getElementById(
             "minha-posicao-ranking"
         );
 
-
     const rankingSubtitulo =
         document.querySelector(
             "#tela-ranking .ranking-subtitulo"
         );
-
 
     const rankingPremios =
         document.querySelector(
             "#tela-ranking .ranking-premios"
         );
 
+    const rankingPremiosDiamantes =
+        document.getElementById(
+            "ranking-premios-diamantes"
+        );
 
     const botaoAbrirRanking =
         document.getElementById(
             "abrir-ranking"
         );
-
 
     if (
         !abaPontos ||
@@ -51,12 +48,10 @@
         return;
     }
 
-
     const initData =
         window.Telegram
             ?.WebApp
             ?.initData || "";
-
 
     const subtituloPontos =
         rankingSubtitulo
@@ -64,15 +59,12 @@
             ?.trim() ||
         "Campeonato de pontos";
 
-
     let versaoCarregamento =
         0;
-
 
     // ========================================
     // POSIÇÃO
     // ========================================
-
     function textoPosicao(
         posicao
     ) {
@@ -80,31 +72,21 @@
             Number(
                 posicao
             );
-
-
         if (numero === 1) {
             return "🥇";
         }
-
-
         if (numero === 2) {
             return "🥈";
         }
-
-
         if (numero === 3) {
             return "🥉";
         }
-
-
         return `${numero}º`;
     }
-
 
     // ========================================
     // NOME CLICÁVEL
     // ========================================
-
     function prepararNome(
         nome,
         usuarioId
@@ -113,11 +95,9 @@
             return;
         }
 
-
         nome.classList.add(
             "ranking-nome-clicavel"
         );
-
 
         nome.addEventListener(
             "click",
@@ -137,11 +117,9 @@
         );
     }
 
-
     // ========================================
     // LINHA DO RANKING
     // ========================================
-
     function criarLinhaDiamantes(
         item,
         destaque = false
@@ -151,59 +129,48 @@
                 "div"
             );
 
-
         linha.className =
             destaque
                 ? "ranking-linha ranking-eu"
                 : "ranking-linha";
-
 
         const posicao =
             document.createElement(
                 "span"
             );
 
-
         posicao.className =
             "ranking-posicao";
-
 
         posicao.textContent =
             textoPosicao(
                 item.posicao
             );
 
-
         const nome =
             document.createElement(
                 "strong"
             );
 
-
         nome.className =
             "ranking-nome";
-
 
         nome.textContent =
             item.nome ||
             "Participante";
-
 
         prepararNome(
             nome,
             item.usuarioId
         );
 
-
         const diamantes =
             document.createElement(
                 "strong"
             );
 
-
         diamantes.className =
             "ranking-pontos";
-
 
         diamantes.textContent =
             `${Number(
@@ -212,36 +179,29 @@
                 "pt-BR"
             )} 💎`;
 
-
         linha.appendChild(
             posicao
         );
-
 
         linha.appendChild(
             nome
         );
 
-
         linha.appendChild(
             diamantes
         );
 
-
         return linha;
     }
-
 
     // ========================================
     // MINHA POSIÇÃO
     // ========================================
-
     function mostrarMinhaPosicao(
         item
     ) {
         minhaPosicaoRanking
             .replaceChildren();
-
 
         if (!item) {
             minhaPosicaoRanking.hidden =
@@ -250,53 +210,43 @@
             return;
         }
 
-
         const posicao =
             document.createElement(
                 "span"
             );
 
-
         posicao.className =
             "ranking-posicao";
-
 
         posicao.textContent =
             textoPosicao(
                 item.posicao
             );
 
-
         const nome =
             document.createElement(
                 "strong"
             );
 
-
         nome.className =
             "ranking-nome";
-
 
         nome.textContent =
             item.nome ||
             "Você";
-
 
         prepararNome(
             nome,
             item.usuarioId
         );
 
-
         const diamantes =
             document.createElement(
                 "strong"
             );
 
-
         diamantes.className =
             "ranking-pontos";
-
 
         diamantes.textContent =
             `${Number(
@@ -305,51 +255,49 @@
                 "pt-BR"
             )} 💎`;
 
-
         minhaPosicaoRanking
             .appendChild(
                 posicao
             );
-
 
         minhaPosicaoRanking
             .appendChild(
                 nome
             );
 
-
         minhaPosicaoRanking
             .appendChild(
                 diamantes
             );
 
-
         minhaPosicaoRanking.hidden =
             false;
     }
-
 
     // ========================================
     // VISUAL DAS ABAS
     // ========================================
 
     function mostrarAbaPontos() {
-
         abaPontos.classList.add(
             "ativa"
         );
 
-
         abaDiamantes.classList.remove(
             "ativa"
         );
-
 
         if (rankingPremios) {
             rankingPremios.hidden =
                 false;
         }
 
+        if (
+            rankingPremiosDiamantes
+        ) {
+            rankingPremiosDiamantes.hidden =
+                true;
+        }
 
         if (rankingSubtitulo) {
             rankingSubtitulo.textContent =
@@ -375,6 +323,12 @@
                 true;
         }
 
+        if (
+            rankingPremiosDiamantes
+        ) {
+            rankingPremiosDiamantes.hidden =
+                false;
+        }
 
         if (rankingSubtitulo) {
             rankingSubtitulo.textContent =

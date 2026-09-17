@@ -1198,3 +1198,57 @@ button.card-jogo:active {
 .ranking-nome-clicavel:active {
     opacity: 0.6;
 }
+
+.ranking-premios-diamantes {
+    width: 100%;
+
+    margin:
+        0 auto 18px;
+
+    padding:
+        11px 14px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+
+    gap: 4px;
+
+    border:
+        1px solid rgba(255,
+            209,
+            102,
+            0.38);
+
+    border-radius:
+        14px;
+
+    background:
+        rgba(255,
+            209,
+            102,
+            0.08);
+}
+
+.ranking-premios-diamantes strong {
+    color:
+        #ffd166;
+
+    font-size:
+        13px;
+}
+
+.ranking-premios-diamantes small {
+    color:
+        #aaa6b8;
+
+    font-size:
+        11px;
+}
+
+.ranking-premios-diamantes[hidden],
+.ranking-premios[hidden] {
+    display:
+        none !important;
+}

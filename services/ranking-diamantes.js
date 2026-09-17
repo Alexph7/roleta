@@ -25,16 +25,10 @@ db.pragma(
     "busy_timeout = 5000"
 );
 
-
 // ========================================
 // RANKING DE DIAMANTES
 //
 // Conta diamantes vindos de:
-//
-// - Roleta de Pontos
-// - Roleta Premiada normal
-// - Roleta Premiada bônus
-//
 // Desempate:
 // quem atingiu primeiro a quantidade
 // atual de diamantes.
