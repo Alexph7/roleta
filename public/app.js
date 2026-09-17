@@ -609,7 +609,7 @@ function atualizarTelaPremiada(
         botaoGirar.disabled =
             true;
         botaoGirar.textContent =
-            "🔒 AGUARDANDO LIBERAÇÃO";
+            "🔒 GANHE GIROS NA ROLETA DE PONTOS";
         return;
     }
 
@@ -2815,7 +2815,7 @@ async function girar() {
                     true;
 
                 botaoGirar.textContent =
-                    "🔒 AGUARDANDO LIBERAÇÃO";
+                    "🔒 GANHE GIROS NA ROLETA DE PONTOS";
 
                 resultado.textContent =
                     "";
