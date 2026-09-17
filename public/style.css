@@ -1102,3 +1102,22 @@ button.card-jogo:active {
     text-align:
         center;
 }
+
+.ranking-nome-clicavel {
+    cursor: pointer;
+    color: #f4da8d;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 4px;
+}
+
+.ranking-nome-clicavel::after {
+    content: " ›";
+    font-size: 18px;
+    font-weight: 900;
+    color: #f4da8d;
+}
+
+.ranking-nome-clicavel:active {
+    opacity: 0.6;
+}

@@ -763,9 +763,10 @@ function criarLinhaRanking(
     if (
         item.usuarioId
     ) {
-        nome.style.cursor =
-            "pointer";
-
+        nome.classList.add(
+            "ranking-nome-clicavel"
+        );
+        
         nome.addEventListener(
             "click",
             () => {
