@@ -671,6 +671,83 @@ button.card-jogo:active {
         14px;
 }
 
+.ranking-abas {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2,
+            minmax(0, 1fr));
+
+    gap: 8px;
+
+    margin:
+        0 0 18px;
+}
+
+.ranking-aba {
+    width: 100%;
+
+    padding:
+        11px 8px;
+
+    border:
+        1px solid rgba(255,
+            255,
+            255,
+            0.10);
+
+    border-radius:
+        11px;
+
+    background:
+        rgba(255,
+            255,
+            255,
+            0.045);
+
+    color:
+        #aaa6b8;
+
+    font-size:
+        13px;
+
+    font-weight:
+        800;
+
+    cursor:
+        pointer;
+
+    transition:
+        transform 0.15s ease,
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease;
+}
+
+.ranking-aba.ativa {
+    border-color:
+        rgba(255,
+            209,
+            102,
+            0.55);
+
+    background:
+        rgba(255,
+            209,
+            102,
+            0.12);
+
+    color:
+        #ffd166;
+}
+
+.ranking-aba:active {
+    transform:
+        scale(0.97);
+}
+
 .minha-posicao-ranking {
     width: 100%;
 
