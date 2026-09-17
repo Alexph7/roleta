@@ -146,6 +146,12 @@
     opacity: 0.72;
 }
 
+#perfil-media-pontos {
+    color: #f4da8d;
+    opacity: 1;
+    font-weight: 700;
+}
+
 .perfil-desde {
     margin-top: 18px;
     display: flex;
