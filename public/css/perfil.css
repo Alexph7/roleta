@@ -302,3 +302,131 @@
     opacity: 0.6;
     font-size: 12px;
 }
+
+/* ========================================
+   PERFIL NO TOPO DO MENU
+======================================== */
+
+.perfil-topo-menu {
+    width: 100%;
+
+    margin:
+        0 auto 16px;
+
+    padding:
+        13px 15px;
+
+    display: grid;
+
+    grid-template-columns:
+        auto minmax(0, 1fr) auto;
+
+    align-items: center;
+
+    gap: 12px;
+
+    border:
+        1px solid rgba(216,
+            193,
+            124,
+            0.34);
+
+    border-radius:
+        16px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #221d3b,
+            #171425
+        );
+
+    color:
+        white;
+
+    text-align:
+        left;
+
+    cursor:
+        pointer;
+
+    box-shadow:
+        0 10px 25px
+        rgba(0, 0, 0, 0.18);
+}
+
+
+.perfil-topo-menu:active {
+    transform:
+        scale(0.98);
+}
+
+
+.perfil-topo-icone {
+    width: 48px;
+    height: 48px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius:
+        14px;
+
+    background:
+        rgba(124,
+            92,
+            255,
+            0.17);
+
+    font-size:
+        26px;
+}
+
+
+.perfil-topo-textos {
+    min-width: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+
+.perfil-topo-textos strong {
+    color:
+        #ffffff;
+
+    font-size:
+        14px;
+
+    font-weight:
+        800;
+}
+
+
+.perfil-topo-textos span {
+    color:
+        #aaa6b8;
+
+    font-size:
+        11px;
+}
+
+
+.perfil-topo-seta {
+    color:
+        #f4da8d;
+
+    font-size:
+        27px;
+
+    font-weight:
+        900;
+
+    line-height:
+        1;
+}

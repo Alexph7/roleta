@@ -63,32 +63,56 @@
                 "button"
             );
 
+
         botaoAbrirPerfil.type =
             "button";
+
 
         botaoAbrirPerfil.id =
             "abrir-perfil";
 
-        botaoAbrirPerfil.className =
-            "card-jogo perfil-card-menu";
 
+        botaoAbrirPerfil.className =
+            "perfil-topo-menu";
+
+
+        // ========================================
+        // ÍCONE
+        // ========================================
 
         const icone =
             document.createElement(
-                "span"
+                "div"
             );
 
+
         icone.className =
-            "card-jogo-icone";
+            "perfil-topo-icone";
+
 
         icone.textContent =
             "👤";
+
+
+        // ========================================
+        // TEXTOS
+        // ========================================
+
+        const textos =
+            document.createElement(
+                "div"
+            );
+
+
+        textos.className =
+            "perfil-topo-textos";
 
 
         const titulo =
             document.createElement(
                 "strong"
             );
+
 
         titulo.textContent =
             "MEU PERFIL";
@@ -99,58 +123,90 @@
                 "span"
             );
 
-        subtitulo.className =
-            "perfil-card-subtitulo";
 
         subtitulo.textContent =
             "Veja suas estatísticas";
 
 
-        botaoAbrirPerfil.appendChild(
-            icone
-        );
-
-        botaoAbrirPerfil.appendChild(
+        textos.appendChild(
             titulo
         );
 
-        botaoAbrirPerfil.appendChild(
+
+        textos.appendChild(
             subtitulo
         );
 
 
         // ========================================
-        // COLOCA DEPOIS DO RANKING
+        // SETA
         // ========================================
 
-        const botaoRanking =
-            document.getElementById(
-                "abrir-ranking"
+        const seta =
+            document.createElement(
+                "span"
             );
 
 
-        const cardRanking =
-            botaoRanking
-                ?.closest(
-                    ".card-jogo"
-                ) ||
-            botaoRanking;
+        seta.className =
+            "perfil-topo-seta";
 
 
-        if (
-            cardRanking &&
-            cardRanking.parentElement
-        ) {
+        seta.textContent =
+            "›";
 
-            cardRanking
-                .insertAdjacentElement(
-                    "afterend",
-                    botaoAbrirPerfil
+
+        // ========================================
+        // MONTA
+        // ========================================
+
+        botaoAbrirPerfil.appendChild(
+            icone
+        );
+
+
+        botaoAbrirPerfil.appendChild(
+            textos
+        );
+
+
+        botaoAbrirPerfil.appendChild(
+            seta
+        );
+
+
+        // ========================================
+        // SUBSTITUI A LOGO DO TOPO
+        // ========================================
+
+        const menuTopo =
+            telaMenu.querySelector(
+                ".menu-topo"
+            );
+
+
+        const logoMenu =
+            menuTopo
+                ?.querySelector(
+                    ".menu-logo"
                 );
+
+
+        if (logoMenu) {
+
+            logoMenu.replaceWith(
+                botaoAbrirPerfil
+            );
+
+        } else if (menuTopo) {
+
+            menuTopo.prepend(
+                botaoAbrirPerfil
+            );
 
         } else {
 
-            telaMenu.appendChild(
+            telaMenu.prepend(
                 botaoAbrirPerfil
             );
         }
