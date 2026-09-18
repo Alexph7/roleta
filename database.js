@@ -2547,12 +2547,8 @@ function listarUltimosResultadosPontos(
         });
     }
 
-
-    // SQL buscou do mais novo para o mais velho.
-    // Aqui invertemos SOMENTE os 7 encontrados,
-    // para o mais recente aparecer no final da lista.
-
-    return resultados.reverse();
+    // SQL já buscou do mais novo para o mais velho.
+    return resultados;
 }
 
 function contarGanhadoresCampanha(
