@@ -1499,13 +1499,13 @@ function gerarNoticias() {
 // API DO SERVICE
 // ========================================
 function listarNews(
-    limite = 40
+    limite = 150
 ) {
     const limiteSeguro =
         Math.max(
             1,
             Math.min(
-                100,
+                200,
 
                 Math.trunc(
                     num(
