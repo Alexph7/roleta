@@ -7,6 +7,8 @@ const crypto = require("crypto");
 const registrarRotaPerfil = require("./routes/perfil");
 const registrarRotaRankingDiamantes =
     require("./routes/ranking-diamantes");
+const registrarRotaNews =
+    require("./routes/news");
 
 const { Bot } = require("node-telegram-bot-api");
 
@@ -549,6 +551,14 @@ registrarRotaPerfil(
 );
 
 registrarRotaRankingDiamantes(
+    app,
+    {
+        validarInitDataTelegram,
+        usuarioLiberadoPorId
+    }
+);
+
+registrarRotaNews(
     app,
     {
         validarInitDataTelegram,

@@ -1,0 +1,215 @@
+/* ========================================
+   BOTÃO NEWS NO MENU
+======================================== */
+
+.news-topo-menu {
+    margin-bottom:
+        0;
+}
+
+
+/* ========================================
+   TELA NEWS
+======================================== */
+
+#tela-news {
+    width:
+        100%;
+}
+
+.news-titulo {
+    margin:
+        4px 0 3px;
+}
+
+.news-subtitulo {
+    margin:
+        0 0 20px;
+
+    color:
+        #aaa6b8;
+
+    font-size:
+        13px;
+}
+
+
+/* ========================================
+   FEED
+======================================== */
+
+.news-lista {
+    width:
+        100%;
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        9px;
+}
+
+
+/* ========================================
+   CARD
+======================================== */
+
+.news-card {
+    width:
+        100%;
+
+    display:
+        grid;
+
+    grid-template-columns:
+        44px minmax(0, 1fr);
+
+    align-items:
+        center;
+
+    gap:
+        11px;
+
+    padding:
+        12px 13px;
+
+    border:
+        1px solid rgba(255,
+            255,
+            255,
+            0.08);
+
+    border-radius:
+        14px;
+
+    background:
+        linear-gradient(135deg,
+            #211d35,
+            #151222);
+
+    text-align:
+        left;
+}
+
+
+.news-card-destaque {
+    border-color:
+        rgba(255,
+            209,
+            102,
+            0.38);
+
+    background:
+        rgba(255,
+            209,
+            102,
+            0.07);
+}
+
+
+.news-card-icone {
+    width:
+        44px;
+
+    height:
+        44px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    border-radius:
+        13px;
+
+    background:
+        rgba(124,
+            92,
+            255,
+            0.15);
+
+    font-size:
+        23px;
+}
+
+
+.news-card-conteudo {
+    min-width:
+        0;
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        3px;
+}
+
+
+.news-card-conteudo strong {
+    color:
+        #ffffff;
+
+    font-size:
+        13px;
+
+    line-height:
+        1.3;
+}
+
+
+.news-card-conteudo span {
+    color:
+        #c6c1d2;
+
+    font-size:
+        11px;
+}
+
+
+.news-card-conteudo small {
+    margin-top:
+        2px;
+
+    color:
+        #817c91;
+
+    font-size:
+        10px;
+}
+
+
+.news-card-clicavel {
+    cursor:
+        pointer;
+}
+
+
+.news-card-clicavel:active {
+    transform:
+        scale(0.985);
+}
+
+
+.news-vazio {
+    margin:
+        30px 0;
+
+    color:
+        #aaa6b8;
+
+    font-size:
+        13px;
+
+    text-align:
+        center;
+}
