@@ -1694,13 +1694,13 @@ function gerarNoticias() {
 // API DO SERVICE
 // ========================================
 function listarNews(
-    limite = 150
+    limite = 500
 ) {
     const limiteSeguro =
         Math.max(
             1,
             Math.min(
-                200,
+                1000,
 
                 Math.trunc(
                     num(

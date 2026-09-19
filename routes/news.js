@@ -83,7 +83,7 @@ function registrarRotaNews(
                 return res.json({
                     noticias:
                         listarNews(
-                            150
+                            500
                         )
                 });
 
