@@ -2083,6 +2083,132 @@ function registrarGiroPremiadaBonus(
 // RANKING DA ROLETA DE PONTOS
 // ========================================
 
+function obterInicioPeriodoRankingAtual(
+    data = new Date()
+) {
+
+    const partes =
+        new Intl.DateTimeFormat(
+            "en-CA",
+            {
+                timeZone:
+                    "America/Sao_Paulo",
+
+                year:
+                    "numeric",
+
+                month:
+                    "2-digit",
+
+                day:
+                    "2-digit",
+
+                hour:
+                    "2-digit",
+
+                minute:
+                    "2-digit",
+
+                hourCycle:
+                    "h23"
+            }
+        ).formatToParts(
+            data
+        );
+
+
+    const valores = {};
+
+    for (
+        const parte
+        of partes
+    ) {
+
+        if (
+            parte.type !==
+            "literal"
+        ) {
+            valores[
+                parte.type
+            ] = parte.value;
+        }
+    }
+
+
+    let ano =
+        Number(
+            valores.year
+        );
+
+    let mes =
+        Number(
+            valores.month
+        );
+
+    let dia =
+        Number(
+            valores.day
+        );
+
+    const hora =
+        Number(
+            valores.hour
+        );
+
+    const minuto =
+        Number(
+            valores.minute
+        );
+
+
+    const antesDasOitoETrinta =
+        hora < 8 ||
+        (
+            hora === 8 &&
+            minuto < 30
+        );
+
+
+    if (
+        antesDasOitoETrinta
+    ) {
+
+        const anterior =
+            new Date(
+                Date.UTC(
+                    ano,
+                    mes - 1,
+                    dia - 1
+                )
+            );
+
+
+        ano =
+            anterior
+                .getUTCFullYear();
+
+        mes =
+            anterior
+                .getUTCMonth() +
+            1;
+
+        dia =
+            anterior
+                .getUTCDate();
+    }
+
+
+    const dataPeriodo =
+        `${String(ano)}` +
+        `-${String(mes).padStart(2, "0")}` +
+        `-${String(dia).padStart(2, "0")}`;
+
+
+    return Date.parse(
+        `${dataPeriodo}T08:30:00-03:00`
+    );
+}
+
 function listarRankingPontos(
     limite = 20
 ) {
@@ -2093,14 +2219,125 @@ function listarRankingPontos(
             Math.min(
                 100,
                 Math.trunc(
-                    Number(limite) || 20
+                    Number(
+                        limite
+                    ) || 20
                 )
             )
         );
 
 
+    const inicioPeriodo =
+        obterInicioPeriodoRankingAtual();
+
+
     return db.prepare(`
-        WITH ranking AS (
+        WITH eventos_pontos AS (
+
+            SELECT
+                e.usuario_id,
+                e.criado_em,
+
+                CASE
+
+                    WHEN
+                        json_valid(
+                            COALESCE(
+                                e.dados_json,
+                                ''
+                            )
+                        ) = 1
+
+                    THEN
+                        MAX(
+                            0,
+
+                            CAST(
+                                COALESCE(
+                                    json_extract(
+                                        e.dados_json,
+                                        '$.pontosGanhos'
+                                    ),
+                                    0
+                                )
+                                AS INTEGER
+                            )
+                        )
+
+                    ELSE 0
+
+                END AS pontos_ganhos
+
+            FROM eventos_usuario e
+
+            WHERE e.tipo IN (
+                'GIRO_ROLETA_PONTOS',
+                'BAU_SEGUNDA_CHANCE',
+                'GIRO_ROLETA_PREMIADA_NORMAL',
+                'GIRO_ROLETA_PREMIADA_BONUS'
+            )
+        ),
+
+
+        ganhos_periodo AS (
+
+            SELECT
+                usuario_id,
+
+                SUM(
+                    pontos_ganhos
+                ) AS pontos_periodo
+
+            FROM eventos_pontos
+
+            WHERE
+                criado_em >=
+                @inicioPeriodo
+
+            GROUP BY
+                usuario_id
+        ),
+
+
+        ultimo_ganho_antes AS (
+
+            SELECT
+                usuario_id,
+
+                MAX(
+                    criado_em
+                ) AS atingiu_inicio_em
+
+            FROM eventos_pontos
+
+            WHERE
+                criado_em <
+                    @inicioPeriodo
+
+                AND pontos_ganhos > 0
+
+            GROUP BY
+                usuario_id
+        ),
+
+
+        giros_antes AS (
+
+            SELECT DISTINCT
+                usuario_id
+
+            FROM eventos_usuario
+
+            WHERE
+                tipo =
+                    'GIRO_ROLETA_PONTOS'
+
+                AND criado_em <
+                    @inicioPeriodo
+        ),
+
+
+        base AS (
 
             SELECT
                 u.usuario_id,
@@ -2110,63 +2347,200 @@ function listarRankingPontos(
                 u.atingiu_pontuacao_em,
                 u.criado_em,
 
+                MAX(
+                    0,
+
+                    u.pontos -
+                    COALESCE(
+                        gp.pontos_periodo,
+                        0
+                    )
+                ) AS pontos_inicio,
+
+
+                CASE
+
+                    WHEN
+                        COALESCE(
+                            gp.pontos_periodo,
+                            0
+                        ) > 0
+
+                    THEN
+                        uga.atingiu_inicio_em
+
+                    ELSE
+                        u.atingiu_pontuacao_em
+
+                END AS atingiu_inicio_em,
+
+
+                CASE
+                    WHEN
+                        ga.usuario_id
+                        IS NOT NULL
+                    THEN 1
+                    ELSE 0
+                END AS tinha_giro_antes
+
+            FROM usuarios u
+
+            LEFT JOIN ganhos_periodo gp
+                ON gp.usuario_id =
+                    u.usuario_id
+
+            LEFT JOIN ultimo_ganho_antes uga
+                ON uga.usuario_id =
+                    u.usuario_id
+
+            LEFT JOIN giros_antes ga
+                ON ga.usuario_id =
+                    u.usuario_id
+        ),
+
+
+        ranking_atual AS (
+
+            SELECT
+                b.usuario_id,
+                b.nome_exibicao,
+                b.username,
+                b.pontos,
+
                 ROW_NUMBER() OVER (
 
                     ORDER BY
-                        u.pontos DESC,
+                        b.pontos DESC,
 
                         CASE
                             WHEN
-                                u.atingiu_pontuacao_em
+                                b.atingiu_pontuacao_em
                                 IS NULL
                             THEN 1
                             ELSE 0
                         END ASC,
 
-                        u.atingiu_pontuacao_em
+                        b.atingiu_pontuacao_em
                             ASC,
 
-                        u.criado_em
+                        b.criado_em
                             ASC,
 
-                        u.usuario_id
+                        b.usuario_id
                             ASC
 
                 ) AS posicao
 
-            FROM usuarios u
+            FROM base b
 
-           WHERE
-                u.pontos > 0
+            WHERE
+                b.pontos > 0
 
                 OR EXISTS (
 
                     SELECT 1
+
                     FROM eventos_usuario e
+
                     WHERE
                         e.usuario_id =
-                            u.usuario_id
+                            b.usuario_id
 
                         AND e.tipo =
-                        'GIRO_ROLETA_PONTOS'
-            )
+                            'GIRO_ROLETA_PONTOS'
+                )
+        ),
+
+
+        ranking_inicio AS (
+
+            SELECT
+                b.usuario_id,
+
+                ROW_NUMBER() OVER (
+
+                    ORDER BY
+                        b.pontos_inicio DESC,
+
+                        CASE
+                            WHEN
+                                b.atingiu_inicio_em
+                                IS NULL
+                            THEN 1
+                            ELSE 0
+                        END ASC,
+
+                        b.atingiu_inicio_em
+                            ASC,
+
+                        b.criado_em
+                            ASC,
+
+                        b.usuario_id
+                            ASC
+
+                ) AS posicao_anterior
+
+            FROM base b
+
+            WHERE
+                b.pontos_inicio > 0
+
+                OR
+                b.tinha_giro_antes = 1
         )
 
+
         SELECT
-            usuario_id,
-            nome_exibicao,
-            username,
-            pontos,
-            posicao
+            atual.usuario_id,
+            atual.nome_exibicao,
+            atual.username,
+            atual.pontos,
+            atual.posicao,
 
-        FROM ranking
+            anterior.posicao_anterior,
 
-        ORDER BY posicao ASC
+            CASE
+                WHEN
+                    anterior.posicao_anterior
+                    IS NULL
 
-        LIMIT ?
-    `).all(
-        limiteSeguro
-    );
+                THEN
+                    'subiu'
+
+                WHEN
+                    atual.posicao <
+                    anterior.posicao_anterior
+
+                THEN
+                    'subiu'
+
+                WHEN
+                    atual.posicao >
+                    anterior.posicao_anterior
+
+                THEN
+                    'desceu'
+
+                ELSE
+                    'manteve'
+            END AS movimento
+
+        FROM ranking_atual atual
+
+        LEFT JOIN ranking_inicio anterior
+            ON anterior.usuario_id =
+                atual.usuario_id
+
+        ORDER BY
+            atual.posicao ASC
+
+        LIMIT @limite
+    `).all({
+        inicioPeriodo,
+        limite:
+            limiteSeguro
+    });
 }
 
 function obterPosicaoRankingPontos(

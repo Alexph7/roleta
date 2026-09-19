@@ -1708,6 +1708,7 @@ app.post(
                 );
 
             return res.json({
+
                 ranking:
                     ranking.map(
                         item => ({
@@ -1715,10 +1716,27 @@ app.post(
                                 String(
                                     item.usuario_id
                                 ),
+
                             posicao:
                                 Number(
                                     item.posicao
                                 ),
+
+                            posicaoAnterior:
+                                item.posicao_anterior ===
+                                    null ||
+                                    item.posicao_anterior ===
+                                    undefined
+
+                                    ? null
+
+                                    : Number(
+                                        item.posicao_anterior
+                                    ),
+
+                            movimento:
+                                item.movimento ||
+                                "manteve",
 
                             nome:
                                 item.nome_exibicao,
@@ -1732,7 +1750,6 @@ app.post(
                                 )
                         })
                     ),
-
 
                 usuario:
                     minhaPosicao
