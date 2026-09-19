@@ -1447,7 +1447,7 @@ function gerarNoticias() {
                             liderAtual.id,
 
                         criadoEm:
-                            Date.now(),
+                            assumiuEm.criadoEm,
 
                         destaque:
                             true

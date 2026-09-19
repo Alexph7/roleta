@@ -87,7 +87,6 @@ function registrarRotaNews(
                         )
                 });
 
-
             } catch (erro) {
 
                 console.error(
