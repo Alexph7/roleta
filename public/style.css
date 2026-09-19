@@ -894,6 +894,20 @@ button.card-jogo:active {
         14px;
 }
 
+.ranking-posicao-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 64px;
+}
+
+.ranking-movimento {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
 /* ========================================
    ROLETA DE PONTOS
 ======================================== */

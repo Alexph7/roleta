@@ -735,10 +735,46 @@ function criarLinhaRanking(
             ? "ranking-linha ranking-eu"
             : "ranking-linha";
 
+    const posicaoWrap =
+        document.createElement("div");
+
+    posicaoWrap.className =
+        "ranking-posicao-wrap";
+
+    const iconeMovimento =
+        document.createElement("img");
+
+    iconeMovimento.className =
+        "ranking-movimento";
+
+    let srcMovimento =
+        "/icons/mantem.png";
+
+    let altMovimento =
+        "manteve posição";
+
+    if (item.movimento === "subiu") {
+        srcMovimento =
+            "/icons/sobe.png";
+        altMovimento =
+            "subiu no ranking";
+    } else if (
+        item.movimento === "desceu"
+    ) {
+        srcMovimento =
+            "/icons/desce.png";
+        altMovimento =
+            "desceu no ranking";
+    }
+
+    iconeMovimento.src =
+        srcMovimento;
+
+    iconeMovimento.alt =
+        altMovimento;
+
     const posicao =
-        document.createElement(
-            "span"
-        );
+        document.createElement("span");
 
     posicao.className =
         "ranking-posicao";
@@ -747,6 +783,14 @@ function criarLinhaRanking(
         textoPosicaoRanking(
             item.posicao
         );
+
+    posicaoWrap.appendChild(
+        iconeMovimento
+    );
+
+    posicaoWrap.appendChild(
+        posicao
+    );
 
     const nome =
         document.createElement(
@@ -766,7 +810,7 @@ function criarLinhaRanking(
         nome.classList.add(
             "ranking-nome-clicavel"
         );
-        
+
         nome.addEventListener(
             "click",
             () => {
@@ -799,7 +843,7 @@ function criarLinhaRanking(
         )} pts`;
 
     linha.appendChild(
-        posicao
+        posicaoWrap
     );
 
     linha.appendChild(
