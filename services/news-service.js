@@ -785,6 +785,10 @@ function gerarNoticias() {
             0
             ] || null;
 
+        const viceDepois =
+            rankingDepois[
+            1
+            ] || null;
 
         const pontosDepois =
             usuario.pontos;
@@ -889,6 +893,10 @@ function gerarNoticias() {
             0
             ] || null;
 
+        const viceAntes =
+            rankingAntes[
+            1
+            ] || null;
 
         // ========================================
         // ASSUMIU A LIDERANÇA
@@ -925,16 +933,45 @@ function gerarNoticias() {
                         true
                 });
 
-
             noticias.push(
                 item
             );
-
 
             mudancasLiderPontos.push(
                 item
             );
 
+        } else if (
+            viceDepois?.id ===
+            id &&
+
+            viceAntes?.id !==
+            id
+        ) {
+            noticias.push(
+                noticia({
+                    tipo:
+                        "novo_vice_pontos",
+
+                    icone:
+                        "🥈",
+
+                    titulo:
+                        `${nome} assumiu a vice-liderança do ranking`,
+
+                    descricao:
+                        "Agora está em 2º lugar",
+
+                    usuarioId:
+                        id,
+
+                    criadoEm:
+                        evento.criadoEm,
+
+                    destaque:
+                        true
+                })
+            );
 
             // ========================================
             // SUBIU
@@ -1134,7 +1171,8 @@ function gerarNoticias() {
 
 
     // ========================================
-    // TROCAS DE LÍDER DOS DIAMANTES
+    // MOVIMENTAÇÕES IMPORTANTES
+    // NO RANKING DE DIAMANTES
     // ========================================
 
     const diamantes =
@@ -1142,9 +1180,6 @@ function gerarNoticias() {
 
     const atingiuDiamantesEm =
         new Map();
-
-    let liderDiamantes =
-        null;
 
 
     const eventosDiamante =
@@ -1175,77 +1210,84 @@ function gerarNoticias() {
             );
 
 
-    function melhorNosDiamantes() {
+    // ========================================
+    // RANKING ATUAL DOS DIAMANTES
+    // ========================================
 
-        let melhor =
-            null;
+    function rankingDiamantesAtual() {
 
+        return [
+            ...diamantes.entries()
+        ]
+            .map(
+                (
+                    [
+                        id,
+                        quantidade
+                    ]
+                ) => ({
+                    id,
 
-        for (
-            const [
-                id,
-                quantidade
-            ]
-            of diamantes.entries()
-        ) {
-            const candidato = {
-                id,
-
-                nome:
-                    nomes.get(
-                        id
-                    ) ||
-                    "Participante",
-
-                quantidade,
-
-                atingiuEm:
-                    num(
-                        atingiuDiamantesEm.get(
+                    nome:
+                        nomes.get(
                             id
+                        ) ||
+                        "Participante",
+
+                    quantidade,
+
+                    atingiuEm:
+                        num(
+                            atingiuDiamantesEm.get(
+                                id
+                            )
                         )
-                    )
-            };
-
-
-            if (
-                !melhor ||
-
-                candidato.quantidade >
-                melhor.quantidade ||
-
+                })
+            )
+            .sort(
                 (
-                    candidato.quantidade ===
-                    melhor.quantidade &&
+                    a,
+                    b
+                ) => {
 
-                    candidato.atingiuEm <
-                    melhor.atingiuEm
-                ) ||
-
-                (
-                    candidato.quantidade ===
-                    melhor.quantidade &&
-
-                    candidato.atingiuEm ===
-                    melhor.atingiuEm &&
-
-                    String(
-                        candidato.id
-                    ) <
-                    String(
-                        melhor.id
-                    )
-                )
-            ) {
-                melhor =
-                    candidato;
-            }
-        }
+                    if (
+                        a.quantidade !==
+                        b.quantidade
+                    ) {
+                        return (
+                            b.quantidade -
+                            a.quantidade
+                        );
+                    }
 
 
-        return melhor;
+                    if (
+                        a.atingiuEm !==
+                        b.atingiuEm
+                    ) {
+                        return (
+                            a.atingiuEm -
+                            b.atingiuEm
+                        );
+                    }
+
+
+                    return String(
+                        a.id
+                    ).localeCompare(
+                        String(
+                            b.id
+                        )
+                    );
+                }
+            );
     }
 
+
+    // ========================================
+    // RECONSTRÓI A DISPUTA
+    // DESDE O PRIMEIRO DIAMANTE
+    // ========================================
 
     for (
         const evento
@@ -1254,6 +1296,39 @@ function gerarNoticias() {
         const id =
             evento.usuarioId;
 
+
+        const rankingAntes =
+            rankingDiamantesAtual();
+
+
+        const posAntesIndex =
+            rankingAntes.findIndex(
+                item =>
+                    item.id === id
+            );
+
+
+        const posAntes =
+            posAntesIndex >= 0
+                ? posAntesIndex + 1
+                : null;
+
+
+        const liderAntes =
+            rankingAntes[
+            0
+            ] || null;
+
+
+        const viceAntes =
+            rankingAntes[
+            1
+            ] || null;
+
+
+        // ========================================
+        // ENTREGA O NOVO DIAMANTE
+        // ========================================
 
         diamantes.set(
             id,
@@ -1272,14 +1347,56 @@ function gerarNoticias() {
         );
 
 
-        const novoLider =
-            melhorNosDiamantes();
+        // ========================================
+        // RANKING DEPOIS DO DIAMANTE
+        // ========================================
 
+        const rankingDepois =
+            rankingDiamantesAtual();
+
+
+        const posDepoisIndex =
+            rankingDepois.findIndex(
+                item =>
+                    item.id === id
+            );
+
+
+        const posDepois =
+            posDepoisIndex >= 0
+                ? posDepoisIndex + 1
+                : null;
+
+
+        const liderDepois =
+            rankingDepois[
+            0
+            ] || null;
+
+
+        const viceDepois =
+            rankingDepois[
+            1
+            ] || null;
+
+
+        const nome =
+            nomes.get(
+                id
+            ) ||
+            "Participante";
+
+
+        // ========================================
+        // NOVO LÍDER
+        // ========================================
 
         if (
-            novoLider &&
-            novoLider.id !==
-            liderDiamantes
+            liderDepois?.id ===
+            id &&
+
+            liderAntes?.id !==
+            id
         ) {
             noticias.push(
                 noticia({
@@ -1287,16 +1404,16 @@ function gerarNoticias() {
                         "novo_lider_diamantes",
 
                     icone:
-                        "💎",
+                        "💎👑",
 
                     titulo:
-                        `${novoLider.nome} assumiu a liderança dos diamantes`,
+                        `${nome} assumiu a liderança dos diamantes`,
 
                     descricao:
                         "Ranking de Diamantes",
 
                     usuarioId:
-                        novoLider.id,
+                        id,
 
                     criadoEm:
                         evento.criadoEm,
@@ -1307,8 +1424,86 @@ function gerarNoticias() {
             );
 
 
-            liderDiamantes =
-                novoLider.id;
+            // ========================================
+            // NOVO VICE-LÍDER
+            // ========================================
+
+        } else if (
+            viceDepois?.id ===
+            id &&
+
+            viceAntes?.id !==
+            id
+        ) {
+            noticias.push(
+                noticia({
+                    tipo:
+                        "novo_vice_diamantes",
+
+                    icone:
+                        "💎🥈",
+
+                    titulo:
+                        `${nome} assumiu a vice-liderança dos diamantes`,
+
+                    descricao:
+                        "Agora está em 2º lugar",
+
+                    usuarioId:
+                        id,
+
+                    criadoEm:
+                        evento.criadoEm,
+
+                    destaque:
+                        true
+                })
+            );
+
+
+            // ========================================
+            // ENTROU NO TOP 3
+            // ========================================
+
+        } else if (
+            posDepois !==
+            null &&
+
+            posDepois <=
+            3 &&
+
+            (
+                posAntes ===
+                null ||
+
+                posAntes >
+                3
+            )
+        ) {
+            noticias.push(
+                noticia({
+                    tipo:
+                        "top3_diamantes",
+
+                    icone:
+                        "💎🏅",
+
+                    titulo:
+                        `${nome} entrou no Top 3 dos diamantes`,
+
+                    descricao:
+                        `Agora está em ${posDepois}º lugar`,
+
+                    usuarioId:
+                        id,
+
+                    criadoEm:
+                        evento.criadoEm,
+
+                    destaque:
+                        true
+                })
+            );
         }
     }
 
