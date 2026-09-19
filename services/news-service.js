@@ -21,7 +21,7 @@ const CACHE_MS =
     30 * 1000;
 
 const SALTO_MINIMO =
-    3;
+    7;
 
 const PASSO_MARCO =
     5000;
