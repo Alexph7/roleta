@@ -241,6 +241,14 @@
                     Carregando...
                 </p>
             </div>
+
+            <button
+                id="voltar-menu-news-flutuante"
+                class="news-menu-flutuante"
+                type="button"
+            >
+                ← MENU
+            </button>
         `;
 
 
@@ -255,6 +263,10 @@
             "voltar-menu-news"
         );
 
+    const botaoVoltarFlutuante =
+        document.getElementById(
+            "voltar-menu-news-flutuante"
+        );
 
     const lista =
         document.getElementById(
@@ -702,17 +714,29 @@
     // VOLTAR
     // ========================================
 
+    function voltarAoMenu() {
+
+        telaNews.hidden =
+            true;
+
+
+        telaMenu.hidden =
+            false;
+
+
+        window.scrollTo({
+            top: 0,
+            behavior: "instant"
+        });
+    }
+
     botaoVoltar.addEventListener(
         "click",
-        () => {
-
-            telaNews.hidden =
-                true;
-
-
-            telaMenu.hidden =
-                false;
-        }
+        voltarAoMenu
     );
 
+    botaoVoltarFlutuante.addEventListener(
+        "click",
+        voltarAoMenu
+    );
 })();
