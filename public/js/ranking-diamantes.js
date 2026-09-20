@@ -39,6 +39,21 @@
             "ranking-premios-diamantes"
         );
 
+    const regrasMediaArea =
+        document.getElementById(
+            "ranking-regras-media-area"
+        );
+
+    const regrasMediaBotao =
+        document.getElementById(
+            "ranking-regras-media-botao"
+        );
+
+    const regrasMediaConteudo =
+        document.getElementById(
+            "ranking-regras-media-conteudo"
+        );
+
     const botaoAbrirRanking =
         document.getElementById(
             "abrir-ranking"
@@ -505,6 +520,16 @@
             "ativa"
         );
 
+        if (regrasMediaArea) {
+            regrasMediaArea.hidden =
+                true;
+        }
+
+        if (regrasMediaConteudo) {
+            regrasMediaConteudo.hidden =
+                true;
+        }
+
         if (rankingPremios) {
             rankingPremios.hidden =
                 false;
@@ -537,6 +562,10 @@
             "ativa"
         );
 
+        if (regrasMediaArea) {
+            regrasMediaArea.hidden =
+                false;
+        }
 
         if (rankingPremios) {
             rankingPremios.hidden =
@@ -571,6 +600,16 @@
         abaDiamantes.classList.add(
             "ativa"
         );
+
+        if (regrasMediaArea) {
+            regrasMediaArea.hidden =
+                true;
+        }
+
+        if (regrasMediaConteudo) {
+            regrasMediaConteudo.hidden =
+                true;
+        }
 
         if (rankingPremios) {
             rankingPremios.hidden =
@@ -978,6 +1017,31 @@
         }
     }
 
+    if (
+        regrasMediaBotao &&
+        regrasMediaConteudo
+    ) {
+        regrasMediaBotao
+            .addEventListener(
+                "click",
+                () => {
+
+                    const vaiAbrir =
+                        regrasMediaConteudo
+                            .hidden === true;
+
+
+                    regrasMediaConteudo.hidden =
+                        !vaiAbrir;
+
+
+                    regrasMediaBotao.textContent =
+                        vaiAbrir
+                            ? "✕ Fechar regras"
+                            : "📖 Regras da Média Ativa";
+                }
+            );
+    }
 
     // ========================================
     // CLIQUES

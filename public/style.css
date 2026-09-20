@@ -1270,3 +1270,99 @@ button.card-jogo:active {
     display:
         none !important;
 }
+
+/* ========================================
+   REGRAS DA MÉDIA ATIVA
+======================================== */
+
+.ranking-regras-media-area {
+    width: 100%;
+
+    margin:
+        -8px auto 16px;
+}
+
+
+.ranking-regras-media-botao {
+    width: 100%;
+
+    padding:
+        11px 14px;
+
+    border:
+        1px solid rgba(124, 92, 255, 0.35);
+
+    border-radius:
+        11px;
+
+    background:
+        rgba(124, 92, 255, 0.10);
+
+    color:
+        #d9d2ff;
+
+    font-size:
+        13px;
+
+    font-weight:
+        800;
+
+    cursor:
+        pointer;
+}
+
+
+.ranking-regras-media-botao:active {
+    transform:
+        scale(0.98);
+}
+
+
+.ranking-regras-media-conteudo {
+    margin-top:
+        9px;
+
+    padding:
+        15px;
+
+    border:
+        1px solid rgba(255, 255, 255, 0.08);
+
+    border-radius:
+        13px;
+
+    background:
+        rgba(255, 255, 255, 0.045);
+
+    color:
+        #c8c5d6;
+
+    text-align:
+        left;
+
+    font-size:
+        12px;
+
+    line-height:
+        1.5;
+}
+
+
+.ranking-regras-media-conteudo strong {
+    display:
+        block;
+
+    margin-bottom:
+        10px;
+
+    color:
+        #ffffff;
+
+    font-size:
+        14px;
+}
+
+.ranking-regras-media-conteudo p {
+    margin:
+        8px 0;
+}

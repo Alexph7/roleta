@@ -271,47 +271,103 @@
                 Campeonato de pontos - até 10/10/26
             </p>
 
+            <div id="ranking-regras-media-area" class="ranking-regras-media-area" hidden>
+
+                <button id="ranking-regras-media-botao" class="ranking-regras-media-botao" type="button">
+                    📖 Regras da Média Ativa
+                </button>
+
+                <div id="ranking-regras-media-conteudo" class="ranking-regras-media-conteudo" hidden>
+
+                    <strong>
+                        📊 Como funciona a Média Ativa
+                    </strong>
+
+                    <p>
+                        A média considera todo o histórico de giros da
+                        Roleta de Pontos que deram pontos.
+                    </p>
+
+                    <p>
+                        🎡 Resultados que levam à Roleta Premiada contam
+                        como presença, mas não entram no cálculo da média.
+                    </p>
+
+                    <p>
+                        📅 Para aparecer neste ranking, você precisa manter
+                        presença em 2 períodos consecutivos.
+                    </p>
+
+                    <p>
+                        Se ainda não girou no período atual, são considerados
+                        os 2 períodos anteriores. Assim que você girar,
+                        passam a valer o período atual + o anterior.
+                    </p>
+
+                    <p>
+                        🕣 Cada período começa às 08:30.
+                    </p>
+
+                    <p>
+                        🥇🥈🥉 Os 3 primeiros elegíveis recebem o destaque
+                        de ganhador. Quem já estiver entre os 7 premiados
+                        do Ranking de Pontos ou entre os 3 premiados do
+                        Ranking de Diamantes não concorre ao prêmio
+                        da Média Ativa.
+                    </p>
+
+                    <p>
+                        ⚖️ Em caso de média igual, fica à frente quem tiver
+                        mais giros válidos.
+                    </p>
+
+                </div>
+
+            </div>
+
             <div class="ranking-abas">
 
-                <button id="ranking-aba-pontos" class="ranking-aba ativa" type="button">
-                    🏆 Pontos
-                </button>
+                <div class="ranking-abas">
 
-                <button id="ranking-aba-media-ativa" class="ranking-aba" type="button">
-                    📊 Média ativa
-                </button>
+                    <button id="ranking-aba-pontos" class="ranking-aba ativa" type="button">
+                        🏆 Pontos
+                    </button>
 
-                <button id="ranking-aba-diamantes" class="ranking-aba" type="button">
-                    💎 Diamantes
-                </button>
+                    <button id="ranking-aba-media-ativa" class="ranking-aba" type="button">
+                        📊 Média ativa
+                    </button>
 
-            </div>
+                    <button id="ranking-aba-diamantes" class="ranking-aba" type="button">
+                        💎 Diamantes
+                    </button>
 
-            <div class="ranking-premios">
-                <span><strong>1º</strong> R$100</span>
-                <span><strong>2º</strong> R$50</span>
-                <span><strong>3º</strong> R$30</span>
-                <span><strong>4º</strong> R$20</span>
-                <span><strong>5º–7º</strong> R$10</span>
-            </div>
+                </div>
 
-            <div id="ranking-premios-diamantes" class="ranking-premios-diamantes" hidden>
-                <strong>
-                    💎 1º ao 3º: R$10 cada
-                </strong>
+                <div class="ranking-premios">
+                    <span><strong>1º</strong> R$100</span>
+                    <span><strong>2º</strong> R$50</span>
+                    <span><strong>3º</strong> R$30</span>
+                    <span><strong>4º</strong> R$20</span>
+                    <span><strong>5º–7º</strong> R$10</span>
+                </div>
 
-                <small>
-                    Desempate: quem chegou primeiro.
-                </small>
-            </div>
+                <div id="ranking-premios-diamantes" class="ranking-premios-diamantes" hidden>
+                    <strong>
+                        💎 1º ao 3º: R$10 cada
+                    </strong>
 
-            <div id="minha-posicao-ranking" class="minha-posicao-ranking" hidden></div>
+                    <small>
+                        Desempate: quem chegou primeiro.
+                    </small>
+                </div>
 
-            <div id="ranking-lista" class="ranking-lista">
-                <p class="ranking-carregando">
-                    Carregando...
-                </p>
-            </div>
+                <div id="minha-posicao-ranking" class="minha-posicao-ranking" hidden></div>
+
+                <div id="ranking-lista" class="ranking-lista">
+                    <p class="ranking-carregando">
+                        Carregando...
+                    </p>
+                </div>
         </section>
 
         <!-- ========================= -->
