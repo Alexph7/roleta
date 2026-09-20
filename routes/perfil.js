@@ -157,6 +157,38 @@ function registrarRotaPerfil(
                     girosPremiada:
                         perfil.girosPremiada,
 
+                    totalNoticias:
+                        Number(
+                            perfil.totalNoticias || 0
+                        ),
+
+                    noticias:
+                        Array.isArray(
+                            perfil.noticias
+                        )
+                            ? perfil.noticias.map(
+                                item => ({
+                                    tipo:
+                                        item.tipo,
+
+                                    icone:
+                                        item.icone,
+
+                                    titulo:
+                                        item.titulo,
+
+                                    descricao:
+                                        item.descricao,
+
+                                    criadoEm:
+                                        item.criadoEm,
+
+                                    destaque:
+                                        item.destaque === true
+                                })
+                            )
+                            : [],
+
                     historicoPontos:
                         Array.isArray(
                             perfil.historicoPontos
