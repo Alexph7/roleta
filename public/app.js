@@ -90,6 +90,11 @@ const botaoVoltarMenuRanking =
         "voltar-menu-ranking"
     );
 
+const botaoVoltarMenuRankingFlutuante =
+    document.getElementById(
+        "voltar-menu-ranking-flutuante"
+    );
+
 const rankingLista =
     document.getElementById(
         "ranking-lista"
@@ -1342,6 +1347,11 @@ function voltarParaMenuRanking() {
 
     telaMenu.hidden =
         false;
+
+    window.scrollTo({
+        top: 0,
+        behavior: "instant"
+    });
 }
 
 // ========================================
@@ -3104,6 +3114,11 @@ botaoAbrirRanking.addEventListener(
 );
 
 botaoVoltarMenuRanking.addEventListener(
+    "click",
+    voltarParaMenuRanking
+);
+
+botaoVoltarMenuRankingFlutuante.addEventListener(
     "click",
     voltarParaMenuRanking
 );
