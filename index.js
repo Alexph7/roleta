@@ -599,7 +599,7 @@ const resultadosPontosPrimeiroGiro = [
 
     {
         tipo: "pontos",
-        pontos: 199
+        pontos: 325
     },
 
     {
@@ -639,7 +639,7 @@ const resultadosPontosPrimeiroGiro = [
 
     {
         tipo: "pontos",
-        pontos: 198
+        pontos: 425
     },
 
     {
@@ -657,9 +657,8 @@ const resultadosPontosPrimeiroGiro = [
 const resultadosPontosSegundoGiro = [
     {
         tipo: "pontos",
-        pontos: 199
+        pontos: 325
     },
-
     {
         tipo: "diamante",
         pontos: 1000
@@ -689,10 +688,9 @@ const resultadosPontosSegundoGiro = [
         tipo: "roleta_premiada",
         girosPremiada: 1
     },
-
     {
         tipo: "pontos",
-        pontos: 198
+        pontos: 425
     },
 
     {

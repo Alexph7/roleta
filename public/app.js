@@ -216,7 +216,7 @@ const itensPontosPrimeiroGiro = [
         texto: "1.5x"
     },
 
-    { tipo: "pontos", valor: 199 },
+    { tipo: "pontos", valor: 325 },
     { tipo: "diamante", valor: 1000 },
     { tipo: "pontos", valor: 500 },
     { tipo: "pontos", valor: 300 },
@@ -230,21 +230,21 @@ const itensPontosPrimeiroGiro = [
 
     { tipo: "pontos", valor: 500 },
     { tipo: "roleta" },
-    { tipo: "pontos", valor: 198 },
+    { tipo: "pontos", valor: 425 },
     { tipo: "pontos", valor: 700 },
     { tipo: "pontos", valor: 300 }
 ];
 
 
 const itensPontosSegundoGiro = [
-    { tipo: "pontos", valor: 199 },
+    { tipo: "pontos", valor: 325 },
     { tipo: "diamante", valor: 1000 },
     { tipo: "pontos", valor: 500 },
     { tipo: "pontos", valor: 300 },
     { tipo: "pontos", valor: 700 },
     { tipo: "pontos", valor: 500 },
     { tipo: "roleta" },
-    { tipo: "pontos", valor: 198 },
+    { tipo: "pontos", valor: 425 },
     { tipo: "pontos", valor: 700 },
     { tipo: "pontos", valor: 300 }
 ];
