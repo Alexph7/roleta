@@ -1739,6 +1739,77 @@ function listarNews(
     );
 }
 
+// ========================================
+// NEWS DE UM USUÁRIO ESPECÍFICO
+// ========================================
+function listarNewsUsuario(
+    usuarioId,
+    limite = 20
+) {
+    const id =
+        String(
+            usuarioId || ""
+        ).trim();
+
+    if (!id) {
+        return {
+            total: 0,
+            noticias: []
+        };
+    }
+
+    const limiteSeguro =
+        Math.max(
+            1,
+            Math.min(
+                100,
+
+                Math.trunc(
+                    num(
+                        limite
+                    ) || 20
+                )
+            )
+        );
+
+    const agora =
+        Date.now();
+
+    if (
+        !cache.noticias.length ||
+        agora -
+        cache.criadoEm >=
+        CACHE_MS
+    ) {
+        cache = {
+            criadoEm:
+                agora,
+
+            noticias:
+                gerarNoticias()
+        };
+    }
+
+    const noticiasUsuario =
+        cache.noticias.filter(
+            item =>
+                item.usuarioId ===
+                id
+        );
+
+    return {
+        total:
+            noticiasUsuario.length,
+
+        noticias:
+            noticiasUsuario.slice(
+                0,
+                limiteSeguro
+            )
+    };
+}
+
 module.exports = {
-    listarNews
+    listarNews,
+    listarNewsUsuario
 };

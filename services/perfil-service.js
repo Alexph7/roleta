@@ -1,6 +1,11 @@
 const path = require("path");
 const Database = require("better-sqlite3");
 
+const {
+    listarNewsUsuario
+} = require(
+    "./news-service"
+);
 
 const caminhoBanco =
     path.join(
@@ -248,6 +253,12 @@ function obterPerfilUsuario(
             id
         );
 
+    const newsPerfil =
+        listarNewsUsuario(
+            id,
+            20
+        );
+
     let diamantes = 0;
     let totalPontosGanhos = 0;
 
@@ -476,8 +487,19 @@ function obterPerfilUsuario(
             girosPremiadaNormal.length +
             girosPremiadaBonus.length,
 
-        historicoPontos,
+        totalNoticias:
+            Number(
+                newsPerfil.total || 0
+            ),
 
+        noticias:
+            Array.isArray(
+                newsPerfil.noticias
+            )
+                ? newsPerfil.noticias
+                : [],
+
+        historicoPontos,
         criadoEm:
             Number(
                 usuario.criado_em || 0

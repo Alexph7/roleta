@@ -338,6 +338,48 @@
                 </small>
             </div>
 
+            <div
+                class="perfil-estatistica"
+                id="perfil-noticias-card"
+                role="button"
+                tabindex="0"
+                style="cursor: pointer;"
+            >
+                <span>📰</span>
+
+                <strong id="perfil-noticias">
+                    0
+                </strong>
+
+                <small>
+                    Notícias
+                </small>
+            </div>
+
+            </div>
+
+            <div
+                id="perfil-noticias-bloco"
+                class="perfil-historico"
+                hidden
+            >
+
+                <div
+                    id="perfil-noticias-titulo"
+                    class="perfil-historico-titulo"
+                >
+                    NOTÍCIAS
+                </div>
+
+                <div
+                    id="perfil-noticias-lista"
+                    class="perfil-historico-lista"
+                >
+                    <div class="perfil-historico-vazio">
+                        Nenhuma notícia ainda.
+                    </div>
+                </div>
+
             </div>
 
             <div class="perfil-historico">
@@ -394,6 +436,44 @@
         document.getElementById(
             "voltar-menu-perfil"
         );
+
+    const cardNoticias =
+        document.getElementById(
+            "perfil-noticias-card"
+        );
+
+    const blocoNoticias =
+        document.getElementById(
+            "perfil-noticias-bloco"
+        );
+
+    if (
+        cardNoticias &&
+        blocoNoticias
+    ) {
+        cardNoticias.addEventListener(
+            "click",
+            () => {
+
+                blocoNoticias.hidden =
+                    !blocoNoticias.hidden;
+
+
+                if (
+                    !blocoNoticias.hidden
+                ) {
+                    blocoNoticias
+                        .scrollIntoView({
+                            behavior:
+                                "smooth",
+
+                            block:
+                                "start"
+                        });
+                }
+            }
+        );
+    }
 
     const status =
         document.getElementById(
@@ -592,6 +672,149 @@
         }
     }
 
+    function preencherNoticiasPerfil(
+        noticias
+    ) {
+        const lista =
+            document.getElementById(
+                "perfil-noticias-lista"
+            );
+
+
+        if (!lista) {
+            return;
+        }
+
+
+        lista.replaceChildren();
+
+
+        const itens =
+            Array.isArray(
+                noticias
+            )
+                ? noticias
+                : [];
+
+
+        if (
+            itens.length === 0
+        ) {
+            const vazio =
+                document.createElement(
+                    "div"
+                );
+
+
+            vazio.className =
+                "perfil-historico-vazio";
+
+
+            vazio.textContent =
+                "Nenhuma notícia ainda.";
+
+
+            lista.appendChild(
+                vazio
+            );
+
+
+            return;
+        }
+
+
+        for (
+            const item
+            of itens
+        ) {
+            const linha =
+                document.createElement(
+                    "div"
+                );
+
+
+            linha.className =
+                "perfil-historico-linha";
+
+
+            const esquerda =
+                document.createElement(
+                    "div"
+                );
+
+
+            esquerda.className =
+                "perfil-historico-info";
+
+
+            const titulo =
+                document.createElement(
+                    "strong"
+                );
+
+
+            titulo.textContent =
+                `${item.icone || "📰"} ` +
+                `${item.titulo || "Acontecimento"}`;
+
+
+            const descricao =
+                document.createElement(
+                    "small"
+                );
+
+
+            descricao.textContent =
+                item.descricao ||
+                "";
+
+
+            const data =
+                document.createElement(
+                    "span"
+                );
+
+
+            data.className =
+                "perfil-historico-data";
+
+
+            data.textContent =
+                formatarDataHistorico(
+                    item.criadoEm
+                );
+
+
+            esquerda.appendChild(
+                titulo
+            );
+
+
+            if (
+                item.descricao
+            ) {
+                esquerda.appendChild(
+                    descricao
+                );
+            }
+
+
+            linha.appendChild(
+                esquerda
+            );
+
+
+            linha.appendChild(
+                data
+            );
+
+
+            lista.appendChild(
+                linha
+            );
+        }
+    }
+
     // ========================================
     // PREENCHER PERFIL
     // ========================================
@@ -665,6 +888,41 @@
             ).toLocaleString(
                 "pt-BR"
             );
+
+
+        document.getElementById(
+            "perfil-noticias"
+        ).textContent =
+            Number(
+                perfil.totalNoticias || 0
+            ).toLocaleString(
+                "pt-BR"
+            );
+
+
+        document.getElementById(
+            "perfil-noticias-titulo"
+        ).textContent =
+            `NOTÍCIAS DE ${String(
+                perfil.nome ||
+                "PARTICIPANTE"
+            ).toUpperCase()}`;
+
+        preencherNoticiasPerfil(
+            perfil.noticias
+        );
+
+        const blocoNoticias =
+            document.getElementById(
+                "perfil-noticias-bloco"
+            );
+
+        if (
+            blocoNoticias
+        ) {
+            blocoNoticias.hidden =
+                true;
+        }
 
         preencherHistoricoPontos(
             perfil.historicoPontos
