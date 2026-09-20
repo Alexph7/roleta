@@ -209,10 +209,27 @@
                 "div"
             );
 
+        const classes = [
+            "ranking-linha"
+        ];
+
+        if (destaque) {
+            classes.push(
+                "ranking-eu"
+            );
+        }
+
+        if (
+            item.ganhador ===
+            true
+        ) {
+            classes.push(
+                "ranking-ganhador-media"
+            );
+        }
+
         linha.className =
-            destaque
-                ? "ranking-linha ranking-eu"
-                : "ranking-linha";
+            classes.join(" ");
 
         const posicao =
             document.createElement(
@@ -222,10 +239,30 @@
         posicao.className =
             "ranking-posicao";
 
-        posicao.textContent =
-            textoPosicao(
+        const posicaoReal =
+            `${Number(
                 item.posicao
-            );
+            )}º`;
+
+        const medalhas = {
+            1: "🥇",
+            2: "🥈",
+            3: "🥉"
+        };
+
+        const medalha =
+            item.ganhador === true
+                ? medalhas[
+                Number(
+                    item.posicaoPremio
+                )
+                ] || ""
+                : "";
+
+        posicao.textContent =
+            medalha
+                ? `${medalha} ${posicaoReal}`
+                : posicaoReal;
 
         const nome =
             document.createElement(
@@ -375,10 +412,30 @@
         posicao.className =
             "ranking-posicao";
 
-        posicao.textContent =
-            textoPosicao(
+        const medalhas = {
+            1: "🥇",
+            2: "🥈",
+            3: "🥉"
+        };
+
+        const medalha =
+            item.ganhador === true
+                ? medalhas[
+                Number(
+                    item.posicaoPremio
+                )
+                ] || ""
+                : "";
+
+        const posicaoReal =
+            `${Number(
                 item.posicao
-            );
+            )}º`;
+
+        posicao.textContent =
+            medalha
+                ? `${medalha} ${posicaoReal}`
+                : posicaoReal;
 
         const nome =
             document.createElement(
@@ -947,14 +1004,14 @@
     );
 
     abaMediaAtiva.addEventListener(
-    "click",
-    () => {
+        "click",
+        () => {
 
-        mostrarAbaMediaAtiva();
+            mostrarAbaMediaAtiva();
 
-        carregarRankingMediaAtiva();
-    }
-);
+            carregarRankingMediaAtiva();
+        }
+    );
 
     abaDiamantes.addEventListener(
         "click",

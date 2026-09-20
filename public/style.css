@@ -842,6 +842,32 @@ button.card-jogo:active {
             0.14);
 }
 
+.ranking-linha.ranking-ganhador-media {
+    border-color:
+        rgba(255,
+            209,
+            102,
+            0.72);
+
+    background:
+        linear-gradient(135deg,
+            rgba(255, 209, 102, 0.18),
+            rgba(255, 209, 102, 0.07));
+
+    box-shadow:
+        0 0 16px rgba(255, 209, 102, 0.10);
+}
+
+.ranking-linha.ranking-ganhador-media .ranking-posicao {
+    color:
+        #ffd166;
+}
+
+.ranking-linha.ranking-ganhador-media .ranking-pontos {
+    color:
+        #ffd166;
+}
+
 .ranking-posicao {
     text-align:
         center;

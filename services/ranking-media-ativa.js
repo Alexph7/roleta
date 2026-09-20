@@ -274,6 +274,159 @@ const buscarGirosPontos =
             e.id ASC
     `);
 
+// ========================================
+// PREMIADOS DO RANKING DE PONTOS
+// TOP 7
+// ========================================
+
+const buscarPremiadosPontos =
+    db.prepare(`
+        WITH ranking AS (
+
+            SELECT
+                u.usuario_id,
+
+                ROW_NUMBER() OVER (
+
+                    ORDER BY
+                        u.pontos DESC,
+
+                        CASE
+                            WHEN
+                                u.atingiu_pontuacao_em
+                                IS NULL
+                            THEN 1
+                            ELSE 0
+                        END ASC,
+
+                        u.atingiu_pontuacao_em
+                            ASC,
+
+                        u.criado_em
+                            ASC,
+
+                        u.usuario_id
+                            ASC
+
+                ) AS posicao
+
+            FROM usuarios u
+
+            WHERE
+                u.pontos > 0
+
+                OR EXISTS (
+
+                    SELECT 1
+
+                    FROM eventos_usuario e
+
+                    WHERE
+                        e.usuario_id =
+                            u.usuario_id
+
+                        AND e.tipo =
+                            'GIRO_ROLETA_PONTOS'
+                )
+        )
+
+        SELECT
+            usuario_id
+
+        FROM ranking
+
+        WHERE
+            posicao <= 7
+
+        ORDER BY
+            posicao ASC
+    `);
+
+
+// ========================================
+// PREMIADOS DO RANKING DE DIAMANTES
+// TOP 3
+// ========================================
+
+const buscarPremiadosDiamantes =
+    db.prepare(`
+        WITH eventos_diamante AS (
+
+            SELECT
+                e.id,
+                e.usuario_id,
+                e.criado_em
+
+            FROM eventos_usuario e
+
+            WHERE
+                e.tipo IN (
+                    'GIRO_ROLETA_PONTOS',
+                    'GIRO_ROLETA_PREMIADA_NORMAL',
+                    'GIRO_ROLETA_PREMIADA_BONUS'
+                )
+
+                AND (
+                    json_extract(
+                        COALESCE(
+                            e.dados_json,
+                            '{}'
+                        ),
+                        '$.tipoResultado'
+                    ) = 'diamante'
+
+                    OR
+
+                    json_extract(
+                        COALESCE(
+                            e.dados_json,
+                            '{}'
+                        ),
+                        '$.premio'
+                    ) = '💎'
+                )
+        ),
+
+        totais AS (
+
+            SELECT
+                u.usuario_id,
+
+                COUNT(
+                    d.id
+                ) AS diamantes,
+
+                MAX(
+                    d.criado_em
+                ) AS atingiu_diamantes_em
+
+            FROM usuarios u
+
+            INNER JOIN
+                eventos_diamante d
+
+                ON d.usuario_id =
+                    u.usuario_id
+
+            GROUP BY
+                u.usuario_id
+        )
+
+        SELECT
+            usuario_id
+
+        FROM totais
+
+        ORDER BY
+            diamantes DESC,
+
+            atingiu_diamantes_em
+                ASC,
+
+            usuario_id ASC
+
+        LIMIT 3
+    `);
 
 // ========================================
 // RANKING MÉDIA ATIVA
@@ -524,7 +677,6 @@ function obterRankingMediaAtiva(
             )
     );
 
-
     const todos =
         ativos.map(
             (
@@ -538,6 +690,75 @@ function obterRankingMediaAtiva(
             })
         );
 
+
+    // ========================================
+    // GANHADORES DA MÉDIA ATIVA
+    //
+    // NÃO PODE ESTAR ENTRE:
+    // TOP 7 DE PONTOS
+    // TOP 3 DE DIAMANTES
+    // ========================================
+
+    const premiadosPontos =
+        new Set(
+            buscarPremiadosPontos
+                .all()
+                .map(
+                    item =>
+                        String(
+                            item.usuario_id
+                        )
+                )
+        );
+
+
+    const premiadosDiamantes =
+        new Set(
+            buscarPremiadosDiamantes
+                .all()
+                .map(
+                    item =>
+                        String(
+                            item.usuario_id
+                        )
+                )
+        );
+
+
+    let posicaoPremio =
+        0;
+
+
+    for (const jogador of todos) {
+
+        const jaPremiado =
+            premiadosPontos.has(
+                jogador.usuarioId
+            ) ||
+            premiadosDiamantes.has(
+                jogador.usuarioId
+            );
+
+
+        jogador.ganhador =
+            false;
+
+        jogador.posicaoPremio =
+            null;
+
+        if (
+            !jaPremiado &&
+            posicaoPremio < 3
+        ) {
+            posicaoPremio++;
+
+            jogador.ganhador =
+                true;
+
+            jogador.posicaoPremio =
+                posicaoPremio;
+        }
+    }
 
     const id =
         String(
@@ -562,7 +783,6 @@ function obterRankingMediaAtiva(
         periodoAtual
     };
 }
-
 
 module.exports = {
     obterRankingMediaAtiva
