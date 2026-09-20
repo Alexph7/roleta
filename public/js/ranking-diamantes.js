@@ -4,6 +4,11 @@
             "ranking-aba-pontos"
         );
 
+    const abaMediaAtiva =
+        document.getElementById(
+            "ranking-aba-media-ativa"
+        );
+
     const abaDiamantes =
         document.getElementById(
             "ranking-aba-diamantes"
@@ -41,6 +46,7 @@
 
     if (
         !abaPontos ||
+        !abaMediaAtiva ||
         !abaDiamantes ||
         !rankingLista ||
         !minhaPosicaoRanking
@@ -194,6 +200,80 @@
         return linha;
     }
 
+    function criarLinhaMediaAtiva(
+        item,
+        destaque = false
+    ) {
+        const linha =
+            document.createElement(
+                "div"
+            );
+
+        linha.className =
+            destaque
+                ? "ranking-linha ranking-eu"
+                : "ranking-linha";
+
+        const posicao =
+            document.createElement(
+                "span"
+            );
+
+        posicao.className =
+            "ranking-posicao";
+
+        posicao.textContent =
+            textoPosicao(
+                item.posicao
+            );
+
+        const nome =
+            document.createElement(
+                "strong"
+            );
+
+        nome.className =
+            "ranking-nome";
+
+        nome.textContent =
+            item.nome ||
+            "Participante";
+
+        prepararNome(
+            nome,
+            item.usuarioId
+        );
+
+        const media =
+            document.createElement(
+                "strong"
+            );
+
+        media.className =
+            "ranking-pontos";
+
+        media.textContent =
+            `${Number(
+                item.media || 0
+            ).toLocaleString(
+                "pt-BR"
+            )} média`;
+
+        linha.appendChild(
+            posicao
+        );
+
+        linha.appendChild(
+            nome
+        );
+
+        linha.appendChild(
+            media
+        );
+
+        return linha;
+    }
+
     // ========================================
     // MINHA POSIÇÃO
     // ========================================
@@ -274,12 +354,93 @@
             false;
     }
 
+    function mostrarMinhaPosicaoMediaAtiva(
+        item
+    ) {
+        minhaPosicaoRanking
+            .replaceChildren();
+
+        if (!item) {
+            minhaPosicaoRanking.hidden =
+                true;
+
+            return;
+        }
+
+        const posicao =
+            document.createElement(
+                "span"
+            );
+
+        posicao.className =
+            "ranking-posicao";
+
+        posicao.textContent =
+            textoPosicao(
+                item.posicao
+            );
+
+        const nome =
+            document.createElement(
+                "strong"
+            );
+
+        nome.className =
+            "ranking-nome";
+
+        nome.textContent =
+            item.nome ||
+            "Você";
+
+        prepararNome(
+            nome,
+            item.usuarioId
+        );
+
+        const media =
+            document.createElement(
+                "strong"
+            );
+
+        media.className =
+            "ranking-pontos";
+
+        media.textContent =
+            `${Number(
+                item.media || 0
+            ).toLocaleString(
+                "pt-BR"
+            )} média`;
+
+        minhaPosicaoRanking
+            .appendChild(
+                posicao
+            );
+
+        minhaPosicaoRanking
+            .appendChild(
+                nome
+            );
+
+        minhaPosicaoRanking
+            .appendChild(
+                media
+            );
+
+        minhaPosicaoRanking.hidden =
+            false;
+    }
+
     // ========================================
     // VISUAL DAS ABAS
     // ========================================
 
     function mostrarAbaPontos() {
         abaPontos.classList.add(
+            "ativa"
+        );
+
+        abaMediaAtiva.classList.remove(
             "ativa"
         );
 
@@ -305,6 +466,40 @@
         }
     }
 
+    function mostrarAbaMediaAtiva() {
+
+        abaPontos.classList.remove(
+            "ativa"
+        );
+
+        abaMediaAtiva.classList.add(
+            "ativa"
+        );
+
+        abaDiamantes.classList.remove(
+            "ativa"
+        );
+
+
+        if (rankingPremios) {
+            rankingPremios.hidden =
+                true;
+        }
+
+
+        if (
+            rankingPremiosDiamantes
+        ) {
+            rankingPremiosDiamantes.hidden =
+                true;
+        }
+
+
+        if (rankingSubtitulo) {
+            rankingSubtitulo.textContent =
+                "Média histórica de participantes ativos";
+        }
+    }
 
     function mostrarAbaDiamantes() {
 
@@ -312,11 +507,13 @@
             "ativa"
         );
 
+        abaMediaAtiva.classList.remove(
+            "ativa"
+        );
 
         abaDiamantes.classList.add(
             "ativa"
         );
-
 
         if (rankingPremios) {
             rankingPremios.hidden =
@@ -336,6 +533,199 @@
         }
     }
 
+    // ========================================
+    // CARREGAR MÉDIA ATIVA
+    // ========================================
+
+    async function carregarRankingMediaAtiva() {
+
+        const minhaVersao =
+            ++versaoCarregamento;
+
+
+        rankingLista
+            .replaceChildren();
+
+
+        minhaPosicaoRanking.hidden =
+            true;
+
+
+        minhaPosicaoRanking
+            .replaceChildren();
+
+
+        const carregando =
+            document.createElement(
+                "p"
+            );
+
+
+        carregando.className =
+            "ranking-carregando";
+
+
+        carregando.textContent =
+            "Carregando média ativa...";
+
+
+        rankingLista.appendChild(
+            carregando
+        );
+
+
+        try {
+
+            const resposta =
+                await fetch(
+                    "/api/ranking-media-ativa",
+                    {
+                        method:
+                            "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify({
+                                initData
+                            })
+                    }
+                );
+
+
+            const dados =
+                await resposta.json();
+
+
+            if (
+                minhaVersao !==
+                versaoCarregamento
+            ) {
+                return;
+            }
+
+
+            if (!resposta.ok) {
+                throw new Error(
+                    dados.erro ||
+                    "Ranking indisponível"
+                );
+            }
+
+
+            rankingLista
+                .replaceChildren();
+
+
+            const ranking =
+                Array.isArray(
+                    dados.ranking
+                )
+                    ? dados.ranking
+                    : [];
+
+
+            const minhaPosicao =
+                dados.usuario ||
+                null;
+
+
+            if (
+                ranking.length === 0
+            ) {
+                const vazio =
+                    document.createElement(
+                        "p"
+                    );
+
+
+                vazio.className =
+                    "ranking-vazio";
+
+
+                vazio.textContent =
+                    "Ainda não há participantes ativos.";
+
+
+                rankingLista.appendChild(
+                    vazio
+                );
+
+            } else {
+
+                for (
+                    const item
+                    of ranking
+                ) {
+                    const souEu =
+                        minhaPosicao &&
+                        String(
+                            item.usuarioId
+                        ) ===
+                        String(
+                            minhaPosicao
+                                .usuarioId
+                        );
+
+
+                    rankingLista
+                        .appendChild(
+                            criarLinhaMediaAtiva(
+                                item,
+                                souEu
+                            )
+                        );
+                }
+            }
+
+
+            mostrarMinhaPosicaoMediaAtiva(
+                minhaPosicao
+            );
+
+
+        } catch (erro) {
+
+            if (
+                minhaVersao !==
+                versaoCarregamento
+            ) {
+                return;
+            }
+
+
+            console.error(
+                "❌ Erro ao carregar ranking de média ativa:",
+                erro
+            );
+
+
+            rankingLista
+                .replaceChildren();
+
+
+            const erroElemento =
+                document.createElement(
+                    "p"
+                );
+
+
+            erroElemento.className =
+                "ranking-vazio";
+
+
+            erroElemento.textContent =
+                "❌ Não foi possível carregar a média ativa.";
+
+
+            rankingLista.appendChild(
+                erroElemento
+            );
+        }
+    }
 
     // ========================================
     // CARREGAR DIAMANTES
@@ -556,6 +946,15 @@
         }
     );
 
+    abaMediaAtiva.addEventListener(
+    "click",
+    () => {
+
+        mostrarAbaMediaAtiva();
+
+        carregarRankingMediaAtiva();
+    }
+);
 
     abaDiamantes.addEventListener(
         "click",
