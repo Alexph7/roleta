@@ -261,6 +261,7 @@ function obterPerfilUsuario(
 
     let diamantes = 0;
     let totalPontosGanhos = 0;
+    let girosValidosMedia = 0;
 
     // ========================================
     // ROLETA DE PONTOS
@@ -273,13 +274,34 @@ function obterPerfilUsuario(
             lerDadosJson(
                 evento.dados_json
             );
-        totalPontosGanhos +=
+
+
+        const pontosGanhos =
             Math.max(
                 0,
                 Number(
                     dados.pontosGanhos || 0
                 )
             );
+
+
+        // Só entra na média se
+        // realmente gerou pontos.
+        //
+        // Se caiu na Roleta Premiada,
+        // pontosGanhos = 0 e esse giro
+        // não entra nem na soma nem
+        // no divisor.
+        if (
+            pontosGanhos > 0
+        ) {
+            totalPontosGanhos +=
+                pontosGanhos;
+
+            girosValidosMedia++;
+        }
+
+
         if (
             dados.tipoResultado ===
             "diamante"
@@ -332,10 +354,10 @@ function obterPerfilUsuario(
     }
 
     const mediaPontosPorGiro =
-        girosPontos.length > 0
+        girosValidosMedia > 0
             ? Math.round(
                 totalPontosGanhos /
-                girosPontos.length
+                girosValidosMedia
             )
             : 0;
 
