@@ -7,6 +7,10 @@ const crypto = require("crypto");
 const registrarRotaPerfil = require("./routes/perfil");
 const registrarRotaRankingDiamantes =
     require("./routes/ranking-diamantes");
+
+const registrarRotaRankingMediaAtiva =
+    require("./routes/ranking-media-ativa");
+
 const registrarRotaNews =
     require("./routes/news");
 
@@ -557,6 +561,15 @@ registrarRotaRankingDiamantes(
         usuarioLiberadoPorId
     }
 );
+
+registrarRotaRankingMediaAtiva(
+    app,
+    {
+        validarInitDataTelegram,
+        usuarioLiberadoPorId
+    }
+);
+
 
 registrarRotaNews(
     app,
