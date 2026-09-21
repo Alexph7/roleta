@@ -725,7 +725,6 @@ function textoPosicaoRanking(
     return `${numero}º`;
 }
 
-
 function criarLinhaRanking(
     item,
     destaque = false
@@ -734,11 +733,28 @@ function criarLinhaRanking(
         document.createElement(
             "div"
         );
+    const classes = [
+        "ranking-linha"
+    ];
+
+    if (destaque) {
+        classes.push(
+            "ranking-eu"
+        );
+    }
+
+    if (
+        Number(
+            item.posicao
+        ) <= 7
+    ) {
+        classes.push(
+            "ranking-ganhador-pontos"
+        );
+    }
 
     linha.className =
-        destaque
-            ? "ranking-linha ranking-eu"
-            : "ranking-linha";
+        classes.join(" ");
 
     const posicaoWrap =
         document.createElement("div");

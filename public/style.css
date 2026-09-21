@@ -843,7 +843,8 @@ button.card-jogo:active {
 }
 
 .ranking-linha.ranking-ganhador-media,
-.ranking-linha.ranking-ganhador-baus {
+.ranking-linha.ranking-ganhador-baus,
+.ranking-linha.ranking-ganhador-pontos {
     border-color:
         rgba(255,
             209,
@@ -860,13 +861,15 @@ button.card-jogo:active {
 }
 
 .ranking-linha.ranking-ganhador-media .ranking-posicao,
-.ranking-linha.ranking-ganhador-baus .ranking-posicao {
+.ranking-linha.ranking-ganhador-baus .ranking-posicao,
+.ranking-linha.ranking-ganhador-pontos .ranking-posicao {
     color:
         #ffd166;
 }
 
 .ranking-linha.ranking-ganhador-media .ranking-pontos,
-.ranking-linha.ranking-ganhador-baus .ranking-pontos {
+.ranking-linha.ranking-ganhador-baus .ranking-pontos,
+.ranking-linha.ranking-ganhador-pontos .ranking-pontos {
     color:
         #ffd166;
 }
