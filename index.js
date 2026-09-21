@@ -17,6 +17,9 @@ const registrarRotaRankingBaus =
 const registrarRotaNews =
     require("./routes/news");
 
+const registrarRota100x100 =
+    require("./routes/100x100");
+
 const { Bot } = require("node-telegram-bot-api");
 
 const {
@@ -583,6 +586,14 @@ registrarRotaRankingBaus(
 );
 
 registrarRotaNews(
+    app,
+    {
+        validarInitDataTelegram,
+        usuarioLiberadoPorId
+    }
+);
+
+registrarRota100x100(
     app,
     {
         validarInitDataTelegram,
