@@ -258,12 +258,12 @@ db.exec(`
 
 const ESTOQUE_INICIAL_PREMIADA_BONUS = {
     "R$ 50": 1,
+    "R$ 20": 1,
     "R$ 12": 2,
     "R$ 10": 2,
     "R$ 5": 15,
     "R$ 7": 4
 };
-
 
 const FATIAS_PREMIADA_BASE = [
     {
@@ -282,8 +282,8 @@ const FATIAS_PREMIADA_BASE = [
     },
     {
         tipo: "dinheiro",
-        premio: "R$ 5",
-        estoqueInicial: 15
+        premio: "R$ 20",
+        estoqueInicial: 1
     },
     {
         tipo: "diamante",
@@ -3017,6 +3017,44 @@ const registrarGiroTransaction =
                 };
             }
 
+            // ========================================
+            // ESTOQUE ÚNICO DO R$ 20
+            // TAMBÉM NO GIRO NORMAL
+            // ========================================
+
+            if (
+                ehPremio &&
+                premio === "R$ 20"
+            ) {
+                const baixa =
+                    db.prepare(`
+            UPDATE
+                estoque_premiada_bonus
+
+            SET
+                quantidade_restante =
+                    quantidade_restante - 1,
+
+                atualizado_em = ?
+
+            WHERE
+                premio = ?
+
+                AND quantidade_restante > 0
+        `).run(
+                        criadoEm,
+                        premio
+                    );
+
+
+                if (
+                    baixa.changes !== 1
+                ) {
+                    throw new Error(
+                        "Estoque do R$ 20 inconsistente"
+                    );
+                }
+            }
 
             const resultado =
                 db.prepare(`

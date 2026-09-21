@@ -256,6 +256,7 @@ function obterPeriodoDiarioAtual(
 const PREMIOS_DINHEIRO =
     new Set([
         "R$ 50",
+        "R$ 20",
         "R$ 12",
         "R$ 10",
         "R$ 5",
