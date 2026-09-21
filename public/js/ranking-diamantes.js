@@ -44,6 +44,11 @@
             "ranking-premios-diamantes"
         );
 
+    const rankingPremiosBaus =
+        document.getElementById(
+            "ranking-premios-baus"
+        );
+
     const regrasMediaArea =
         document.getElementById(
             "ranking-regras-media-area"
@@ -760,6 +765,11 @@
                 true;
         }
 
+        if (rankingPremiosBaus) {
+            rankingPremiosBaus.hidden =
+                true;
+        }
+
         if (rankingSubtitulo) {
             rankingSubtitulo.textContent =
                 subtituloPontos;
@@ -802,6 +812,10 @@
                 true;
         }
 
+        if (rankingPremiosBaus) {
+            rankingPremiosBaus.hidden =
+                true;
+        }
 
         if (rankingSubtitulo) {
             rankingSubtitulo.textContent =
@@ -848,6 +862,11 @@
                 true;
         }
 
+        if (rankingPremiosBaus) {
+            rankingPremiosBaus.hidden =
+                false;
+        }
+
         if (rankingSubtitulo) {
             rankingSubtitulo.textContent =
                 "Pontos conquistados nos Baús";
@@ -892,6 +911,11 @@
         ) {
             rankingPremiosDiamantes.hidden =
                 false;
+        }
+
+        if (rankingPremiosBaus) {
+            rankingPremiosBaus.hidden =
+                true;
         }
 
         if (rankingSubtitulo) {
