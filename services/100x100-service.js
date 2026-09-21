@@ -25,7 +25,7 @@ const PREMIOS = [
 
 const CUSTOS = [
     0,
-    100,
+    30,
     200
 ];
 
