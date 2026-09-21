@@ -1,0 +1,455 @@
+/* ========================================
+   100x100
+======================================== */
+
+#tela-100x100 {
+    width: 100%;
+}
+
+
+.cemx100-titulo {
+    margin:
+        14px 0 5px;
+
+    font-size:
+        30px;
+}
+
+
+.cemx100-subtitulo {
+    max-width:
+        330px;
+
+    margin:
+        0 auto 12px;
+
+    color:
+        #aaa6b8;
+
+    font-size:
+        13px;
+
+    line-height:
+        1.4;
+}
+
+
+.cemx100-saldo {
+    display:
+        inline-flex;
+
+    align-items:
+        center;
+
+    gap:
+        5px;
+
+    margin-bottom:
+        16px;
+
+    padding:
+        7px 12px;
+
+    border:
+        1px solid rgba(255,
+            255,
+            255,
+            0.08);
+
+    border-radius:
+        999px;
+
+    background:
+        rgba(255,
+            255,
+            255,
+            0.04);
+
+    color:
+        #aaa6b8;
+
+    font-size:
+        12px;
+}
+
+
+.cemx100-saldo strong {
+    color:
+        #ffffff;
+}
+
+
+.cemx100-cartela {
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        8px;
+
+    width:
+        100%;
+
+    max-width:
+        350px;
+
+    margin:
+        0 auto;
+}
+
+
+.cemx100-etapa {
+    padding:
+        7px;
+
+    border:
+        1px solid rgba(255,
+            255,
+            255,
+            0.06);
+
+    border-radius:
+        13px;
+
+    background:
+        rgba(255,
+            255,
+            255,
+            0.025);
+
+    opacity:
+        0.42;
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.cemx100-etapa.ativa {
+    opacity:
+        1;
+
+    transform:
+        scale(1.015);
+
+    border-color:
+        rgba(124,
+            92,
+            255,
+            0.7);
+
+    box-shadow:
+        0 0 22px rgba(124,
+            92,
+            255,
+            0.16);
+}
+
+
+.cemx100-etapa.concluida {
+    opacity:
+        0.8;
+}
+
+
+.cemx100-premio {
+    display:
+        block;
+
+    margin-bottom:
+        5px;
+
+    color:
+        #aaa6b8;
+
+    font-size:
+        10px;
+
+    font-weight:
+        bold;
+
+    letter-spacing:
+        0.8px;
+}
+
+
+.cemx100-etapa.ativa .cemx100-premio {
+    color:
+        #ffffff;
+}
+
+
+.cemx100-linha {
+    display:
+        grid;
+
+    grid-template-columns:
+        repeat(2,
+            minmax(0,
+                1fr));
+
+    gap:
+        8px;
+}
+
+
+.cemx100-quadrado {
+    position:
+        relative;
+
+    height:
+        48px;
+
+    overflow:
+        hidden;
+
+    border:
+        1px solid rgba(255,
+            255,
+            255,
+            0.13);
+
+    border-radius:
+        10px;
+
+    background:
+        linear-gradient(135deg,
+            #676775,
+            #a0a0aa 35%,
+            #555560 36%,
+            #898994 65%,
+            #5b5b66);
+
+    color:
+        #ffffff;
+
+    font-size:
+        16px;
+
+    font-weight:
+        900;
+
+    cursor:
+        pointer;
+
+    transition:
+        transform 0.12s ease,
+        filter 0.15s ease;
+}
+
+
+.cemx100-quadrado::after {
+    content:
+        "";
+
+    position:
+        absolute;
+
+    inset:
+        0;
+
+    pointer-events:
+        none;
+
+    background:
+        repeating-linear-gradient(-20deg,
+            rgba(255,
+                255,
+                255,
+                0.08) 0 3px,
+            rgba(0,
+                0,
+                0,
+                0.05) 3px 6px);
+}
+
+
+.cemx100-quadrado span {
+    position:
+        relative;
+
+    z-index:
+        2;
+}
+
+
+.cemx100-quadrado:not( :disabled):active {
+    transform:
+        scale(0.96);
+}
+
+
+.cemx100-quadrado:disabled {
+    cursor:
+        default;
+}
+
+
+.cemx100-etapa:not(.ativa) .cemx100-quadrado:not(.revelado) {
+    filter:
+        brightness(0.6);
+}
+
+
+.cemx100-quadrado.revelado {
+    background:
+        #242033;
+
+    border-color:
+        rgba(255,
+            255,
+            255,
+            0.13);
+
+    filter:
+        none;
+}
+
+
+.cemx100-quadrado.revelado::after {
+    display:
+        none;
+}
+
+
+.cemx100-quadrado.resultado-pontos {
+    background:
+        linear-gradient(135deg,
+            #21634e,
+            #173f34);
+
+    border-color:
+        rgba(94,
+            234,
+            180,
+            0.45);
+
+    color:
+        #9ff4d2;
+}
+
+
+.cemx100-quadrado.resultado-x {
+    background:
+        linear-gradient(135deg,
+            #6b252f,
+            #3c1820);
+
+    border-color:
+        rgba(255,
+            100,
+            117,
+            0.45);
+
+    color:
+        #ff9aaa;
+
+    font-size:
+        23px;
+}
+
+
+.cemx100-quadrado.resultado-diamante {
+    background:
+        linear-gradient(135deg,
+            #28517b,
+            #432a78);
+
+    border-color:
+        rgba(130,
+            205,
+            255,
+            0.55);
+
+    font-size:
+        23px;
+}
+
+
+.cemx100-resultado {
+    min-height:
+        38px;
+
+    max-width:
+        350px;
+
+    margin:
+        14px auto 8px;
+
+    color:
+        #d5d1df;
+
+    font-size:
+        13px;
+
+    line-height:
+        1.4;
+}
+
+
+.cemx100-acao {
+    width:
+        100%;
+
+    max-width:
+        350px;
+
+    min-height:
+        51px;
+
+    padding:
+        13px;
+
+    border:
+        none;
+
+    border-radius:
+        13px;
+
+    background:
+        #7c5cff;
+
+    color:
+        #ffffff;
+
+    font-size:
+        15px;
+
+    font-weight:
+        900;
+
+    cursor:
+        pointer;
+}
+
+
+.cemx100-acao:disabled {
+    opacity:
+        0.48;
+
+    cursor:
+        default;
+}
+
+
+.cemx100-regra {
+    max-width:
+        350px;
+
+    margin:
+        12px auto 0;
+
+    color:
+        #77748a;
+
+    font-size:
+        10px;
+
+    line-height:
+        1.45;
+}
