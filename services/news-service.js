@@ -1,5 +1,10 @@
 const path = require("path");
 const Database = require("better-sqlite3");
+const {
+    gerarNoticiasRankingsExtras
+} = require(
+    "./news-rankings-extras"
+);
 
 const db = new Database(
     path.join(
@@ -1506,6 +1511,14 @@ function gerarNoticias() {
             );
         }
     }
+
+    // ========================================
+    // MÉDIA ATIVA + BAÚS
+    // ========================================
+
+    noticias.push(
+        ...gerarNoticiasRankingsExtras()
+    );
 
     // ========================================
     // HÁ QUANTOS DIAS O LÍDER ATUAL
