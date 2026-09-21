@@ -9,6 +9,11 @@
             "ranking-aba-media-ativa"
         );
 
+    const abaBaus =
+        document.getElementById(
+            "ranking-aba-baus"
+        );
+
     const abaDiamantes =
         document.getElementById(
             "ranking-aba-diamantes"
@@ -62,6 +67,7 @@
     if (
         !abaPontos ||
         !abaMediaAtiva ||
+        !abaBaus ||
         !abaDiamantes ||
         !rankingLista ||
         !minhaPosicaoRanking
@@ -326,6 +332,117 @@
         return linha;
     }
 
+    function criarLinhaBaus(
+        item,
+        destaque = false
+    ) {
+        const linha =
+            document.createElement(
+                "div"
+            );
+
+        const classes = [
+            "ranking-linha"
+        ];
+
+        if (destaque) {
+            classes.push(
+                "ranking-eu"
+            );
+        }
+
+        if (
+            item.ganhador ===
+            true
+        ) {
+            classes.push(
+                "ranking-ganhador-baus"
+            );
+        }
+
+        linha.className =
+            classes.join(" ");
+
+        const posicao =
+            document.createElement(
+                "span"
+            );
+
+        posicao.className =
+            "ranking-posicao";
+
+        const posicaoReal =
+            `${Number(
+                item.posicao
+            )}º`;
+
+        const medalhas = {
+            1: "🥇",
+            2: "🥈",
+            3: "🥉"
+        };
+
+        const medalha =
+            item.ganhador === true
+                ? medalhas[
+                Number(
+                    item.posicaoPremio
+                )
+                ] || ""
+                : "";
+
+        posicao.textContent =
+            medalha
+                ? `${medalha} ${posicaoReal}`
+                : posicaoReal;
+
+        const nome =
+            document.createElement(
+                "strong"
+            );
+
+        nome.className =
+            "ranking-nome";
+
+        nome.textContent =
+            item.nome ||
+            "Participante";
+
+        prepararNome(
+            nome,
+            item.usuarioId
+        );
+
+        const pontos =
+            document.createElement(
+                "strong"
+            );
+
+        pontos.className =
+            "ranking-pontos";
+
+        pontos.textContent =
+            `${Number(
+                item.pontosBaus || 0
+            ).toLocaleString(
+                "pt-BR"
+            )} pts`;
+
+        linha.appendChild(
+            posicao
+        );
+
+        linha.appendChild(
+            nome
+        );
+
+        linha.appendChild(
+            pontos
+        );
+
+        return linha;
+    }
+
     // ========================================
     // MINHA POSIÇÃO
     // ========================================
@@ -503,12 +620,113 @@
             false;
     }
 
+    function mostrarMinhaPosicaoBaus(
+        item
+    ) {
+        minhaPosicaoRanking
+            .replaceChildren();
+
+        if (!item) {
+            minhaPosicaoRanking.hidden =
+                true;
+
+            return;
+        }
+
+        const posicao =
+            document.createElement(
+                "span"
+            );
+
+        posicao.className =
+            "ranking-posicao";
+
+        const medalhas = {
+            1: "🥇",
+            2: "🥈",
+            3: "🥉"
+        };
+
+        const medalha =
+            item.ganhador === true
+                ? medalhas[
+                Number(
+                    item.posicaoPremio
+                )
+                ] || ""
+                : "";
+
+        const posicaoReal =
+            `${Number(
+                item.posicao
+            )}º`;
+
+        posicao.textContent =
+            medalha
+                ? `${medalha} ${posicaoReal}`
+                : posicaoReal;
+
+        const nome =
+            document.createElement(
+                "strong"
+            );
+
+        nome.className =
+            "ranking-nome";
+
+        nome.textContent =
+            item.nome ||
+            "Você";
+
+        prepararNome(
+            nome,
+            item.usuarioId
+        );
+
+        const pontos =
+            document.createElement(
+                "strong"
+            );
+
+        pontos.className =
+            "ranking-pontos";
+
+        pontos.textContent =
+            `${Number(
+                item.pontosBaus || 0
+            ).toLocaleString(
+                "pt-BR"
+            )} pts`;
+
+        minhaPosicaoRanking
+            .appendChild(
+                posicao
+            );
+
+        minhaPosicaoRanking
+            .appendChild(
+                nome
+            );
+
+        minhaPosicaoRanking
+            .appendChild(
+                pontos
+            );
+
+        minhaPosicaoRanking.hidden =
+            false;
+    }
+
     // ========================================
     // VISUAL DAS ABAS
     // ========================================
 
     function mostrarAbaPontos() {
         abaPontos.classList.add(
+            "ativa"
+        );
+
+        abaBaus.classList.remove(
             "ativa"
         );
 
@@ -558,6 +776,10 @@
             "ativa"
         );
 
+        abaBaus.classList.remove(
+            "ativa"
+        );
+
         abaDiamantes.classList.remove(
             "ativa"
         );
@@ -587,6 +809,51 @@
         }
     }
 
+    function mostrarAbaBaus() {
+        abaPontos.classList.remove(
+            "ativa"
+        );
+
+        abaMediaAtiva.classList.remove(
+            "ativa"
+        );
+
+        abaBaus.classList.add(
+            "ativa"
+        );
+
+        abaDiamantes.classList.remove(
+            "ativa"
+        );
+
+        if (regrasMediaArea) {
+            regrasMediaArea.hidden =
+                true;
+        }
+
+        if (regrasMediaConteudo) {
+            regrasMediaConteudo.hidden =
+                true;
+        }
+
+        if (rankingPremios) {
+            rankingPremios.hidden =
+                true;
+        }
+
+        if (
+            rankingPremiosDiamantes
+        ) {
+            rankingPremiosDiamantes.hidden =
+                true;
+        }
+
+        if (rankingSubtitulo) {
+            rankingSubtitulo.textContent =
+                "Pontos conquistados nos Baús";
+        }
+    }
+
     function mostrarAbaDiamantes() {
 
         abaPontos.classList.remove(
@@ -594,6 +861,10 @@
         );
 
         abaMediaAtiva.classList.remove(
+            "ativa"
+        );
+
+        abaBaus.classList.remove(
             "ativa"
         );
 
@@ -816,6 +1087,170 @@
             erroElemento.textContent =
                 "❌ Não foi possível carregar a média ativa.";
 
+
+            rankingLista.appendChild(
+                erroElemento
+            );
+        }
+    }
+
+    // ========================================
+    // CARREGAR BAÚS
+    // ========================================
+    async function carregarRankingBaus() {
+        const minhaVersao =
+            ++versaoCarregamento;
+
+        rankingLista
+            .replaceChildren();
+
+        minhaPosicaoRanking.hidden =
+            true;
+
+        minhaPosicaoRanking
+            .replaceChildren();
+
+        const carregando =
+            document.createElement(
+                "p"
+            );
+
+        carregando.className =
+            "ranking-carregando";
+
+        carregando.textContent =
+            "Carregando ranking de baús...";
+
+        rankingLista.appendChild(
+            carregando
+        );
+
+        try {
+
+            const resposta =
+                await fetch(
+                    "/api/ranking-baus",
+                    {
+                        method:
+                            "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify({
+                                initData
+                            })
+                    }
+                );
+
+            const dados =
+                await resposta.json();
+
+            if (
+                minhaVersao !==
+                versaoCarregamento
+            ) {
+                return;
+            }
+
+            if (!resposta.ok) {
+                throw new Error(
+                    dados.erro ||
+                    "Ranking indisponível"
+                );
+            }
+
+            rankingLista
+                .replaceChildren();
+
+            const ranking =
+                Array.isArray(
+                    dados.ranking
+                )
+                    ? dados.ranking
+                    : [];
+
+            const minhaPosicao =
+                dados.usuario ||
+                null;
+
+            if (
+                ranking.length === 0
+            ) {
+                const vazio =
+                    document.createElement(
+                        "p"
+                    );
+
+                vazio.className =
+                    "ranking-vazio";
+
+                vazio.textContent =
+                    "Ainda ninguém ganhou pontos nos baús.";
+
+                rankingLista.appendChild(
+                    vazio
+                );
+
+            } else {
+                for (
+                    const item
+                    of ranking
+                ) {
+                    const souEu =
+                        minhaPosicao &&
+                        String(
+                            item.usuarioId
+                        ) ===
+                        String(
+                            minhaPosicao
+                                .usuarioId
+                        );
+
+                    rankingLista
+                        .appendChild(
+                            criarLinhaBaus(
+                                item,
+                                souEu
+                            )
+                        );
+                }
+            }
+
+            mostrarMinhaPosicaoBaus(
+                minhaPosicao
+            );
+
+        } catch (erro) {
+
+            if (
+                minhaVersao !==
+                versaoCarregamento
+            ) {
+                return;
+            }
+
+            console.error(
+                "❌ Erro ao carregar ranking de baús:",
+                erro
+            );
+
+            rankingLista
+                .replaceChildren();
+
+            const erroElemento =
+                document.createElement(
+                    "p"
+                );
+
+            erroElemento.className =
+                "ranking-vazio";
+
+            erroElemento.textContent =
+                "❌ Não foi possível carregar o ranking de baús.";
 
             rankingLista.appendChild(
                 erroElemento
@@ -1070,19 +1505,23 @@
     abaMediaAtiva.addEventListener(
         "click",
         () => {
-
             mostrarAbaMediaAtiva();
-
             carregarRankingMediaAtiva();
+        }
+    );
+
+    abaBaus.addEventListener(
+        "click",
+        () => {
+            mostrarAbaBaus();
+            carregarRankingBaus();
         }
     );
 
     abaDiamantes.addEventListener(
         "click",
         () => {
-
             mostrarAbaDiamantes();
-
             carregarRankingDiamantes();
         }
     );
