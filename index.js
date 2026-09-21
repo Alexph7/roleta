@@ -11,6 +11,9 @@ const registrarRotaRankingDiamantes =
 const registrarRotaRankingMediaAtiva =
     require("./routes/ranking-media-ativa");
 
+const registrarRotaRankingBaus =
+    require("./routes/ranking-baus");
+
 const registrarRotaNews =
     require("./routes/news");
 
@@ -570,6 +573,13 @@ registrarRotaRankingMediaAtiva(
     }
 );
 
+registrarRotaRankingBaus(
+    app,
+    {
+        validarInitDataTelegram,
+        usuarioLiberadoPorId
+    }
+);
 
 registrarRotaNews(
     app,
