@@ -84,7 +84,7 @@
         flex;
 
     flex-direction:
-        column;
+        column-reverse;
 
     gap:
         8px;
