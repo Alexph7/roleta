@@ -317,6 +317,9 @@ h1 {
     display: none !important;
 }
 
+.card-jogo[hidden] {
+    display: none !important;
+}
 
 /* ========================================
    MENU PRINCIPAL
