@@ -1375,3 +1375,20 @@ button.card-jogo:active {
     margin:
         8px 0;
 }
+
+.aviso-temporada {
+    margin: 20px auto 0;
+    padding: 14px;
+    border: 1px solid rgba(255, 209, 102, 0.3);
+    border-radius: 14px;
+    background: rgba(255, 209, 102, 0.08);
+    color: #e8e2f5;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.aviso-temporada strong {
+    display: block;
+    margin-bottom: 6px;
+    color: #ffd166;
+}
