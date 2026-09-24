@@ -13,6 +13,17 @@ const statusAcesso =
             "tela-menu"
         );
 
+const telaModos =
+    document.getElementById(
+        "tela-modos"
+    );
+
+const botaoModoSorte =
+    document.getElementById(
+        "modo-sorte"
+    );
+
+
 const telaRoleta =
     document.getElementById(
         "tela-roleta"
@@ -345,7 +356,7 @@ async function verificarAcesso() {
         }
 
         telaAcesso.hidden = true;
-        telaMenu.hidden = false;
+        telaModos.hidden = false;
         return true;
 
     } catch (erro) {
@@ -3148,6 +3159,15 @@ botaoVoltarMenuPontos.addEventListener(
     "click",
     voltarParaMenuPontos
 );
+
+botaoModoSorte.addEventListener(
+    "click",
+    () => {
+        telaModos.hidden = true;
+        telaMenu.hidden = false;
+    }
+);
+
 
 botaoAbrirRoleta.addEventListener(
     "click",
