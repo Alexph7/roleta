@@ -307,20 +307,14 @@ const buscarPremiadosPontos =
 
                         u.usuario_id
                             ASC
-
                 ) AS posicao
 
             FROM usuarios u
-
             WHERE
                 u.pontos > 0
-
                 OR EXISTS (
-
                     SELECT 1
-
                     FROM eventos_usuario e
-
                     WHERE
                         e.usuario_id =
                             u.usuario_id
@@ -329,25 +323,19 @@ const buscarPremiadosPontos =
                             'GIRO_ROLETA_PONTOS'
                 )
         )
-
         SELECT
             usuario_id
-
         FROM ranking
-
         WHERE
             posicao <= 7
-
         ORDER BY
             posicao ASC
     `);
-
 
 // ========================================
 // PREMIADOS DO RANKING DE DIAMANTES
 // TOP 3
 // ========================================
-
 const buscarPremiadosDiamantes =
     db.prepare(`
         WITH eventos_diamante AS (
@@ -358,14 +346,12 @@ const buscarPremiadosDiamantes =
                 e.criado_em
 
             FROM eventos_usuario e
-
             WHERE
                 e.tipo IN (
                     'GIRO_ROLETA_PONTOS',
                     'GIRO_ROLETA_PREMIADA_NORMAL',
                     'GIRO_ROLETA_PREMIADA_BONUS'
                 )
-
                 AND (
                     json_extract(
                         COALESCE(
@@ -374,9 +360,7 @@ const buscarPremiadosDiamantes =
                         ),
                         '$.tipoResultado'
                     ) = 'diamante'
-
                     OR
-
                     json_extract(
                         COALESCE(
                             e.dados_json,
@@ -388,38 +372,29 @@ const buscarPremiadosDiamantes =
         ),
 
         totais AS (
-
             SELECT
                 u.usuario_id,
-
                 COUNT(
                     d.id
                 ) AS diamantes,
-
                 MAX(
                     d.criado_em
                 ) AS atingiu_diamantes_em
 
             FROM usuarios u
-
             INNER JOIN
                 eventos_diamante d
-
                 ON d.usuario_id =
                     u.usuario_id
-
             GROUP BY
                 u.usuario_id
         )
 
         SELECT
             usuario_id
-
         FROM totais
-
         ORDER BY
             diamantes DESC,
-
             atingiu_diamantes_em
                 ASC,
 
@@ -431,7 +406,6 @@ const buscarPremiadosDiamantes =
 // ========================================
 // RANKING MÉDIA ATIVA
 // ========================================
-
 function obterRankingMediaAtiva(
     usuarioId,
     limite = 40
@@ -448,10 +422,8 @@ function obterRankingMediaAtiva(
             )
         );
 
-
     const periodoAtual =
         obterPeriodoDiario();
-
 
     const periodoAnterior =
         deslocarPeriodo(
@@ -459,21 +431,17 @@ function obterRankingMediaAtiva(
             -1
         );
 
-
     const periodoAnterior2 =
         deslocarPeriodo(
             periodoAtual,
             -2
         );
 
-
     const jogadores =
         new Map();
 
-
     const giros =
         buscarGirosPontos.all();
-
 
     for (const giro of giros) {
 
@@ -481,8 +449,6 @@ function obterRankingMediaAtiva(
             String(
                 giro.usuario_id
             );
-
-
         if (
             !jogadores.has(id)
         ) {
@@ -508,29 +474,24 @@ function obterRankingMediaAtiva(
             );
         }
 
-
         const jogador =
             jogadores.get(id);
-
 
         const dados =
             lerDadosJson(
                 giro.dados_json
             );
 
-
         // ========================================
         // PRESENÇA
         // QUALQUER GIRO CONTA
         // INCLUSIVE ROLETA PREMIADA
         // ========================================
-
         let periodo =
             String(
                 dados.periodoDiario ||
                 ""
             ).trim();
-
 
         // Fallback para eventos antigos,
         // caso algum não tenha periodoDiario.
@@ -548,17 +509,14 @@ function obterRankingMediaAtiva(
                 );
         }
 
-
         jogador.periodos.add(
             periodo
         );
-
 
         // ========================================
         // MÉDIA HISTÓRICA
         // SÓ GIROS QUE DERAM PONTOS
         // ========================================
-
         const pontos =
             Math.max(
                 0,
@@ -567,7 +525,6 @@ function obterRankingMediaAtiva(
                     0
                 )
             );
-
 
         if (pontos > 0) {
 
@@ -578,9 +535,7 @@ function obterRankingMediaAtiva(
         }
     }
 
-
     const ativos = [];
-
 
     for (
         const jogador
@@ -596,24 +551,20 @@ function obterRankingMediaAtiva(
         // SE AINDA NÃO GIROU:
         // anterior + anterior2
         // ========================================
-
         const girouNoAtual =
             jogador.periodos.has(
                 periodoAtual
             );
-
 
         const primeiroPeriodo =
             girouNoAtual
                 ? periodoAtual
                 : periodoAnterior;
 
-
         const segundoPeriodo =
             girouNoAtual
                 ? periodoAnterior
                 : periodoAnterior2;
-
 
         const estaAtivo =
             jogador.periodos.has(
@@ -623,11 +574,13 @@ function obterRankingMediaAtiva(
                 segundoPeriodo
             );
 
-
         if (!estaAtivo) {
             continue;
         }
 
+        if (jogador.girosValidos < 6) {
+            continue;
+        }
 
         const media =
             jogador.girosValidos > 0
@@ -636,24 +589,19 @@ function obterRankingMediaAtiva(
                     jogador.totalPontos /
                     jogador.girosValidos
                 )
-
                 : 0;
-
 
         ativos.push({
             usuarioId:
                 jogador.usuarioId,
-
             nome:
                 jogador.nome,
 
             media,
-
             girosValidos:
                 jogador.girosValidos
         });
     }
-
 
     // ========================================
     // CLASSIFICAÇÃO
@@ -662,7 +610,6 @@ function obterRankingMediaAtiva(
     // 2. MAIS GIROS VÁLIDOS EM CASO DE EMPATE
     // 3. ID APENAS PARA ORDEM ESTÁVEL
     // ========================================
-
     ativos.sort(
         (a, b) =>
 
@@ -676,7 +623,6 @@ function obterRankingMediaAtiva(
                 b.usuarioId
             )
     );
-
     const todos =
         ativos.map(
             (
@@ -690,7 +636,6 @@ function obterRankingMediaAtiva(
             })
         );
 
-
     // ========================================
     // GANHADORES DA MÉDIA ATIVA
     //
@@ -698,7 +643,6 @@ function obterRankingMediaAtiva(
     // TOP 7 DE PONTOS
     // TOP 3 DE DIAMANTES
     // ========================================
-
     const premiadosPontos =
         new Set(
             buscarPremiadosPontos
@@ -710,7 +654,6 @@ function obterRankingMediaAtiva(
                         )
                 )
         );
-
 
     const premiadosDiamantes =
         new Set(
@@ -724,13 +667,10 @@ function obterRankingMediaAtiva(
                 )
         );
 
-
     let posicaoPremio =
         0;
 
-
     for (const jogador of todos) {
-
         const jaPremiado =
             premiadosPontos.has(
                 jogador.usuarioId
@@ -738,7 +678,6 @@ function obterRankingMediaAtiva(
             premiadosDiamantes.has(
                 jogador.usuarioId
             );
-
 
         jogador.ganhador =
             false;
@@ -764,7 +703,6 @@ function obterRankingMediaAtiva(
         String(
             usuarioId
         );
-
 
     return {
         ranking:

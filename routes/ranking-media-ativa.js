@@ -4,18 +4,15 @@ const {
     "../database"
 );
 
-
 const {
     obterRankingMediaAtiva
 } = require(
     "../services/ranking-media-ativa"
 );
 
-
 // ========================================
 // ROTA RANKING MÉDIA ATIVA
 // ========================================
-
 function registrarRotaRankingMediaAtiva(
     app,
     {
@@ -26,20 +23,16 @@ function registrarRotaRankingMediaAtiva(
     app.post(
         "/api/ranking-media-ativa",
         (req, res) => {
-
             const {
                 initData
             } = req.body || {};
-
 
             const validacao =
                 validarInitDataTelegram(
                     initData
                 );
 
-
             if (!validacao.ok) {
-
                 return res
                     .status(401)
                     .json({
@@ -48,10 +41,8 @@ function registrarRotaRankingMediaAtiva(
                     });
             }
 
-
             const usuarioTelegram =
                 validacao.usuario;
-
 
             if (
                 !usuarioLiberadoPorId(
@@ -66,13 +57,10 @@ function registrarRotaRankingMediaAtiva(
                     });
             }
 
-
             try {
-
                 salvarUsuarioTelegram(
                     usuarioTelegram
                 );
-
 
                 const resultado =
                     obterRankingMediaAtiva(
@@ -80,11 +68,9 @@ function registrarRotaRankingMediaAtiva(
                         40
                     );
 
-
                 return res.json(
                     resultado
                 );
-
 
             } catch (erro) {
 
@@ -92,7 +78,6 @@ function registrarRotaRankingMediaAtiva(
                     "❌ Erro no ranking de média ativa:",
                     erro
                 );
-
 
                 return res
                     .status(500)
@@ -104,7 +89,6 @@ function registrarRotaRankingMediaAtiva(
         }
     );
 }
-
 
 module.exports =
     registrarRotaRankingMediaAtiva;
