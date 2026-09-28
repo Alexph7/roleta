@@ -8,7 +8,7 @@
     const ganhadores = {
         pontos: ["", "", "", "", "", "", "", "", "", ""], // 1º ao 10º
         media: ["", "", ""],                    // 1º ao 3º
-        bau: ["Sabrina", "", ""],                      // 1º ao 3º
+        bau: ["", "", ""],                      // 1º ao 3º
         diamantes: ["", "", ""]                 // 1º ao 3º
     };
 
