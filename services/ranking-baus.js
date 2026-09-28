@@ -192,7 +192,7 @@ function obterRankingBaus(
     const premiadosPontos =
         new Set(
             listarRankingPontos(
-                7
+                10
             ).map(
                 item =>
                     String(

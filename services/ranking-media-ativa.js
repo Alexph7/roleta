@@ -327,7 +327,7 @@ const buscarPremiadosPontos =
             usuario_id
         FROM ranking
         WHERE
-            posicao <= 7
+            posicao <= 10
         ORDER BY
             posicao ASC
     `);
