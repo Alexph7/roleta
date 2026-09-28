@@ -6,7 +6,7 @@
     "use strict";
 
     const ganhadores = {
-        pontos: ["Luciana Vih", "Larissa @ 𓃠", "Ph", "", "", "", "", "", "", ""], // 1º ao 10º
+        pontos: ["Luciana Vih", "Larissa @ 𓃠", "pH", "", "", "", "", "", "", ""], // 1º ao 10º
         media: ["", "", ""],                    // 1º ao 3º
         bau: ["Sabrina", "Camila A.", ""],                      // 1º ao 3º
         diamantes: ["Luciana Vih", "Ph", ""]                 // 1º ao 3º
