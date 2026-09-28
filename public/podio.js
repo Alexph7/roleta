@@ -9,7 +9,7 @@
         pontos: ["", "", "", "", "", "", "", "", "", ""], // 1º ao 10º
         media: ["", "", ""],                    // 1º ao 3º
         bau: ["", "", ""],                      // 1º ao 3º
-        diamantes: ["", "", ""]                 // 1º ao 3º
+        diamantes: ["Luciana Vih", "Ph", ""]                 // 1º ao 3º
     };
 
     function montarPodio() {
