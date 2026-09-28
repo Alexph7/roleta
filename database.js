@@ -3046,7 +3046,6 @@ const registrarGiroTransaction =
                         premio
                     );
 
-
                 if (
                     baixa.changes !== 1
                 ) {
