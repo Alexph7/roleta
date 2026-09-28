@@ -1,0 +1,36 @@
+INSTALAÇÃO
+
+1. Coloque podio.js e podio.css na mesma pasta do seu index.html e app.js.
+
+2. No index.html, antes de </head>, acrescente:
+
+<link rel="stylesheet" href="podio.css?v=1">
+
+3. Antes de </body>, acrescente:
+
+<script src="podio.js?v=1"></script>
+
+Pronto. O pódio aparece abaixo dos cartões Modo Sorte e Modo Habilidade,
+na tela de entrada (tela-modos). Não precisa alterar index.js, app.js nem
+style.css. Mantenha todos os scripts e estilos que já existem.
+
+COMO ADICIONAR GANHADORES
+
+Edite apenas as listas no início de podio.js. Cada par de aspas representa
+uma posição, começando no 1º lugar. Deixe "" nas vagas ainda não definidas.
+
+Exemplo de preenchimento (apenas ilustrativo):
+media: ["Maria", "João", ""]
+
+São 7 posições em pontos e 3 em media, bau e diamantes.
+Use aspas duplas nos nomes; se um nome contiver aspas duplas, escreva \".
+Os nomes são exibidos como texto, sem interpretar HTML.
+
+Envie o podio.js atualizado ao servidor. Para evitar a versão antiga em
+cache, aumente a versão no index.html a cada alteração:
+<script src="podio.js?v=2"></script>
+Na alteração seguinte, use v=3, e assim por diante. Feche e reabra o Mini App.
+Quem já estiver com a tela aberta precisa reabri-la para ver a atualização.
+
+As 16 posições começam vazias e mostram "Aguardando ganhador".
+O cadastro é manual e independente dos rankings e do banco de dados.
