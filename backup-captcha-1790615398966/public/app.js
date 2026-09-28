@@ -2208,7 +2208,23 @@ async function girarPontos() {
     try {
 
         resposta =
-            await window.girarPontosComCaptcha(initData);
+            await fetch(
+                "/api/girar-pontos",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            initData
+                        })
+                }
+            );
 
 
         dados =

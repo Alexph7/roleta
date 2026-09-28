@@ -1132,9 +1132,8 @@ app.post(
 // GIRO DA ROLETA DE PONTOS
 // ==============================
 
-const criarCaptchaPontos = require('./services/captcha-pontos-servidor');
-const captchaPontos = criarCaptchaPontos({ validarInitDataTelegram, usuarioLiberadoPorId, salvarUsuarioTelegram, obterPeriodoDiarioAtual });
-app.post('/api/girar-pontos', captchaPontos,
+app.post(
+    "/api/girar-pontos",
     (req, res) => {
 
         const {

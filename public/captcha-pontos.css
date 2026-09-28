@@ -1,0 +1,8 @@
+.captcha-pontos-modal { box-sizing: border-box; width: min(360px, calc(100% - 24px)); padding: 24px; border: 1px solid #766093; border-radius: 18px; background: #191329; color: #fff; text-align: center; font-family: Arial, sans-serif; }
+.captcha-pontos-modal::backdrop { background: #000b; }
+.captcha-pontos-modal h2 { font-size: 22px; margin: 0 0 12px; }
+.captcha-pontos-modal p { color: #d1c8df; font-size: 14px; line-height: 1.5; }
+.captcha-pontos-modal label { display: block; margin: 18px 0; font-size: 24px; font-weight: bold; color: #ffdd8c; }
+.captcha-pontos-modal input { display: block; box-sizing: border-box; width: 100%; padding: 12px; border: 1px solid #927bb0; border-radius: 10px; font-size: 24px; text-align: center; background: #0e0a19; color: white; }
+.captcha-pontos-modal button { display: block; width: 100%; margin-top: 14px; padding: 13px; border: 0; border-radius: 10px; color: #171024; background: #ffdd8c; font-size: 15px; font-weight: bold; cursor: pointer; }
+.captcha-pontos-modal .captcha-cancelar { color: #d1c8df; background: transparent; }

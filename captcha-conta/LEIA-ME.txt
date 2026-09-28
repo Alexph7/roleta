@@ -1,0 +1,33 @@
+CONTA SIMPLES ANTES DO GIRO DIÁRIO
+
+Extraia a pasta captcha-conta junto do index.js do projeto.
+No terminal da pasta do projeto, execute:
+
+node captcha-conta/instalar-captcha.js
+
+Depois reinicie somente o processo do bot e reabra o Mini App.
+Não precisa de Cloudflare nem de chaves.
+
+Funciona para instalação nova ou substituição do pacote Turnstile
+fornecido anteriormente. O instalador salva cópias dos arquivos alterados
+em backup-captcha-DATA. Não altera pontos, notícias nem banco de dados.
+
+A conta fica ativa por padrão. Se já existir CAPTCHA_PONTOS_ATIVO=false
+no .env, troque para true antes de reiniciar. Para desligar, use false e
+reinicie o bot.
+
+A pessoa toca em GIRAR, resolve uma soma e confirma. Acertar encaminha
+o giro para as regras existentes do jogo. Cancelar ou errar não consome
+o giro. Após três erros é gerada outra conta. A conta expira em 2 minutos,
+é vinculada ao ID autenticado e ao período diário, e tem uso único.
+Só exige conta enquanto o giro diário de pontos estiver disponível;
+os extras após esse giro não exigem outra conta.
+
+Proteção básica: scripts podem ser adaptados para resolver somas.
+Os desafios ficam na memória do processo. Use uma única instância deste
+bot; em cluster/múltiplas instâncias, precisa de armazenamento compartilhado.
+Reiniciar o processo invalida contas em andamento, sem consumir os giros.
+
+Verificações realizadas: sintaxe, instalador novo e atualização do pacote
+anterior; testes de erro, acerto, uso único e dispensa após giro diário.
+Ainda precisa testar o fluxo visual dentro do Telegram em produção.
