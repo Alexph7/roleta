@@ -757,7 +757,7 @@ function criarLinhaRanking(
     if (
         Number(
             item.posicao
-        ) <= 7
+        ) <= 10
     ) {
         classes.push(
             "ranking-ganhador-pontos"
