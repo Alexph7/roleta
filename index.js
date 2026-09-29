@@ -954,10 +954,7 @@ app.post(
         const periodoDiarioAtual =
             obterPeriodoDiarioAtual();
 
-
-        const giroDiarioDisponivel =
-            usuario.ultimoPeriodoDiario !==
-            periodoDiarioAtual;
+        const giroDiarioDisponivel = true;
 
         const giroExtraDisponivel =
             Number(
@@ -966,20 +963,13 @@ app.post(
             usuario.giroPontosExtraPeriodo ===
             periodoDiarioAtual;
 
-        const podeGirarPontos =
-            giroDiarioDisponivel ||
-            giroExtraDisponivel;
-
+        const podeGirarPontos = true;
 
         const bauUsadoHoje =
             usuario.bauUltimoPeriodo ===
             periodoDiarioAtual;
 
-
-        const bauDisponivel =
-            usuario.ultimoPeriodoDiario ===
-            periodoDiarioAtual &&
-            !bauUsadoHoje;
+        const bauDisponivel = true;
 
         // ========================================
         // ESTADO DA ROLETA PREMIADA
@@ -1201,43 +1191,11 @@ app.post('/api/girar-pontos', captchaPontos,
         const periodoDiario =
             obterPeriodoDiarioAtual();
 
+        // MODO LIVRE
 
-        // ========================================
-        // JÁ GIROU NESTE PERÍODO?
-        // ========================================
-
-        const giroDiarioDisponivel =
-            usuario.ultimoPeriodoDiario !==
-            periodoDiario;
-
-
-        const giroExtraDisponivel =
-            Number(
-                usuario.girosPontosExtras || 0
-            ) > 0 &&
-            usuario.giroPontosExtraPeriodo ===
-            periodoDiario;
-
-        if (
-            !giroDiarioDisponivel &&
-            !giroExtraDisponivel
-        ) {
-            return res.status(409).json({
-                erro:
-                    "Você não possui giros disponíveis agora.",
-
-                semGirosPontos:
-                    true,
-
-                periodoDiario
-            });
-        }
-
-        const tipoGiro =
-            giroDiarioDisponivel
-                ? "diario"
-                : "extra";
-
+        const giroDiarioDisponivel = true;
+        const giroExtraDisponivel = false;
+        const tipoGiro = "diario";
 
         // ========================================
         // PRIMEIRO GIRO
