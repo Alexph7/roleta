@@ -1407,10 +1407,6 @@ const registrarBauSegundaChanceTransaction =
                     criadoEm,
 
                     id,
-
-                    periodoDiario,
-
-                    periodoDiario
                 );
 
             if (
