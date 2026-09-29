@@ -1038,7 +1038,7 @@
 
 
                 vazio.textContent =
-                    "Ainda não há participantes ativos.";
+                    "Ainda não há dados sulficientes.";
 
 
                 rankingLista.appendChild(
