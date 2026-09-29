@@ -917,16 +917,6 @@ const registrarGiroPontosDiarioTransaction =
 
                     WHERE
                         usuario_id = ?
-
-                        AND (
-                            ultimo_periodo_diario
-                                IS NULL
-
-                            OR
-
-                            ultimo_periodo_diario
-                                <> ?
-                        )
                `).run(
                     periodoDiario,
 
@@ -943,8 +933,6 @@ const registrarGiroPontosDiarioTransaction =
                     criadoEm,
 
                     id,
-
-                    periodoDiario
                 );
 
 
