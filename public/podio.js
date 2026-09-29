@@ -6,10 +6,10 @@
     "use strict";
 
     const ganhadores = {
-        pontos: ["Luciana Vih", "Larissa @ 𓃠", "pH", "Fernanda", "Fernanda", "", "", "", "", ""], // 1º ao 10º
-        media: ["", "", ""],                    // 1º ao 3º
-        bau: ["Sabrina", "Camila A.", ""],                      // 1º ao 3º
-        diamantes: ["Luciana Vih", "Ph", ""]                 // 1º ao 3º
+        pontos: ["Luciana Vih", "Larissa @ 𓃠", "pH", "Fernanda", "Fernanda", "Dani", "Kelvyn Herrera", "Karen", "Fernanda Dk", "C.S."], // 1º ao 10º
+        media: [".........", "Laneeee", "Juliana Vantil"],                    // 1º ao 3º
+        bau: ["Sabrina", "Camila A.", "May."],                      // 1º ao 3º
+        diamantes: ["Luciana Vih", "Ph", "Fernanda"]                 // 1º ao 3º
     };
 
     function montarPodio() {
