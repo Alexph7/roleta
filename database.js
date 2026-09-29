@@ -1301,35 +1301,6 @@ const registrarBauSegundaChanceTransaction =
                 };
             }
 
-
-            if (
-                usuarioAntes
-                    .ultimoPeriodoDiario !==
-                periodoDiario
-            ) {
-
-                return {
-                    ok: false,
-                    motivo:
-                        "giro_diario_necessario"
-                };
-            }
-
-
-            if (
-                usuarioAntes
-                    .bauUltimoPeriodo ===
-                periodoDiario
-            ) {
-
-                return {
-                    ok: false,
-                    motivo:
-                        "bau_ja_usado"
-                };
-            }
-
-
             const escolhido =
                 Math.trunc(
                     Number(
@@ -1420,19 +1391,6 @@ const registrarBauSegundaChanceTransaction =
 
                     WHERE
                         usuario_id = ?
-
-                        AND ultimo_periodo_diario =
-                            ?
-
-                        AND (
-                            bau_ultimo_periodo
-                                IS NULL
-
-                            OR
-
-                            bau_ultimo_periodo
-                                <> ?
-                        )
               `).run(
                     periodoDiario,
 
