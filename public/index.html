@@ -11,9 +11,10 @@
     <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
 
     <link rel="stylesheet" href="style.css?v=7">
+    <link rel="stylesheet" href="memoria.css?v=1">
     <link rel="stylesheet" href="css/100x100.css?v=1">
     <link rel="stylesheet" href="podio.css?v=1">
-<link rel="stylesheet" href="captcha-pontos.css?v=conta-2">
+    <link rel="stylesheet" href="captcha-pontos.css?v=conta-2">
 </head>
 </head>
 
@@ -49,11 +50,11 @@
                     </div>
                 </button>
 
-                <button class="card-jogo card-bloqueado" type="button" disabled>
+                <button id="abrir-memoria" class="card-jogo" type="button">
                     <div class="card-jogo-icone">🎯</div>
                     <div class="card-jogo-conteudo">
                         <strong>Modo Habilidade</strong>
-                        <small>[...]</small>
+                        <small id="status-memoria-menu">10 prêmios de R$ 10</small>
                     </div>
                 </button>
             </div>
@@ -62,6 +63,22 @@
         <!-- ========================= -->
         <!-- MENU PRINCIPAL -->
         <!-- ========================= -->
+
+        <section id="tela-memoria" class="tela" hidden>
+            <button id="voltar-menu-memoria" class="voltar-menu" type="button">
+                ← MODOS
+            </button>
+
+            <h1>🧠 Jogo da Memória</h1>
+
+            <p id="status-memoria" class="memoria-status">
+                Encontre os 8 pares.
+            </p>
+
+            <div id="memoria-grade" class="memoria-grade" aria-label="Jogo da memória"></div>
+
+            <p id="resultado-memoria" class="memoria-resultado"></p>
+        </section>
 
         <section id="tela-menu" class="tela" hidden>
 
@@ -652,7 +669,8 @@
     </main>
 
     <script src="captcha-pontos.js?v=conta-2"></script>
-<script src="app.js?v=captcha-1"></script>
+    <script src="app.js?v=captcha-1"></script>
+    <script src="memoria.js?v=1"></script>
     <script src="js/100x100.js?v=1"></script>
     <script src="js/perfil.js?v=2"></script>
     <script src="js/ranking-diamantes.js?v=3"></script>

@@ -20,6 +20,9 @@ const registrarRotaNews =
 const registrarRota100x100 =
     require("./routes/100x100");
 
+const registrarRotaMemoria =
+    require("./routes/memoria");
+
 const { Bot } = require("node-telegram-bot-api");
 
 const {
@@ -309,7 +312,8 @@ async function verificarCanaisObrigatorios(usuarioId) {
 
 async function avisarGanhador(
     usuario,
-    premio
+    premio,
+    nomeJogo = "Roleta Premiada"
 ) {
 
     if (!GANHADORES_CHAT_ID) {
@@ -344,7 +348,7 @@ async function avisarGanhador(
                 "🎉 NOVO GANHADOR!\n\n" +
                 `👤 ${nome}\n` +
                 `🏆 Prêmio: ${premio}\n\n` +
-                "🎡 Roleta Premiada"
+                `🎮 ${nomeJogo}`
         });
 
         if (CONTROLE_CHAT_ID) {
@@ -598,6 +602,16 @@ registrarRota100x100(
     {
         validarInitDataTelegram,
         usuarioLiberadoPorId
+    }
+);
+
+registrarRotaMemoria(
+    app,
+    {
+        validarInitDataTelegram,
+        usuarioLiberadoPorId,
+        salvarUsuarioTelegram,
+        avisarGanhador
     }
 );
 

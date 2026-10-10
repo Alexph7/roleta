@@ -1,0 +1,193 @@
+(function () {
+    const telegram = window.Telegram?.WebApp;
+    const initData = telegram?.initData || "";
+
+    const telaModos = document.getElementById("tela-modos");
+    const telaMemoria = document.getElementById("tela-memoria");
+    const botaoAbrir = document.getElementById("abrir-memoria");
+    const botaoVoltar = document.getElementById("voltar-menu-memoria");
+    const grade = document.getElementById("memoria-grade");
+    const resultado = document.getElementById("resultado-memoria");
+    const status = document.getElementById("status-memoria");
+
+    if (!telaMemoria || !botaoAbrir || !botaoVoltar || !grade) {
+        console.error("Elementos do jogo da memÃ³ria nÃ£o encontrados.");
+        return;
+    }
+
+    let partida = null;
+    let bloqueado = false;
+    const cartasVisiveis = new Map();
+
+    function mostrarTela() {
+        document.querySelectorAll("main > .tela").forEach(tela => {
+            tela.hidden = true;
+        });
+
+        telaMemoria.hidden = false;
+        carregarPartida();
+    }
+
+    function voltarMenu() {
+        telaMemoria.hidden = true;
+        if (telaModos) {
+            telaModos.hidden = false;
+        }
+    }
+
+    function criarGrade() {
+        grade.replaceChildren();
+
+        for (let indice = 0; indice < 16; indice++) {
+            const botao = document.createElement("button");
+            botao.type = "button";
+            botao.className = "memoria-carta";
+            botao.dataset.indice = String(indice);
+            botao.textContent = "?";
+            botao.addEventListener("click", () => clicarCarta(indice));
+            grade.appendChild(botao);
+        }
+    }
+
+    function atualizarGrade(dados) {
+        if (!dados) return;
+
+        for (const item of dados.cartasEncontradas || []) {
+            cartasVisiveis.set(item.indice, item.emoji);
+        }
+
+        if (
+            dados.indiceSelecionado !== null &&
+            dados.indiceSelecionado !== undefined &&
+            dados.emojiSelecionado
+        ) {
+            cartasVisiveis.set(
+                dados.indiceSelecionado,
+                dados.emojiSelecionado
+            );
+        }
+
+        grade.querySelectorAll(".memoria-carta").forEach(botao => {
+            const indice = Number(botao.dataset.indice);
+            const emoji = cartasVisiveis.get(indice);
+            const encontrado =
+                (dados.indicesEncontrados || []).includes(indice);
+
+            botao.textContent = emoji || "?";
+            botao.classList.toggle("aberta", Boolean(emoji));
+            botao.classList.toggle("encontrada", encontrado);
+            botao.disabled = encontrado || bloqueado;
+        });
+    }
+
+    async function requisicao(url, corpo) {
+        const resposta = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                initData,
+                ...corpo
+            })
+        });
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+            throw new Error(dados.erro || "Erro no jogo.");
+        }
+
+        return dados;
+    }
+
+    async function carregarPartida() {
+        resultado.textContent = "Carregando jogo...";
+        criarGrade();
+
+        try {
+            partida = await requisicao("/api/memoria/iniciar", {});
+            cartasVisiveis.clear();
+            atualizarGrade(partida);
+
+            if (partida.status === "concluida") {
+                bloqueado = true;
+                resultado.textContent = partida.premioGanho
+                    ? "ðŸŽ‰ VocÃª completou e ganhou R$ 10!"
+                    : "VocÃª completou, mas os prÃªmios jÃ¡ haviam acabado.";
+            } else {
+                bloqueado = false;
+                resultado.textContent =
+                    "Encontre os 8 pares. Os 10 primeiros ganham R$ 10.";
+            }
+
+            status.textContent =
+                `Pares: ${partida.paresEncontrados}/8`;
+        } catch (erro) {
+            resultado.textContent = `âŒ ${erro.message}`;
+        }
+    }
+
+    async function clicarCarta(indice) {
+        if (bloqueado) return;
+
+        const botao = grade.querySelector(
+            `[data-indice="${indice}"]`
+        );
+
+        if (!botao || botao.disabled) return;
+
+        bloqueado = true;
+        botao.classList.add("carregando");
+
+        try {
+            const dados = await requisicao("/api/memoria/jogada", {
+                indice
+            });
+
+            if (dados.tipo === "primeira") {
+                cartasVisiveis.set(dados.indice, dados.emoji);
+                atualizarGrade(dados);
+                bloqueado = false;
+                atualizarGrade(dados);
+            } else {
+                for (const carta of dados.cartas || []) {
+                    cartasVisiveis.set(carta.indice, carta.emoji);
+                }
+
+                atualizarGrade(dados);
+                status.textContent =
+                    `Pares: ${dados.paresEncontrados}/8`;
+
+                if (dados.status === "concluida") {
+                    resultado.textContent = dados.premioGanho
+                        ? `ðŸŽ‰ ParabÃ©ns! VocÃª ganhou ${dados.premio}.`
+                        : "VocÃª completou, mas os 10 prÃªmios jÃ¡ acabaram.";
+                    bloqueado = true;
+                    return;
+                }
+
+                if (!dados.combinou) {
+                    await new Promise(resolve =>
+                        setTimeout(resolve, dados.aguardarMs || 900)
+                    );
+
+                    for (const carta of dados.cartas || []) {
+                        cartasVisiveis.delete(carta.indice);
+                    }
+                }
+
+                bloqueado = false;
+                atualizarGrade(dados);
+            }
+        } catch (erro) {
+            resultado.textContent = `âŒ ${erro.message}`;
+            bloqueado = false;
+        } finally {
+            botao.classList.remove("carregando");
+        }
+    }
+
+    botaoAbrir.addEventListener("click", mostrarTela);
+    botaoVoltar.addEventListener("click", voltarMenu);
+})();
