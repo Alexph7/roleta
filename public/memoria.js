@@ -71,16 +71,22 @@
         }
     }
 
-    function criarGrade() {
+    function criarGrade(totalCartas) {
         grade.replaceChildren();
 
-        for (let indice = 0; indice < 16; indice++) {
+        for (let indice = 0; indice < totalCartas; indice++) {
             const botao = document.createElement("button");
+
             botao.type = "button";
             botao.className = "memoria-carta";
             botao.dataset.indice = String(indice);
             botao.textContent = "";
-            botao.addEventListener("click", () => clicarCarta(indice));
+
+            botao.addEventListener(
+                "click",
+                () => clicarCarta(indice)
+            );
+
             grade.appendChild(botao);
         }
     }
@@ -142,10 +148,10 @@
 
     async function carregarPartida() {
         resultado.textContent = "Carregando jogo...";
-        criarGrade();
 
         try {
             partida = await requisicao("/api/memoria/iniciar", {});
+            criarGrade(partida.totalCartas);
             cartasVisiveis.clear();
             atualizarGrade(partida);
 
@@ -157,11 +163,11 @@
             } else {
                 bloqueado = false;
                 resultado.textContent =
-                    "Encontre os 8 pares. Os 10 primeiros ganham R$ 10.";
+                    `Encontre os ${partida.totalPares} pares. Os 10 primeiros ganham R$ 10.`;
             }
 
             status.textContent =
-                `Pares: ${partida.paresEncontrados}/8`;
+                `Pares: ${partida.paresEncontrados}/${partida.totalPares}`;
         } catch (erro) {
             resultado.textContent = `\u274C ${erro.message}`;
         }
@@ -202,7 +208,7 @@
 
                 atualizarGrade(dados);
                 status.textContent =
-                    `Pares: ${dados.paresEncontrados}/8`;
+                    `Pares: ${dados.paresEncontrados}/${dados.totalPares}`;
 
                 if (dados.status === "concluida") {
                     resultado.textContent = dados.premioGanho

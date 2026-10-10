@@ -8,8 +8,8 @@ const db = new Database(caminhoBanco);
 db.pragma("journal_mode = WAL");
 db.pragma("busy_timeout = 5000");
 
-const CAMPANHA = "evento_memoria_20261010";
-const TAMANHO = 4;
+const CAMPANHA = "evento_memoria_20261010_6x6";
+const TAMANHO = 6;
 const TOTAL_PARES = (TAMANHO * TAMANHO) / 2;
 const PREMIO = "R$ 10";
 const ESTOQUE_INICIAL = 10;
@@ -22,7 +22,17 @@ const EMOJIS = [
     String.fromCodePoint(0x1F381),
     String.fromCodePoint(0x1F984),
     String.fromCodePoint(0x1F43C),
-    String.fromCodePoint(0x1F355)
+    String.fromCodePoint(0x1F355),
+    String.fromCodePoint(0x26BD),
+    String.fromCodePoint(0x1F308),
+    String.fromCodePoint(0x1F438),
+    String.fromCodePoint(0x1F431),
+    String.fromCodePoint(0x1F436),
+    String.fromCodePoint(0x1F354),
+    String.fromCodePoint(0x1F388),
+    String.fromCodePoint(0x1F3C6),
+    String.fromCodePoint(0x1F6B2),
+    String.fromCodePoint(0x1F3B8)
 ];
 
 db.exec(`
