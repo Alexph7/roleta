@@ -239,15 +239,6 @@
         }
     }
 
-    botaoAbrir.addEventListener("click", () => {
-        const senha = prompt("Digite a senha do jogo:");
 
-        if (senha !== "memoria2026") {
-            alert("Senha incorreta.");
-            return;
-        }
-
-        mostrarTela();
-    });
     botaoVoltar.addEventListener("click", voltarMenu);
 })();
