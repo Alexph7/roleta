@@ -54,7 +54,7 @@
             return valor;
         }
     }
-    
+
     function mostrarTela() {
         document.querySelectorAll("main > .tela").forEach(tela => {
             tela.hidden = true;
@@ -79,7 +79,7 @@
             botao.type = "button";
             botao.className = "memoria-carta";
             botao.dataset.indice = String(indice);
-            botao.textContent = "?";
+            botao.textContent = "";
             botao.addEventListener("click", () => clicarCarta(indice));
             grade.appendChild(botao);
         }
@@ -112,7 +112,7 @@
             const encontrado =
                 (dados.indicesEncontrados || []).includes(indice);
 
-            botao.textContent = emoji || "?";
+            botao.textContent = emoji || "";
             botao.classList.toggle("aberta", Boolean(emoji));
             botao.classList.toggle("encontrada", encontrado);
             botao.disabled = encontrado || bloqueado;

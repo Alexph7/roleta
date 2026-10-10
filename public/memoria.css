@@ -30,6 +30,15 @@
     transition: transform .15s ease, background .15s ease;
 }
 
+.memoria-carta::before {
+    content: "";
+    display: block;
+    width: 58%;
+    height: 58%;
+    margin: auto;
+    background: url("logo-centro.png") center / contain no-repeat;
+}
+
 .memoria-carta:active {
     transform: scale(.94);
 }
@@ -37,6 +46,10 @@
 .memoria-carta.aberta {
     background: #f7f7f7;
     color: #202020;
+}
+
+.memoria-carta.aberta::before {
+    display: none;
 }
 
 .memoria-carta.encontrada {
