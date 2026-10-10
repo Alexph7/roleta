@@ -11,7 +11,7 @@
     const status = document.getElementById("status-memoria");
 
     if (!telaMemoria || !botaoAbrir || !botaoVoltar || !grade) {
-        console.error("Elementos do jogo da mem\u00f3ria n\u00e3o encontrados.");
+        console.error("Elementos do jogo da memoria nao encontrados.");
         return;
     }
 
