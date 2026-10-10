@@ -15,8 +15,14 @@ const PREMIO = "R$ 10";
 const ESTOQUE_INICIAL = 10;
 
 const EMOJIS = [
-    "ðŸŽ", "ðŸ‰", "ðŸš€", "ðŸŒŸ",
-    "ðŸŽ", "ðŸ¦„", "ðŸ¼", "ðŸ•"
+    String.fromCodePoint(0x1F34E),
+    String.fromCodePoint(0x1F349),
+    String.fromCodePoint(0x1F680),
+    String.fromCodePoint(0x1F31F),
+    String.fromCodePoint(0x1F381),
+    String.fromCodePoint(0x1F984),
+    String.fromCodePoint(0x1F43C),
+    String.fromCodePoint(0x1F355)
 ];
 
 db.exec(`

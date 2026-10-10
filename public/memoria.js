@@ -11,13 +11,25 @@
     const status = document.getElementById("status-memoria");
 
     if (!telaMemoria || !botaoAbrir || !botaoVoltar || !grade) {
-        console.error("Elementos do jogo da memÃ³ria nÃ£o encontrados.");
+        console.error("Elementos do jogo da mem\u00f3ria n\u00e3o encontrados.");
         return;
     }
 
     let partida = null;
     let bloqueado = false;
     const cartasVisiveis = new Map();
+
+    function normalizarEmoji(valor) {
+        if (typeof valor !== "string" || !/[ÃÂð]/.test(valor)) {
+            return valor;
+        }
+
+        try {
+            return decodeURIComponent(escape(valor));
+        } catch (_) {
+            return valor;
+        }
+    }
 
     function mostrarTela() {
         document.querySelectorAll("main > .tela").forEach(tela => {
@@ -53,7 +65,10 @@
         if (!dados) return;
 
         for (const item of dados.cartasEncontradas || []) {
-            cartasVisiveis.set(item.indice, item.emoji);
+            cartasVisiveis.set(
+                item.indice,
+                normalizarEmoji(item.emoji)
+            );
         }
 
         if (
@@ -63,7 +78,7 @@
         ) {
             cartasVisiveis.set(
                 dados.indiceSelecionado,
-                dados.emojiSelecionado
+                normalizarEmoji(dados.emojiSelecionado)
             );
         }
 
@@ -113,8 +128,8 @@
             if (partida.status === "concluida") {
                 bloqueado = true;
                 resultado.textContent = partida.premioGanho
-                    ? "ðŸŽ‰ VocÃª completou e ganhou R$ 10!"
-                    : "VocÃª completou, mas os prÃªmios jÃ¡ haviam acabado.";
+                    ? "\u{1F389} Voc\u00ea completou e ganhou R$ 10!"
+                    : "Voc\u00ea completou, mas os pr\u00eamios j\u00e1 haviam acabado.";
             } else {
                 bloqueado = false;
                 resultado.textContent =
@@ -124,7 +139,7 @@
             status.textContent =
                 `Pares: ${partida.paresEncontrados}/8`;
         } catch (erro) {
-            resultado.textContent = `âŒ ${erro.message}`;
+            resultado.textContent = `\u274C ${erro.message}`;
         }
     }
 
@@ -146,13 +161,19 @@
             });
 
             if (dados.tipo === "primeira") {
-                cartasVisiveis.set(dados.indice, dados.emoji);
+                cartasVisiveis.set(
+                    dados.indice,
+                    normalizarEmoji(dados.emoji)
+                );
                 atualizarGrade(dados);
                 bloqueado = false;
                 atualizarGrade(dados);
             } else {
                 for (const carta of dados.cartas || []) {
-                    cartasVisiveis.set(carta.indice, carta.emoji);
+                    cartasVisiveis.set(
+                        carta.indice,
+                        normalizarEmoji(carta.emoji)
+                    );
                 }
 
                 atualizarGrade(dados);
@@ -161,8 +182,8 @@
 
                 if (dados.status === "concluida") {
                     resultado.textContent = dados.premioGanho
-                        ? `ðŸŽ‰ ParabÃ©ns! VocÃª ganhou ${dados.premio}.`
-                        : "VocÃª completou, mas os 10 prÃªmios jÃ¡ acabaram.";
+                        ? `\u{1F389} Parab\u00e9ns! Voc\u00ea ganhou ${dados.premio}.`
+                        : "Voc\u00ea completou, mas os 10 pr\u00eamios j\u00e1 acabaram.";
                     bloqueado = true;
                     return;
                 }
@@ -181,7 +202,7 @@
                 atualizarGrade(dados);
             }
         } catch (erro) {
-            resultado.textContent = `âŒ ${erro.message}`;
+            resultado.textContent = `\u274C ${erro.message}`;
             bloqueado = false;
         } finally {
             botao.classList.remove("carregando");
