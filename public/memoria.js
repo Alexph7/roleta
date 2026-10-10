@@ -239,6 +239,6 @@
         }
     }
 
-
-    botaoVoltar.addEventListener("click", voltarMenu);
+botaoAbrir.addEventListener("click", mostrarTela);
+botaoVoltar.addEventListener("click", voltarMenu);
 })();
