@@ -140,7 +140,7 @@ function registrarRotaMemoria(
         if (!usuario) return;
 
         try {
-            const lista = jogoMemoria.listarRanking(20);
+            const lista = jogoMemoria.listarRanking(50);
 
             res.set("Cache-Control", "no-store");
 
