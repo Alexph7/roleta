@@ -2,17 +2,36 @@ const path = require("path");
 const crypto = require("crypto");
 const Database = require("better-sqlite3");
 
-const caminhoBanco = path.join(__dirname, "..", "roleta.db");
+const caminhoBanco =
+    process.env.MEMORIA_DB_PATH ||
+    path.join(__dirname, "..", "roleta.db");
+
 const db = new Database(caminhoBanco);
 
 db.pragma("journal_mode = WAL");
 db.pragma("busy_timeout = 5000");
 
-const CAMPANHA = "evento_memoria_20261010_6x6";
+// ==============================
+// CONFIGURAÇÃO
+// ==============================
+
+const CAMPANHA = "memoria_ranking_20261015";
 const TAMANHO = 6;
 const TOTAL_PARES = (TAMANHO * TAMANHO) / 2;
 const PREMIO = "R$ 10";
-const ESTOQUE_INICIAL = 10;
+const QTD_PREMIADOS = 5;
+
+// Fim do jogo. Para mudar, defina MEMORIA_FIM_EM no .env,
+// por exemplo: MEMORIA_FIM_EM=2026-10-16T21:00:00-03:00
+const FIM_PADRAO = "2026-10-15T21:00:00-03:00";
+
+let FIM_EM = Date.parse(
+    process.env.MEMORIA_FIM_EM || FIM_PADRAO
+);
+
+if (!Number.isFinite(FIM_EM)) {
+    FIM_EM = Date.parse(FIM_PADRAO);
+}
 
 const EMOJIS = [
     String.fromCodePoint(0x1F34E),
@@ -35,43 +54,63 @@ const EMOJIS = [
     String.fromCodePoint(0x1F3B8)
 ];
 
+// ==============================
+// TABELAS
+// ==============================
+
 db.exec(`
-    CREATE TABLE IF NOT EXISTS memoria_partidas (
+    CREATE TABLE IF NOT EXISTS memoria_rank_partidas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         campanha TEXT NOT NULL,
         usuario_id TEXT NOT NULL,
+        numero_partida INTEGER NOT NULL,
         cartas_json TEXT NOT NULL,
         pares_encontrados_json TEXT NOT NULL DEFAULT '[]',
         selecionada_indice INTEGER,
-        tentativas INTEGER NOT NULL DEFAULT 0,
+        jogadas INTEGER NOT NULL DEFAULT 0,
         status TEXT NOT NULL DEFAULT 'ativa',
-        premio TEXT,
-        premio_ganho INTEGER NOT NULL DEFAULT 0,
         iniciada_em INTEGER NOT NULL,
+        primeira_carta_em INTEGER,
         concluida_em INTEGER,
-        UNIQUE (campanha, usuario_id)
+        abandonada_em INTEGER,
+        UNIQUE (campanha, usuario_id, numero_partida)
     );
 
-    CREATE TABLE IF NOT EXISTS memoria_estoque (
-        campanha TEXT NOT NULL,
-        premio TEXT NOT NULL,
-        quantidade_inicial INTEGER NOT NULL,
-        quantidade_restante INTEGER NOT NULL,
-        atualizado_em INTEGER NOT NULL,
-        PRIMARY KEY (campanha, premio)
-    );
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_memoria_rank_uma_ativa
+        ON memoria_rank_partidas (campanha, usuario_id)
+        WHERE status = 'ativa';
 
-    CREATE TABLE IF NOT EXISTS memoria_ganhadores (
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_memoria_rank_uma_concluida
+        ON memoria_rank_partidas (campanha, usuario_id)
+        WHERE status = 'concluida';
+
+    CREATE INDEX IF NOT EXISTS idx_memoria_rank_ordem
+        ON memoria_rank_partidas (
+            campanha,
+            status,
+            numero_partida,
+            jogadas,
+            concluida_em
+        );
+
+    CREATE TABLE IF NOT EXISTS memoria_rank_premiados (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         campanha TEXT NOT NULL,
         usuario_id TEXT NOT NULL,
         premio TEXT NOT NULL,
-        ordem INTEGER NOT NULL,
-        concluida_em INTEGER NOT NULL,
-        UNIQUE (campanha, usuario_id),
-        UNIQUE (campanha, ordem)
+        posicao INTEGER NOT NULL,
+        criado_em INTEGER NOT NULL,
+        UNIQUE (campanha, usuario_id)
     );
 `);
+
+// ==============================
+// AUXILIARES
+// ==============================
+
+function jogoEncerrado(agora = Date.now()) {
+    return agora >= FIM_EM;
+}
 
 function embaralhar(lista) {
     const resultado = [...lista];
@@ -95,13 +134,97 @@ function criarCartas() {
     );
 }
 
-function lerPartida(usuarioId) {
+function lerAtiva(usuarioId) {
     return db.prepare(`
         SELECT *
-        FROM memoria_partidas
-        WHERE campanha = ? AND usuario_id = ?
+        FROM memoria_rank_partidas
+        WHERE campanha = ?
+          AND usuario_id = ?
+          AND status = 'ativa'
         LIMIT 1
     `).get(CAMPANHA, String(usuarioId));
+}
+
+function lerConcluida(usuarioId) {
+    return db.prepare(`
+        SELECT *
+        FROM memoria_rank_partidas
+        WHERE campanha = ?
+          AND usuario_id = ?
+          AND status = 'concluida'
+        LIMIT 1
+    `).get(CAMPANHA, String(usuarioId));
+}
+
+function contarPartidas(usuarioId) {
+    return db.prepare(`
+        SELECT COUNT(*) AS total
+        FROM memoria_rank_partidas
+        WHERE campanha = ?
+          AND usuario_id = ?
+    `).get(CAMPANHA, String(usuarioId)).total;
+}
+
+function contarAbandonadas(usuarioId) {
+    return db.prepare(`
+        SELECT COUNT(*) AS total
+        FROM memoria_rank_partidas
+        WHERE campanha = ?
+          AND usuario_id = ?
+          AND status = 'abandonada'
+    `).get(CAMPANHA, String(usuarioId)).total;
+}
+
+// Uma partida só vale como "começada" depois que a
+// primeira carta foi virada. Se estiver começada e o
+// jogador voltar sem ter concluído, vira abandonada.
+function fecharAbandonadas(usuarioId, agora) {
+    const resultado = db.prepare(`
+        UPDATE memoria_rank_partidas
+        SET status = 'abandonada',
+            abandonada_em = ?
+        WHERE campanha = ?
+          AND usuario_id = ?
+          AND status = 'ativa'
+          AND primeira_carta_em IS NOT NULL
+    `).run(agora, CAMPANHA, String(usuarioId));
+
+    return resultado.changes > 0;
+}
+
+function resultadoUsuario(usuarioId) {
+    const linha = db.prepare(`
+        WITH r AS (
+            SELECT
+                usuario_id,
+                numero_partida,
+                jogadas,
+                ROW_NUMBER() OVER (
+                    ORDER BY
+                        numero_partida ASC,
+                        jogadas ASC,
+                        concluida_em ASC,
+                        id ASC
+                ) AS posicao
+            FROM memoria_rank_partidas
+            WHERE campanha = ?
+              AND status = 'concluida'
+        )
+        SELECT *
+        FROM r
+        WHERE usuario_id = ?
+    `).get(CAMPANHA, String(usuarioId));
+
+    if (!linha) {
+        return null;
+    }
+
+    return {
+        posicao: Number(linha.posicao),
+        numeroPartida: Number(linha.numero_partida),
+        jogadas: Number(linha.jogadas),
+        premiado: Number(linha.posicao) <= QTD_PREMIADOS
+    };
 }
 
 function estadoPublico(partida, extras = {}) {
@@ -128,6 +251,7 @@ function estadoPublico(partida, extras = {}) {
 
     return {
         partidaId: partida.id,
+        numeroPartida: partida.numero_partida,
         tamanho: TAMANHO,
         totalCartas: TAMANHO * TAMANHO,
         totalPares: TOTAL_PARES,
@@ -139,59 +263,126 @@ function estadoPublico(partida, extras = {}) {
             indiceSelecionado === null
                 ? null
                 : cartas[indiceSelecionado].emoji,
-        tentativas: partida.tentativas,
+        jogadas: partida.jogadas,
         status: partida.status,
-        premio: partida.premio || null,
-        premioGanho: partida.premio_ganho === 1,
         concluidaEm: partida.concluida_em || null,
+        fimEm: FIM_EM,
         ...extras
     };
 }
 
-const iniciarTransaction = db.transaction((usuarioId, agora) => {
-    const existente = lerPartida(usuarioId);
+// ==============================
+// ESTADO (ANTES DE COMEÇAR)
+// ==============================
 
-    if (existente) {
-        return estadoPublico(existente);
+const estadoTransaction = db.transaction((usuarioId, agora) => {
+    const id = String(usuarioId);
+    const encerrado = jogoEncerrado(agora);
+
+    const concluida = lerConcluida(id);
+
+    if (concluida) {
+        return {
+            encerrado,
+            fimEm: FIM_EM,
+            jaConcluiu: true,
+            abandonou: false,
+            partidasAbandonadas: contarAbandonadas(id),
+            proximaPartida: null,
+            meuResultado: resultadoUsuario(id),
+            premio: PREMIO,
+            qtdPremiados: QTD_PREMIADOS
+        };
     }
 
-    db.prepare(`
-        INSERT OR IGNORE INTO memoria_estoque (
-            campanha,
-            premio,
-            quantidade_inicial,
-            quantidade_restante,
-            atualizado_em
-        ) VALUES (?, ?, ?, ?, ?)
-    `).run(
-        CAMPANHA,
-        PREMIO,
-        ESTOQUE_INICIAL,
-        ESTOQUE_INICIAL,
-        agora
-    );
+    // Quem volta para a tela de regras não está
+    // mais jogando. Partida começada vira abandonada.
+    const abandonou = fecharAbandonadas(id, agora);
 
-    const cartas = criarCartas();
+    const ativa = lerAtiva(id);
 
-    const resultado = db.prepare(`
-        INSERT OR IGNORE INTO memoria_partidas (
-            campanha,
-            usuario_id,
-            cartas_json,
-            iniciada_em
-        ) VALUES (?, ?, ?, ?)
-    `).run(
-        CAMPANHA,
+    const proximaPartida = ativa
+        ? ativa.numero_partida
+        : contarPartidas(id) + 1;
+
+    return {
+        encerrado,
+        fimEm: FIM_EM,
+        jaConcluiu: false,
+        abandonou,
+        partidasAbandonadas: contarAbandonadas(id),
+        proximaPartida,
+        meuResultado: null,
+        premio: PREMIO,
+        qtdPremiados: QTD_PREMIADOS
+    };
+});
+
+function estado(usuarioId) {
+    return estadoTransaction.immediate(
         String(usuarioId),
-        JSON.stringify(cartas),
-        agora
+        Date.now()
     );
+}
 
-    return estadoPublico(
-        db.prepare(`
-            SELECT * FROM memoria_partidas WHERE id = ?
-        `).get(resultado.lastInsertRowid)
-    );
+// ==============================
+// INICIAR PARTIDA
+// ==============================
+
+const iniciarTransaction = db.transaction((usuarioId, agora) => {
+    const id = String(usuarioId);
+
+    const concluida = lerConcluida(id);
+
+    if (concluida) {
+        return {
+            ok: true,
+            ...estadoPublico(concluida),
+            meuResultado: resultadoUsuario(id)
+        };
+    }
+
+    if (jogoEncerrado(agora)) {
+        return {
+            ok: false,
+            motivo: "encerrado"
+        };
+    }
+
+    fecharAbandonadas(id, agora);
+
+    let ativa = lerAtiva(id);
+
+    // Partida criada mas sem nenhuma carta virada
+    // é reaproveitada: não conta como tentativa.
+    if (!ativa) {
+        const numero = contarPartidas(id) + 1;
+
+        const resultado = db.prepare(`
+            INSERT INTO memoria_rank_partidas (
+                campanha,
+                usuario_id,
+                numero_partida,
+                cartas_json,
+                iniciada_em
+            ) VALUES (?, ?, ?, ?, ?)
+        `).run(
+            CAMPANHA,
+            id,
+            numero,
+            JSON.stringify(criarCartas()),
+            agora
+        );
+
+        ativa = db.prepare(`
+            SELECT * FROM memoria_rank_partidas WHERE id = ?
+        `).get(resultado.lastInsertRowid);
+    }
+
+    return {
+        ok: true,
+        ...estadoPublico(ativa)
+    };
 });
 
 function iniciar(usuarioId) {
@@ -201,21 +392,37 @@ function iniciar(usuarioId) {
     );
 }
 
+// ==============================
+// JOGADA
+// ==============================
+
 const jogarTransaction = db.transaction((usuarioId, indice, agora) => {
-    const partida = lerPartida(usuarioId);
+    const id = String(usuarioId);
+
+    const concluida = lerConcluida(id);
+
+    if (concluida) {
+        return {
+            ok: true,
+            ...estadoPublico(concluida),
+            meuResultado: resultadoUsuario(id),
+            jaConcluida: true
+        };
+    }
+
+    if (jogoEncerrado(agora)) {
+        return {
+            ok: false,
+            motivo: "encerrado"
+        };
+    }
+
+    const partida = lerAtiva(id);
 
     if (!partida) {
         return {
             ok: false,
             motivo: "partida_inexistente"
-        };
-    }
-
-    if (partida.status === "concluida") {
-        return {
-            ok: true,
-            ...estadoPublico(partida),
-            jaConcluida: true
         };
     }
 
@@ -244,12 +451,18 @@ const jogarTransaction = db.transaction((usuarioId, indice, agora) => {
         };
     }
 
+    // ---------- PRIMEIRA CARTA DO PAR ----------
+
     if (partida.selecionada_indice === null) {
         db.prepare(`
-            UPDATE memoria_partidas
-            SET selecionada_indice = ?
+            UPDATE memoria_rank_partidas
+            SET selecionada_indice = ?,
+                primeira_carta_em = COALESCE(
+                    primeira_carta_em,
+                    ?
+                )
             WHERE id = ?
-        `).run(indiceSeguro, partida.id);
+        `).run(indiceSeguro, agora, partida.id);
 
         return {
             ok: true,
@@ -257,7 +470,8 @@ const jogarTransaction = db.transaction((usuarioId, indice, agora) => {
             indice: indiceSeguro,
             emoji: cartas[indiceSeguro].emoji,
             ...estadoPublico(partida, {
-                indiceSelecionado: indiceSeguro
+                indiceSelecionado: indiceSeguro,
+                emojiSelecionado: cartas[indiceSeguro].emoji
             })
         };
     }
@@ -269,85 +483,40 @@ const jogarTransaction = db.transaction((usuarioId, indice, agora) => {
         };
     }
 
+    // ---------- SEGUNDA CARTA DO PAR ----------
+
     const primeiroIndice = partida.selecionada_indice;
     const primeiro = cartas[primeiroIndice];
     const segundo = cartas[indiceSeguro];
     const combinou = primeiro.par === segundo.par;
-    const tentativas = partida.tentativas + 1;
+    const jogadas = partida.jogadas + 1;
 
-    let novoStatus = partida.status;
-    let premio = null;
-    let premioGanho = false;
-    let concluidaEm = null;
     let novaListaPares = paresEncontrados;
 
     if (combinou) {
         novaListaPares = [...paresEncontrados, primeiro.par];
     }
 
-    if (novaListaPares.length === TOTAL_PARES) {
-        novoStatus = "concluida";
-        concluidaEm = agora;
-
-        const baixa = db.prepare(`
-            UPDATE memoria_estoque
-            SET quantidade_restante = quantidade_restante - 1,
-                atualizado_em = ?
-            WHERE campanha = ?
-              AND premio = ?
-              AND quantidade_restante > 0
-        `).run(agora, CAMPANHA, PREMIO);
-
-        if (baixa.changes === 1) {
-            premio = PREMIO;
-            premioGanho = true;
-
-            const ordem = db.prepare(`
-                SELECT COUNT(*) + 1 AS ordem
-                FROM memoria_ganhadores
-                WHERE campanha = ?
-            `).get(CAMPANHA).ordem;
-
-            db.prepare(`
-                INSERT INTO memoria_ganhadores (
-                    campanha,
-                    usuario_id,
-                    premio,
-                    ordem,
-                    concluida_em
-                ) VALUES (?, ?, ?, ?, ?)
-            `).run(
-                CAMPANHA,
-                String(usuarioId),
-                PREMIO,
-                ordem,
-                agora
-            );
-        }
-    }
+    const terminou = novaListaPares.length === TOTAL_PARES;
 
     db.prepare(`
-        UPDATE memoria_partidas
+        UPDATE memoria_rank_partidas
         SET pares_encontrados_json = ?,
             selecionada_indice = NULL,
-            tentativas = ?,
+            jogadas = ?,
             status = ?,
-            premio = ?,
-            premio_ganho = ?,
             concluida_em = ?
         WHERE id = ?
     `).run(
         JSON.stringify(novaListaPares),
-        tentativas,
-        novoStatus,
-        premio,
-        premioGanho ? 1 : 0,
-        concluidaEm,
+        jogadas,
+        terminou ? "concluida" : "ativa",
+        terminou ? agora : null,
         partida.id
     );
 
     const atualizada = db.prepare(`
-        SELECT * FROM memoria_partidas WHERE id = ?
+        SELECT * FROM memoria_rank_partidas WHERE id = ?
     `).get(partida.id);
 
     return {
@@ -366,10 +535,7 @@ const jogarTransaction = db.transaction((usuarioId, indice, agora) => {
         ],
         aguardarMs: combinou ? 0 : 900,
         ...estadoPublico(atualizada),
-        premio,
-        premioGanho,
-        premiosEsgotados:
-            novoStatus === "concluida" && !premioGanho
+        meuResultado: terminou ? resultadoUsuario(id) : null
     };
 });
 
@@ -381,14 +547,149 @@ function jogar(usuarioId, indice) {
     );
 }
 
+// ==============================
+// RANKING
+// ==============================
+
+function listarRanking(limite = 20) {
+    const limiteSeguro = Math.max(
+        1,
+        Math.min(100, Math.trunc(Number(limite) || 20))
+    );
+
+    const linhas = db.prepare(`
+        SELECT
+            p.usuario_id,
+            COALESCE(u.nome_exibicao, 'Participante') AS nome,
+            p.numero_partida,
+            p.jogadas,
+            ROW_NUMBER() OVER (
+                ORDER BY
+                    p.numero_partida ASC,
+                    p.jogadas ASC,
+                    p.concluida_em ASC,
+                    p.id ASC
+            ) AS posicao
+        FROM memoria_rank_partidas p
+        LEFT JOIN usuarios u
+            ON u.usuario_id = p.usuario_id
+        WHERE p.campanha = ?
+          AND p.status = 'concluida'
+        ORDER BY posicao ASC
+        LIMIT ?
+    `).all(CAMPANHA, limiteSeguro);
+
+    const total = db.prepare(`
+        SELECT COUNT(*) AS total
+        FROM memoria_rank_partidas
+        WHERE campanha = ?
+          AND status = 'concluida'
+    `).get(CAMPANHA).total;
+
+    return {
+        ranking: linhas.map(linha => ({
+            usuarioId: String(linha.usuario_id),
+            nome: linha.nome,
+            posicao: Number(linha.posicao),
+            numeroPartida: Number(linha.numero_partida),
+            jogadas: Number(linha.jogadas),
+            premiado: Number(linha.posicao) <= QTD_PREMIADOS
+        })),
+        totalConcluidos: Number(total)
+    };
+}
+
+// ==============================
+// PREMIAÇÃO (DEPOIS DO FIM)
+// ==============================
+
+const premiarTransaction = db.transaction((agora) => {
+    const jaPremiou = db.prepare(`
+        SELECT COUNT(*) AS total
+        FROM memoria_rank_premiados
+        WHERE campanha = ?
+    `).get(CAMPANHA).total;
+
+    if (jaPremiou > 0) {
+        return [];
+    }
+
+    const top = db.prepare(`
+        SELECT
+            p.usuario_id,
+            u.first_name,
+            u.username,
+            ROW_NUMBER() OVER (
+                ORDER BY
+                    p.numero_partida ASC,
+                    p.jogadas ASC,
+                    p.concluida_em ASC,
+                    p.id ASC
+            ) AS posicao
+        FROM memoria_rank_partidas p
+        LEFT JOIN usuarios u
+            ON u.usuario_id = p.usuario_id
+        WHERE p.campanha = ?
+          AND p.status = 'concluida'
+        ORDER BY posicao ASC
+        LIMIT ?
+    `).all(CAMPANHA, QTD_PREMIADOS);
+
+    const inserir = db.prepare(`
+        INSERT OR IGNORE INTO memoria_rank_premiados (
+            campanha,
+            usuario_id,
+            premio,
+            posicao,
+            criado_em
+        ) VALUES (?, ?, ?, ?, ?)
+    `);
+
+    for (const linha of top) {
+        inserir.run(
+            CAMPANHA,
+            String(linha.usuario_id),
+            PREMIO,
+            Number(linha.posicao),
+            agora
+        );
+    }
+
+    return top.map(linha => ({
+        usuario_id: String(linha.usuario_id),
+        first_name: linha.first_name,
+        username: linha.username,
+        posicao: Number(linha.posicao),
+        premio: PREMIO
+    }));
+});
+
+// Devolve os premiados UMA única vez, depois do fim.
+function premiarSeEncerrado() {
+    const agora = Date.now();
+
+    if (!jogoEncerrado(agora)) {
+        return [];
+    }
+
+    return premiarTransaction.immediate(agora);
+}
+
 function obterEstado(usuarioId) {
-    const partida = lerPartida(usuarioId);
+    const partida = lerAtiva(usuarioId) || lerConcluida(usuarioId);
     return partida ? estadoPublico(partida) : null;
 }
 
 module.exports = {
     CAMPANHA,
+    PREMIO,
+    QTD_PREMIADOS,
+    FIM_EM,
+    estado,
     iniciar,
     jogar,
+    listarRanking,
+    resultadoUsuario,
+    premiarSeEncerrado,
     obterEstado
 };

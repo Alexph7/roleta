@@ -11,7 +11,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
 
     <link rel="stylesheet" href="style.css?v=7">
-    <link rel="stylesheet" href="memoria.css?v=1">
+    <link rel="stylesheet" href="memoria.css?v=2">
     <link rel="stylesheet" href="css/100x100.css?v=1">
     <link rel="stylesheet" href="podio.css?v=1">
     <link rel="stylesheet" href="captcha-pontos.css?v=conta-2">
@@ -65,6 +65,8 @@
         <!-- MENU PRINCIPAL -->
         <!-- ========================= -->
 
+        <!-- SUBSTITUA todo o bloco <section id="tela-memoria"> ... </section> do index.html por este: -->
+
         <section id="tela-memoria" class="tela" hidden>
             <button id="voltar-menu-memoria" class="voltar-menu" type="button">
                 ← MODOS
@@ -72,14 +74,67 @@
 
             <h1>🧠 Jogo da Memória</h1>
 
-            <p id="status-memoria" class="memoria-status">
-                Encontre os 8 pares.
-            </p>
+            <div id="memoria-regras" class="memoria-regras">
+                <strong class="memoria-regras-titulo">Leia antes de começar</strong>
 
-            <div id="memoria-grade" class="memoria-grade" aria-label="Jogo da memória"></div>
+                <ul class="memoria-regras-lista">
+                    <li>Cada par de cartas virado, acertando ou errando, conta 1 jogada.</li>
+                    <li>O ranking ordena primeiro pelo número da partida e só depois pelas jogadas. Quem concluiu em uma
+                        partida menor fica na frente.</li>
+                    <li>A partida começa quando você vira a primeira carta. Sair da tela ou fechar o app depois disso
+                        conta como abandono.</li>
+                    <li>Cada abandono faz sua próxima partida ser a 2, 3, 4... Mesmo com menos jogadas, quem está em uma
+                        partida maior fica atrás.</li>
+                    <li>Só é possível concluir o jogo uma vez.</li>
+                    <li>Os 5 primeiros do ranking ganham R$ 10. O jogo termina em <b id="memoria-regras-fim">--</b>.
+                    </li>
+                </ul>
+
+                <p id="memoria-proxima" class="memoria-proxima"></p>
+                <p id="memoria-aviso" class="memoria-aviso"></p>
+
+                <button id="memoria-comecar" class="memoria-comecar" type="button" disabled>
+                    CARREGANDO...
+                </button>
+            </div>
+
+            <div id="memoria-jogo" hidden>
+                <div class="memoria-placar">
+                    <div>
+                        <span>PARTIDA</span>
+                        <strong id="memoria-placar-partida">-</strong>
+                    </div>
+                    <div>
+                        <span>JOGADAS</span>
+                        <strong id="memoria-placar-jogadas">0</strong>
+                    </div>
+                    <div>
+                        <span>PARES</span>
+                        <strong id="memoria-placar-pares">0/18</strong>
+                    </div>
+                </div>
+
+                <div id="memoria-grade" class="memoria-grade" aria-label="Jogo da memória"></div>
+            </div>
 
             <p id="resultado-memoria" class="memoria-resultado"></p>
+
+            <div class="memoria-ranking">
+                <strong class="memoria-ranking-titulo">🏆 Ranking do Jogo da Memória</strong>
+
+                <p id="memoria-ranking-info" class="memoria-ranking-info"></p>
+
+                <div id="memoria-ranking-lista"></div>
+
+                <div id="memoria-minha-posicao" class="memoria-minha-posicao" hidden></div>
+            </div>
         </section>
+
+        <!-- No <head> do index.html, troque a linha do CSS por: -->
+        <!-- <link rel="stylesheet" href="memoria.css?v=2"> -->
+
+        <!-- No fim do <body>, troque a linha do script por: -->
+        <!-- <script src="memoria.js?v=3"></script> -->
 
         <section id="tela-menu" class="tela" hidden>
 
@@ -671,7 +726,7 @@
 
     <script src="captcha-pontos.js?v=conta-2"></script>
     <script src="app.js?v=captcha-1"></script>
-    <script src="memoria.js?v=2"></script>
+    <script src="memoria.js?v=3"></script>
     <script src="js/100x100.js?v=1"></script>
     <script src="js/perfil.js?v=2"></script>
     <script src="js/ranking-diamantes.js?v=3"></script>
