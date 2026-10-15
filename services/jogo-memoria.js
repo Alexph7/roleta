@@ -199,10 +199,12 @@ function resultadoUsuario(usuarioId) {
                 usuario_id,
                 numero_partida,
                 jogadas,
+                (concluida_em - primeira_carta_em) AS tempo_ms,
                 ROW_NUMBER() OVER (
                     ORDER BY
                         numero_partida ASC,
                         jogadas ASC,
+                        (concluida_em - primeira_carta_em) ASC,
                         concluida_em ASC,
                         id ASC
                 ) AS posicao
@@ -223,6 +225,7 @@ function resultadoUsuario(usuarioId) {
         posicao: Number(linha.posicao),
         numeroPartida: Number(linha.numero_partida),
         jogadas: Number(linha.jogadas),
+        tempoMs: Number(linha.tempo_ms),
         premiado: Number(linha.posicao) <= QTD_PREMIADOS
     };
 }
@@ -563,10 +566,12 @@ function listarRanking(limite = 20) {
             COALESCE(u.nome_exibicao, 'Participante') AS nome,
             p.numero_partida,
             p.jogadas,
+            (p.concluida_em - p.primeira_carta_em) AS tempo_ms,
             ROW_NUMBER() OVER (
                 ORDER BY
                     p.numero_partida ASC,
                     p.jogadas ASC,
+                    (p.concluida_em - p.primeira_carta_em) ASC,
                     p.concluida_em ASC,
                     p.id ASC
             ) AS posicao
@@ -593,6 +598,7 @@ function listarRanking(limite = 20) {
             posicao: Number(linha.posicao),
             numeroPartida: Number(linha.numero_partida),
             jogadas: Number(linha.jogadas),
+            tempoMs: Number(linha.tempo_ms),
             premiado: Number(linha.posicao) <= QTD_PREMIADOS
         })),
         totalConcluidos: Number(total)
@@ -623,6 +629,7 @@ const premiarTransaction = db.transaction((agora) => {
                 ORDER BY
                     p.numero_partida ASC,
                     p.jogadas ASC,
+                    (p.concluida_em - p.primeira_carta_em) ASC,
                     p.concluida_em ASC,
                     p.id ASC
             ) AS posicao

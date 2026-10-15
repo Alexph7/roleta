@@ -4,6 +4,14 @@
 
     const el = id => document.getElementById(id);
 
+    function formatarTempo(ms) {
+        const total = Math.max(0, Math.round(Number(ms) / 1000));
+        if (!Number.isFinite(total)) return "-";
+        const min = Math.floor(total / 60);
+        const seg = total % 60;
+        return min > 0 ? `${min}min ${seg}s` : `${seg}s`;
+    }
+
     const telaModos = el("tela-modos");
     const telaMemoria = el("tela-memoria");
     const botaoAbrir = el("abrir-memoria");
@@ -206,7 +214,7 @@
 
                 avisoEl.textContent = r
                     ? `Você já concluiu: Partida ${r.numeroPartida}, ` +
-                      `${r.jogadas} jogadas, ${r.posicao}º lugar.`
+                      `${r.jogadas} jogadas, ${formatarTempo(r.tempoMs)}, ${r.posicao}º lugar.`
                     : "Você já concluiu o jogo.";
 
                 return;
@@ -382,7 +390,7 @@
 
                 resultado.textContent = r
                     ? `Concluído! Partida ${r.numeroPartida}, ` +
-                      `${r.jogadas} jogadas. Você está em ${r.posicao}º lugar.`
+                      `${r.jogadas} jogadas em ${formatarTempo(r.tempoMs)}. Você está em ${r.posicao}º lugar.`
                     : `Concluído em ${dados.jogadas} jogadas.`;
 
                 carregarRanking();
@@ -431,7 +439,7 @@
         const dados = document.createElement("strong");
         dados.className = "memoria-rk-dados";
         dados.textContent =
-            `P${item.numeroPartida} · ${item.jogadas} jog.`;
+            `P${item.numeroPartida} · ${item.jogadas} jog. · ${formatarTempo(item.tempoMs)}`;
 
         linha.append(posicao, nome, dados);
 
@@ -444,7 +452,7 @@
 
             rankingInfo.textContent =
                 `Os ${d.qtdPremiados} primeiros ganham ${d.premio}. ` +
-                "Ordem: primeiro a partida, depois as jogadas. " +
+                "Ordem: partida, depois jogadas, e no empate o mais rápido. " +
                 (d.encerrado
                     ? "Resultado final."
                     : `Termina em ${formatarFim(d.fimEm)}.`);
@@ -470,7 +478,7 @@
             if (d.meu && d.meu.posicao > d.ranking.length) {
                 minhaPosicao.textContent =
                     `Sua posição: ${d.meu.posicao}º · ` +
-                    `P${d.meu.numeroPartida} · ${d.meu.jogadas} jog.`;
+                    `P${d.meu.numeroPartida} · ${d.meu.jogadas} jog. · ${formatarTempo(d.meu.tempoMs)}`;
                 minhaPosicao.hidden = false;
             } else {
                 minhaPosicao.hidden = true;
