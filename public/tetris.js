@@ -43,14 +43,15 @@
         String(Motor.ALTURA / Motor.LARGURA)
     );
     // Cores vivas (claro, normal, escuro) para dar efeito de bloco em relevo
+    // topo, miolo, direita, esquerda, baixo
     const CORES = [
-        ["#7ff3ff", "#1fd0e8", "#0a8fb0"], // I
-        ["#ffe98a", "#ffc928", "#d99100"], // O
-        ["#e3a2ff", "#b84df0", "#7a24b5"], // T
-        ["#9cf5a0", "#3ed95a", "#1c9a36"], // S
-        ["#ff9b94", "#ff4b4b", "#b81f2a"], // Z
-        ["#9fb0ff", "#4a6cf0", "#2339a8"], // J
-        ["#ffc27a", "#ff8a1f", "#c2520a"]  // L
+        ["#8ff7ff", "#18c8e6", "#0b8aa8", "#4fdff2", "#065d78"], // I
+        ["#fff1a0", "#ffc800", "#c98a00", "#ffdf4d", "#8f5e00"], // O
+        ["#eab6ff", "#b13df0", "#7a1fb5", "#cc7cf7", "#521080"], // T
+        ["#aaf9ad", "#2fd24f", "#168a2c", "#6fe887", "#0c5a1c"], // S
+        ["#ffb0aa", "#ff3b3b", "#b01524", "#ff7a74", "#750c18"], // Z
+        ["#b0c0ff", "#3f66f0", "#1f3399", "#7f98ff", "#12206b"], // J
+        ["#ffd08f", "#ff7f12", "#bd4d06", "#ffa94f", "#7d3003"]  // L
     ];
 
     let jogo = null;
@@ -97,37 +98,65 @@
         ctx.closePath();
     }
 
-    // Bloco com cantos arredondados, brilho em cima e sombra embaixo
+    // Bloco cheio, com borda grossa em relevo (luz em cima/esquerda,
+    // sombra embaixo/direita), ocupando a casinha quase inteira
     function bloco(ctx, x, y, cor, tamanho) {
-        const m = Math.max(1, tamanho * 0.05);
+        const m = 0.5;
         const px = x * tamanho + m;
         const py = y * tamanho + m;
-        const lado = tamanho - m * 2;
-        const raio = lado * 0.22;
+        const l = tamanho - m * 2;
+        const b = Math.max(3, l * 0.22);
 
-        caminhoArredondado(ctx, px, py, lado, lado, raio);
+        // topo (claro)
+        ctx.fillStyle = cor[0];
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(px + l, py);
+        ctx.lineTo(px + l - b, py + b);
+        ctx.lineTo(px + b, py + b);
+        ctx.closePath();
+        ctx.fill();
+
+        // esquerda (meio claro)
+        ctx.fillStyle = cor[3];
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(px + b, py + b);
+        ctx.lineTo(px + b, py + l - b);
+        ctx.lineTo(px, py + l);
+        ctx.closePath();
+        ctx.fill();
+
+        // direita (escuro)
         ctx.fillStyle = cor[2];
+        ctx.beginPath();
+        ctx.moveTo(px + l, py);
+        ctx.lineTo(px + l, py + l);
+        ctx.lineTo(px + l - b, py + l - b);
+        ctx.lineTo(px + l - b, py + b);
+        ctx.closePath();
         ctx.fill();
 
-        const borda = lado * 0.1;
-        caminhoArredondado(
-            ctx, px + borda, py + borda * 0.6,
-            lado - borda * 2, lado - borda * 2.2, raio * 0.8
-        );
-        const grad = ctx.createLinearGradient(px, py, px, py + lado);
-        grad.addColorStop(0, cor[0]);
-        grad.addColorStop(0.35, cor[1]);
-        grad.addColorStop(1, cor[1]);
+        // baixo (mais escuro)
+        ctx.fillStyle = cor[4];
+        ctx.beginPath();
+        ctx.moveTo(px, py + l);
+        ctx.lineTo(px + l, py + l);
+        ctx.lineTo(px + l - b, py + l - b);
+        ctx.lineTo(px + b, py + l - b);
+        ctx.closePath();
+        ctx.fill();
+
+        // miolo
+        const grad = ctx.createLinearGradient(px, py + b, px, py + l - b);
+        grad.addColorStop(0, cor[1]);
+        grad.addColorStop(1, cor[2]);
         ctx.fillStyle = grad;
-        ctx.fill();
+        ctx.fillRect(px + b, py + b, l - b * 2, l - b * 2);
 
-        // brilho
-        caminhoArredondado(
-            ctx, px + lado * 0.2, py + lado * 0.14,
-            lado * 0.6, lado * 0.16, lado * 0.08
-        );
-        ctx.fillStyle = "rgba(255,255,255,.35)";
-        ctx.fill();
+        // brilho no miolo
+        ctx.fillStyle = "rgba(255,255,255,.22)";
+        ctx.fillRect(px + b, py + b, l - b * 2, (l - b * 2) * 0.32);
     }
 
     // Marca onde a peca vai cair
@@ -172,12 +201,10 @@
 
         for (let y = 0; y < Motor.ALTURA; y++) {
             for (let x = 0; x < Motor.LARGURA; x++) {
-                caminhoArredondado(
-                    ctx, x * CELULA + 1.5, y * CELULA + 1.5,
-                    CELULA - 3, CELULA - 3, 5
+                ctx.fillStyle = "rgba(8,14,50,.5)";
+                ctx.fillRect(
+                    x * CELULA + 1, y * CELULA + 1, CELULA - 2, CELULA - 2
                 );
-                ctx.fillStyle = "rgba(8,14,50,.55)";
-                ctx.fill();
             }
         }
 

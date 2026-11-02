@@ -10,7 +10,7 @@
 })(typeof self !== "undefined" ? self : this, function () {
     "use strict";
 
-    const LARGURA = 17;
+    const LARGURA = 15;
     const ALTURA = 20;
     const PONTOS_POR_LINHA = 10;
 
