@@ -71,7 +71,7 @@
     /* ocupa a largura toda da tela, ate as bordas */
     width: 100vw;
     margin-left: calc(50% - 50vw);
-    padding: 18px 0 16px;
+    padding: 12px 0 10px;
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
@@ -241,7 +241,8 @@
         0 0 0 11px #b06cff,
         0 0 26px 8px rgba(176, 108, 255, .65),
         0 0 50px 14px rgba(25, 243, 255, .35);
-    height: min(54vh, calc(92vw * var(--tetris-proporcao, 1.4286)), 560px);
+    height: min(calc(100vh - 310px), calc(92vw * var(--tetris-proporcao, 1.4286)), 560px);
+    height: min(calc(100dvh - 310px), calc(92vw * var(--tetris-proporcao, 1.4286)), 560px);
     width: auto;
     border-radius: 16px;
     touch-action: none;
@@ -250,12 +251,12 @@
 /* o "painel de comandos" da maquina */
 .tetris-controles {
     width: min(92vw, 360px);
-    margin: 18px auto 4px;
-    padding: 14px;
+    margin: 12px auto 4px;
+    padding: 10px;
     box-sizing: border-box;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1.7fr;
+    gap: 8px;
     border-radius: 20px;
     background: linear-gradient(180deg, #4a2fb0, #2a1670);
     box-shadow:
@@ -285,11 +286,10 @@
 }
 
 .tetris-btn-queda {
-    grid-column: span 2;
     background: linear-gradient(180deg, #ffd84d, #f59e0b);
     box-shadow: 0 4px 0 #b36b00;
     color: #4a2a00;
-    font-size: 1rem;
+    font-size: .85rem;
 }
 
 /* ---------- RANKING ---------- */
