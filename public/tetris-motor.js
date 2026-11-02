@@ -10,8 +10,8 @@
 })(typeof self !== "undefined" ? self : this, function () {
     "use strict";
 
-    const LARGURA = 20;
-    const ALTURA = 20;
+    const LARGURA = 25;
+    const ALTURA = 22;
     const PONTOS_POR_LINHA = 10;
 
     // Limite de acoes por partida (mantem o envio pequeno e a partida finita).
