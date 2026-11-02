@@ -483,20 +483,36 @@
         acao(letra);
     });
 
-    // Toque direto no campo:
-    //  - tocar no lado esquerdo / direito move a peca (segurar repete)
-    //  - tocar no meio gira
-    //  - arrastar para baixo faz a queda direta
+    // Toque direto no campo, usando a PECA como referencia:
+    //  - tocar a direita da peca: move para a direita (segurar repete)
+    //  - tocar a esquerda da peca: move para a esquerda (segurar repete)
+    //  - tocar em cima da peca: gira
+    //  - tocar abaixo da peca: acelera a descida (segurar repete)
+    //  - arrastar para baixo: queda direta
     (function ativarToqueNoCampo() {
         let inicio = null;
         let esperaToque = null;
+        let ultimo = { x: 0, y: 0 };
 
-        function zona(ev) {
+        function zona(x, y) {
+            if (!jogo || jogo.fim) return "C";
+
             const caixa = canvas.getBoundingClientRect();
-            const f = (ev.clientX - caixa.left) / caixa.width;
+            const larguraCelula = caixa.width / Motor.LARGURA;
+            const alturaCelula = caixa.height / Motor.ALTURA;
 
-            if (f < 0.33) return "L";
-            if (f > 0.67) return "R";
+            const cel = Motor.celulas(jogo.peca);
+            const colEsq = Math.min(...cel.map(c => c[0]));
+            const colDir = Math.max(...cel.map(c => c[0]));
+            const linhaBaixo = Math.max(...cel.map(c => c[1]));
+
+            const esquerda = caixa.left + colEsq * larguraCelula;
+            const direita = caixa.left + (colDir + 1) * larguraCelula;
+            const baixo = caixa.top + (linhaBaixo + 1) * alturaCelula;
+
+            if (x < esquerda) return "L";
+            if (x > direita) return "R";
+            if (y > baixo) return "D";
             return "C";
         }
 
@@ -504,6 +520,11 @@
             clearTimeout(esperaToque);
             pararRepeticao();
             inicio = null;
+        }
+
+        function repetirUmaVez() {
+            const letra = zona(ultimo.x, ultimo.y);
+            if (letra !== "C") acao(letra);
         }
 
         canvas.addEventListener("pointerdown", ev => {
@@ -519,10 +540,12 @@
 
             limpar();
 
+            ultimo = { x: ev.clientX, y: ev.clientY };
+
             inicio = {
                 x: ev.clientX,
                 y: ev.clientY,
-                zona: zona(ev),
+                zona: zona(ev.clientX, ev.clientY),
                 moveu: false,
                 repetindo: false
             };
@@ -532,21 +555,21 @@
                     if (!inicio || inicio.moveu) return;
 
                     inicio.repetindo = true;
-                    acao(inicio.zona);
-
-                    const letra = inicio.zona;
-                    repeticao = setInterval(() => acao(letra), 70);
+                    repetirUmaVez();
+                    repeticao = setInterval(repetirUmaVez, 70);
                 }, 200);
             }
         });
 
         canvas.addEventListener("pointermove", ev => {
+            ultimo = { x: ev.clientX, y: ev.clientY };
+
             if (!inicio || inicio.moveu) return;
 
             const dx = ev.clientX - inicio.x;
             const dy = ev.clientY - inicio.y;
 
-            if (dy > 40 && dy > Math.abs(dx) * 1.5) {
+            if (dy > 60 && dy > Math.abs(dx) * 1.5) {
                 inicio.moveu = true;
                 clearTimeout(esperaToque);
                 pararRepeticao();
