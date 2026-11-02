@@ -42,9 +42,15 @@
         "--tetris-proporcao",
         String(Motor.ALTURA / Motor.LARGURA)
     );
+    // Cores vivas (claro, normal, escuro) para dar efeito de bloco em relevo
     const CORES = [
-        "#00bcd4", "#fdd835", "#ab47bc", "#66bb6a",
-        "#ef5350", "#5c6bc0", "#ff9800"
+        ["#7ff3ff", "#1fd0e8", "#0a8fb0"], // I
+        ["#ffe98a", "#ffc928", "#d99100"], // O
+        ["#e3a2ff", "#b84df0", "#7a24b5"], // T
+        ["#9cf5a0", "#3ed95a", "#1c9a36"], // S
+        ["#ff9b94", "#ff4b4b", "#b81f2a"], // Z
+        ["#9fb0ff", "#4a6cf0", "#2339a8"], // J
+        ["#ffc27a", "#ff8a1f", "#c2520a"]  // L
     ];
 
     let jogo = null;
@@ -81,37 +87,98 @@
     // DESENHO
     // ==============================
 
+    function caminhoArredondado(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+    }
+
+    // Bloco com cantos arredondados, brilho em cima e sombra embaixo
     function bloco(ctx, x, y, cor, tamanho) {
-        ctx.fillStyle = cor;
-        ctx.fillRect(
-            x * tamanho + 1,
-            y * tamanho + 1,
-            tamanho - 2,
-            tamanho - 2
+        const m = Math.max(1, tamanho * 0.05);
+        const px = x * tamanho + m;
+        const py = y * tamanho + m;
+        const lado = tamanho - m * 2;
+        const raio = lado * 0.22;
+
+        caminhoArredondado(ctx, px, py, lado, lado, raio);
+        ctx.fillStyle = cor[2];
+        ctx.fill();
+
+        const borda = lado * 0.1;
+        caminhoArredondado(
+            ctx, px + borda, py + borda * 0.6,
+            lado - borda * 2, lado - borda * 2.2, raio * 0.8
         );
+        const grad = ctx.createLinearGradient(px, py, px, py + lado);
+        grad.addColorStop(0, cor[0]);
+        grad.addColorStop(0.35, cor[1]);
+        grad.addColorStop(1, cor[1]);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // brilho
+        caminhoArredondado(
+            ctx, px + lado * 0.2, py + lado * 0.14,
+            lado * 0.6, lado * 0.16, lado * 0.08
+        );
+        ctx.fillStyle = "rgba(255,255,255,.35)";
+        ctx.fill();
+    }
+
+    // Marca onde a peca vai cair
+    function fantasma(ctx) {
+        let dy = 0;
+
+        const cabe = d => Motor.celulas(jogo.peca).every(([x, y]) => {
+            const yy = y + d;
+            return x >= 0 && x < Motor.LARGURA && yy < Motor.ALTURA &&
+                (yy < 0 || !jogo.tabuleiro[yy][x]);
+        });
+
+        while (cabe(dy + 1)) dy++;
+
+        if (dy === 0) return;
+
+        ctx.strokeStyle = "rgba(255,255,255,.55)";
+        ctx.fillStyle = "rgba(255,255,255,.12)";
+        ctx.lineWidth = 2;
+
+        for (const [x, y] of Motor.celulas(jogo.peca)) {
+            if (y + dy < 0) continue;
+
+            caminhoArredondado(
+                ctx, x * CELULA + 2, (y + dy) * CELULA + 2,
+                CELULA - 4, CELULA - 4, 5
+            );
+            ctx.fill();
+            ctx.stroke();
+        }
     }
 
     function desenhar() {
         const ctx = canvas.getContext("2d");
 
-        ctx.fillStyle = "#111";
+        // fundo do campo e casinhas escuras
+        const fundo = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        fundo.addColorStop(0, "#1b2a6b");
+        fundo.addColorStop(1, "#101a4a");
+        ctx.fillStyle = fundo;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.strokeStyle = "rgba(255,255,255,.06)";
-        ctx.lineWidth = 1;
-
-        for (let x = 1; x < Motor.LARGURA; x++) {
-            ctx.beginPath();
-            ctx.moveTo(x * CELULA + .5, 0);
-            ctx.lineTo(x * CELULA + .5, canvas.height);
-            ctx.stroke();
-        }
-
-        for (let y = 1; y < Motor.ALTURA; y++) {
-            ctx.beginPath();
-            ctx.moveTo(0, y * CELULA + .5);
-            ctx.lineTo(canvas.width, y * CELULA + .5);
-            ctx.stroke();
+        for (let y = 0; y < Motor.ALTURA; y++) {
+            for (let x = 0; x < Motor.LARGURA; x++) {
+                caminhoArredondado(
+                    ctx, x * CELULA + 1.5, y * CELULA + 1.5,
+                    CELULA - 3, CELULA - 3, 5
+                );
+                ctx.fillStyle = "rgba(8,14,50,.55)";
+                ctx.fill();
+            }
         }
 
         if (!jogo) return;
@@ -123,6 +190,8 @@
         });
 
         if (!jogo.fim) {
+            fantasma(ctx);
+
             for (const [x, y] of Motor.celulas(jogo.peca)) {
                 if (y >= 0) bloco(ctx, x, y, CORES[jogo.peca.tipo], CELULA);
             }
@@ -135,8 +204,7 @@
         const ctx = canvasProximo.getContext("2d");
         const t = 16;
 
-        ctx.fillStyle = "#111";
-        ctx.fillRect(0, 0, canvasProximo.width, canvasProximo.height);
+        ctx.clearRect(0, 0, canvasProximo.width, canvasProximo.height);
 
         if (!jogo) return;
 
@@ -522,6 +590,8 @@
             inicio = null;
         }
 
+        // Repetir enquanto o dedo estiver segurando: a peca vai
+        // ate o dedo e para quando chegar nele (nao gira sozinha).
         function repetirUmaVez() {
             const letra = zona(ultimo.x, ultimo.y);
             if (letra !== "C") acao(letra);
