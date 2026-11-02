@@ -120,6 +120,17 @@
         }
 
         painelJogo.insertBefore(fundo, painelJogo.firstChild);
+
+        // botao VOLTAR dentro do jogo (usa a mesma regra do botao de fora)
+        const topo = document.createElement("div");
+        topo.className = "tetris-topo";
+        const voltar = document.createElement("button");
+        voltar.type = "button";
+        voltar.className = "tetris-voltar-jogo";
+        voltar.textContent = "VOLTAR";
+        voltar.addEventListener("click", () => botaoVoltar.click());
+        topo.appendChild(voltar);
+        painelJogo.insertBefore(topo, fundo.nextSibling);
     })();
 
     let jogo = null;
@@ -382,6 +393,7 @@
 
             painelRegras.hidden = true;
             painelJogo.hidden = false;
+            botaoVoltar.hidden = true;
 
             atualizarPlacar();
             desenhar();
@@ -443,6 +455,7 @@
         };
 
         painelJogo.hidden = true;
+        botaoVoltar.hidden = false;
         painelRegras.hidden = false;
         resultadoEl.textContent = "Calculando sua pontuação...";
 
@@ -461,6 +474,7 @@
         telaTetris.hidden = false;
         painelRegras.hidden = false;
         painelJogo.hidden = true;
+        botaoVoltar.hidden = false;
         resultadoEl.textContent = "";
 
         carregarEstado();
@@ -474,6 +488,7 @@
 
         telaTetris.hidden = true;
         painelJogo.hidden = true;
+        botaoVoltar.hidden = false;
 
         const destino = telaHabilidade || el("tela-modos");
         if (destino) destino.hidden = false;
