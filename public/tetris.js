@@ -483,6 +483,89 @@
         acao(letra);
     });
 
+    // Toque direto no campo:
+    //  - tocar no lado esquerdo / direito move a peca (segurar repete)
+    //  - tocar no meio gira
+    //  - arrastar para baixo faz a queda direta
+    (function ativarToqueNoCampo() {
+        let inicio = null;
+        let esperaToque = null;
+
+        function zona(ev) {
+            const caixa = canvas.getBoundingClientRect();
+            const f = (ev.clientX - caixa.left) / caixa.width;
+
+            if (f < 0.33) return "L";
+            if (f > 0.67) return "R";
+            return "C";
+        }
+
+        function limpar() {
+            clearTimeout(esperaToque);
+            pararRepeticao();
+            inicio = null;
+        }
+
+        canvas.addEventListener("pointerdown", ev => {
+            if (!rodando) return;
+
+            ev.preventDefault();
+
+            try {
+                canvas.setPointerCapture(ev.pointerId);
+            } catch (erro) {
+                // sem captura, segue normal
+            }
+
+            limpar();
+
+            inicio = {
+                x: ev.clientX,
+                y: ev.clientY,
+                zona: zona(ev),
+                moveu: false,
+                repetindo: false
+            };
+
+            if (inicio.zona !== "C") {
+                esperaToque = setTimeout(() => {
+                    if (!inicio || inicio.moveu) return;
+
+                    inicio.repetindo = true;
+                    acao(inicio.zona);
+
+                    const letra = inicio.zona;
+                    repeticao = setInterval(() => acao(letra), 70);
+                }, 200);
+            }
+        });
+
+        canvas.addEventListener("pointermove", ev => {
+            if (!inicio || inicio.moveu) return;
+
+            const dx = ev.clientX - inicio.x;
+            const dy = ev.clientY - inicio.y;
+
+            if (dy > 40 && dy > Math.abs(dx) * 1.5) {
+                inicio.moveu = true;
+                clearTimeout(esperaToque);
+                pararRepeticao();
+                acao("H");
+            }
+        });
+
+        canvas.addEventListener("pointerup", () => {
+            if (inicio && !inicio.moveu && !inicio.repetindo) {
+                acao(inicio.zona);
+            }
+
+            limpar();
+        });
+
+        canvas.addEventListener("pointercancel", limpar);
+        canvas.addEventListener("contextmenu", ev => ev.preventDefault());
+    })();
+
     // Se o app for para o fundo, a queda pausa.
     document.addEventListener("visibilitychange", () => {
         if (!rodando) return;
