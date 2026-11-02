@@ -113,7 +113,8 @@
 /* ---------- FUNDO ANIMADO ---------- */
 
 .tetris-fundo {
-    position: absolute;
+    /* cobre a tela toda, inclusive as faixas acima e abaixo do jogo */
+    position: fixed;
     inset: 0;
     z-index: 0;
     overflow: hidden;
@@ -316,6 +317,13 @@
     box-shadow: 0 4px 0 #b36b00;
     color: #4a2a00;
     font-size: .85rem;
+}
+
+/* resultado e ranking ficam na frente do fundo (que cobre a tela toda) */
+#resultado-tetris,
+.tetris-ranking {
+    position: relative;
+    z-index: 1;
 }
 
 /* ---------- RANKING ---------- */
