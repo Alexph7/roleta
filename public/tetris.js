@@ -33,6 +33,15 @@
     }
 
     const CELULA = 24;
+
+    // O tamanho do desenho segue o motor: se mudar LARGURA ou ALTURA
+    // no tetris-motor.js, o campo se ajusta sozinho.
+    canvas.width = Motor.LARGURA * CELULA;
+    canvas.height = Motor.ALTURA * CELULA;
+    canvas.style.setProperty(
+        "--tetris-proporcao",
+        String(Motor.ALTURA / Motor.LARGURA)
+    );
     const CORES = [
         "#00bcd4", "#fdd835", "#ab47bc", "#66bb6a",
         "#ef5350", "#5c6bc0", "#ff9800"
