@@ -55,6 +55,58 @@
     ];
 
     // ==============================
+    // MUSICA DE FUNDO
+    // ==============================
+
+    const musica = (function () {
+        const ARQUIVO = "/musica.mp3";
+        const VOLUME = 0.4;
+        const CHAVE = "tetris_som_desligado";
+        let audio = null;
+        let mudo = false;
+
+        try {
+            mudo = localStorage.getItem(CHAVE) === "1";
+        } catch (erro) {
+            // sem armazenamento, segue com o som ligado
+        }
+
+        function tocar() {
+            if (mudo) return;
+
+            if (!audio) {
+                audio = new Audio(ARQUIVO);
+                audio.loop = true;
+                audio.volume = VOLUME;
+            }
+
+            const r = audio.play();
+            if (r && r.catch) r.catch(() => {});
+        }
+
+        function pausar() {
+            if (audio) audio.pause();
+        }
+
+        function alternar(tocando) {
+            mudo = !mudo;
+
+            try {
+                localStorage.setItem(CHAVE, mudo ? "1" : "0");
+            } catch (erro) {
+                // sem armazenamento, vale so nesta visita
+            }
+
+            if (mudo) pausar();
+            else if (tocando) tocar();
+
+            return mudo;
+        }
+
+        return { tocar, pausar, alternar, estaMudo: () => mudo };
+    })();
+
+    // ==============================
     // FUNDO ANIMADO (pecas flutuando, brilhos e luzes)
     // ==============================
 
@@ -130,6 +182,20 @@
         voltar.textContent = "VOLTAR";
         voltar.addEventListener("click", () => botaoVoltar.click());
         topo.appendChild(voltar);
+
+        const som = document.createElement("button");
+        som.type = "button";
+        som.className = "tetris-voltar-jogo tetris-som";
+        const textoSom = () => {
+            som.textContent = musica.estaMudo() ? "SOM OFF" : "SOM ON";
+            som.classList.toggle("tetris-som-off", musica.estaMudo());
+        };
+        textoSom();
+        som.addEventListener("click", () => {
+            musica.alternar(rodando);
+            textoSom();
+        });
+        topo.appendChild(som);
         painelJogo.insertBefore(topo, fundo.nextSibling);
     })();
 
@@ -378,6 +444,9 @@
     }
 
     async function comecar() {
+        // precisa ser aqui, logo no toque do botao, senao o celular bloqueia
+        musica.tocar();
+
         botaoComecar.disabled = true;
         botaoComecar.textContent = "INICIANDO...";
         avisoEl.textContent = "";
@@ -447,6 +516,7 @@
     }
 
     function terminar() {
+        musica.pausar();
         pararJogo();
 
         pendente = {
@@ -483,6 +553,7 @@
     }
 
     function sairDaTela() {
+        musica.pausar();
         pararJogo();
         pararAtualizacaoRanking();
 
@@ -779,8 +850,10 @@
         if (document.hidden) {
             clearTimeout(timerQueda);
             pararRepeticao();
+            musica.pausar();
         } else {
             agendarQueda();
+            musica.tocar();
         }
     });
 

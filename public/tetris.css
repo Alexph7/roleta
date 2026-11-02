@@ -91,7 +91,14 @@
 .tetris-topo {
     width: min(92vw, 360px);
     margin: 0 auto 6px;
-    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tetris-som-off {
+    opacity: .6;
+    text-decoration: line-through;
 }
 
 .tetris-voltar-jogo {
