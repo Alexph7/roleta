@@ -1,0 +1,197 @@
+#tela-tetris {
+    text-align: center;
+}
+
+#tela-tetris [hidden] {
+    display: none !important;
+}
+
+.tetris-regras {
+    width: min(92vw, 380px);
+    margin: 14px auto;
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .08);
+    text-align: left;
+}
+
+.tetris-regras-titulo {
+    display: block;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.tetris-regras-lista {
+    margin: 0;
+    padding-left: 18px;
+    font-size: .92rem;
+    line-height: 1.4;
+}
+
+.tetris-regras-lista li + li {
+    margin-top: 6px;
+}
+
+.tetris-aviso {
+    min-height: 1.2em;
+    margin: 10px 0 4px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.tetris-comecar {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    border: 0;
+    border-radius: 12px;
+    background: #06a77d;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.tetris-comecar:disabled {
+    opacity: .6;
+    cursor: default;
+}
+
+.tetris-resultado {
+    min-height: 1.5em;
+    margin: 10px auto;
+    width: min(92vw, 380px);
+}
+
+/* ---------- PARTIDA ---------- */
+
+.tetris-placar {
+    width: min(92vw, 360px);
+    margin: 8px auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 6px;
+    align-items: center;
+}
+
+.tetris-placar > div {
+    padding: 6px 4px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .08);
+}
+
+.tetris-placar span {
+    display: block;
+    font-size: .68rem;
+    opacity: .75;
+}
+
+.tetris-placar strong {
+    font-size: 1.2rem;
+}
+
+#tetris-proximo {
+    display: block;
+    margin: 2px auto 0;
+    border-radius: 6px;
+}
+
+#tetris-canvas {
+    display: block;
+    margin: 8px auto;
+    height: min(46vh, 480px);
+    width: auto;
+    border-radius: 8px;
+    touch-action: none;
+}
+
+.tetris-controles {
+    width: min(92vw, 360px);
+    margin: 10px auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.tetris-btn {
+    padding: 14px 0;
+    border: 0;
+    border-radius: 12px;
+    background: #245a94;
+    color: #fff;
+    font-size: 1.3rem;
+    font-weight: 700;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+.tetris-btn:active {
+    transform: scale(.95);
+}
+
+.tetris-btn-queda {
+    grid-column: span 2;
+    background: #06a77d;
+    font-size: 1rem;
+}
+
+/* ---------- RANKING ---------- */
+
+.tetris-ranking {
+    width: min(92vw, 380px);
+    margin: 18px auto;
+    text-align: left;
+}
+
+.tetris-ranking-titulo {
+    display: block;
+    text-align: center;
+}
+
+.tetris-ranking-info {
+    margin: 6px 0 10px;
+    font-size: .8rem;
+    opacity: .8;
+    text-align: center;
+}
+
+.tetris-rk-linha {
+    display: grid;
+    grid-template-columns: 34px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    margin-bottom: 4px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .06);
+}
+
+.tetris-rk-eu {
+    outline: 2px solid #245a94;
+}
+
+.tetris-rk-nome {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tetris-rk-dados {
+    font-size: .85rem;
+    white-space: nowrap;
+}
+
+.tetris-rk-vazio {
+    text-align: center;
+    opacity: .75;
+}
+
+.tetris-minha-posicao {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(36, 90, 148, .35);
+    text-align: center;
+}

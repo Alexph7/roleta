@@ -23,6 +23,9 @@ const registrarRota100x100 =
 const registrarRotaMemoria =
     require("./routes/memoria");
 
+const registrarRotaTetris =
+    require("./routes/tetris");
+
 const { Bot } = require("node-telegram-bot-api");
 
 const {
@@ -612,6 +615,15 @@ registrarRotaMemoria(
         usuarioLiberadoPorId,
         salvarUsuarioTelegram,
         avisarGanhador
+    }
+);
+
+registrarRotaTetris(
+    app,
+    {
+        validarInitDataTelegram,
+        usuarioLiberadoPorId,
+        salvarUsuarioTelegram
     }
 );
 
