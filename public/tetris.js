@@ -54,6 +54,74 @@
         ["#ffd08f", "#ff7f12", "#bd4d06", "#ffa94f", "#7d3003"]  // L
     ];
 
+    // ==============================
+    // FUNDO ANIMADO (pecas flutuando, brilhos e luzes)
+    // ==============================
+
+    (function criarFundoAnimado() {
+        const fundo = document.createElement("div");
+        fundo.className = "tetris-fundo";
+        fundo.setAttribute("aria-hidden", "true");
+
+        // [tipo, rotacao, esquerda %, topo %, tamanho px, duracao s, atraso s]
+        const pecas = [
+            [2, 1, 1, 10, 16, 9, 0],
+            [0, 1, 88, 6, 14, 11, 2],
+            [6, 0, 3, 38, 18, 10, 1],
+            [3, 1, 86, 34, 16, 12, 3],
+            [5, 2, 0, 66, 15, 8, 4],
+            [4, 0, 87, 62, 17, 13, 1],
+            [1, 0, 40, 1, 14, 10, 2],
+            [0, 0, 70, 90, 13, 9, 5],
+            [2, 3, 12, 92, 14, 11, 0]
+        ];
+
+        pecas.forEach(([tipo, rot, esq, topo, tam, dur, atraso]) => {
+            const peca = document.createElement("div");
+            peca.className = "tetris-fundo-peca";
+            peca.style.left = esq + "%";
+            peca.style.top = topo + "%";
+            peca.style.setProperty("--d", dur + "s");
+            peca.style.animationDelay = "-" + atraso + "s";
+            peca.style.filter =
+                "drop-shadow(0 0 7px " + CORES[tipo][1] + ")";
+
+            Motor.celulasPeca(tipo, rot).forEach(([cx, cy]) => {
+                const c = document.createElement("i");
+                c.style.left = cx * tam + "px";
+                c.style.top = cy * tam + "px";
+                c.style.width = c.style.height = tam - 1 + "px";
+                c.style.background =
+                    "linear-gradient(135deg," + CORES[tipo][0] + "," +
+                    CORES[tipo][1] + " 55%," + CORES[tipo][2] + ")";
+                peca.appendChild(c);
+            });
+
+            fundo.appendChild(peca);
+        });
+
+        // brilhos que piscam
+        for (let i = 0; i < 18; i++) {
+            const b = document.createElement("b");
+            b.style.left = (i * 37 + 7) % 100 + "%";
+            b.style.top = (i * 53 + 11) % 100 + "%";
+            b.style.animationDelay = "-" + (i % 6) * 0.7 + "s";
+            b.style.animationDuration = 2.2 + (i % 5) * 0.6 + "s";
+            fundo.appendChild(b);
+        }
+
+        // colunas de luz no horizonte
+        for (let i = 0; i < 7; i++) {
+            const l = document.createElement("u");
+            l.style.left = (i * 16 + 2) % 100 + "%";
+            l.style.height = 14 + (i * 7) % 18 + "%";
+            l.style.animationDelay = "-" + i * 0.9 + "s";
+            fundo.appendChild(l);
+        }
+
+        painelJogo.insertBefore(fundo, painelJogo.firstChild);
+    })();
+
     let jogo = null;
     let acoesFeitas = [];
     let partidaId = null;
@@ -624,13 +692,16 @@
             if (letra !== "C") acao(letra);
         }
 
-        canvas.addEventListener("pointerdown", ev => {
+        painelJogo.addEventListener("pointerdown", ev => {
             if (!rodando) return;
+
+            // botoes e placar continuam funcionando normalmente
+            if (ev.target.closest("button, .tetris-placar")) return;
 
             ev.preventDefault();
 
             try {
-                canvas.setPointerCapture(ev.pointerId);
+                painelJogo.setPointerCapture(ev.pointerId);
             } catch (erro) {
                 // sem captura, segue normal
             }
@@ -658,7 +729,7 @@
             }
         });
 
-        canvas.addEventListener("pointermove", ev => {
+        painelJogo.addEventListener("pointermove", ev => {
             ultimo = { x: ev.clientX, y: ev.clientY };
 
             if (!inicio || inicio.moveu) return;
@@ -674,7 +745,7 @@
             }
         });
 
-        canvas.addEventListener("pointerup", () => {
+        painelJogo.addEventListener("pointerup", () => {
             if (inicio && !inicio.moveu && !inicio.repetindo) {
                 acao(inicio.zona);
             }
@@ -682,8 +753,8 @@
             limpar();
         });
 
-        canvas.addEventListener("pointercancel", limpar);
-        canvas.addEventListener("contextmenu", ev => ev.preventDefault());
+        painelJogo.addEventListener("pointercancel", limpar);
+        painelJogo.addEventListener("contextmenu", ev => ev.preventDefault());
     })();
 
     // Se o app for para o fundo, a queda pausa.
