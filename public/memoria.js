@@ -13,6 +13,7 @@
     }
 
     const telaModos = el("tela-modos");
+    const telaHabilidade = el("tela-habilidade");
     const telaMemoria = el("tela-memoria");
     const botaoAbrir = el("abrir-memoria");
     const botaoVoltar = el("voltar-menu-memoria");
@@ -162,8 +163,10 @@
         telaMemoria.hidden = true;
         mostrarRegras();
 
-        if (telaModos) {
-            telaModos.hidden = false;
+        const destino = telaHabilidade || telaModos;
+
+        if (destino) {
+            destino.hidden = false;
         }
     }
 
@@ -214,7 +217,7 @@
 
                 avisoEl.textContent = r
                     ? `Você já concluiu: Partida ${r.numeroPartida}, ` +
-                      `${r.jogadas} jogadas, ${formatarTempo(r.tempoMs)}, ${r.posicao}º lugar.`
+                    `${r.jogadas} jogadas, ${formatarTempo(r.tempoMs)}, ${r.posicao}º lugar.`
                     : "Você já concluiu o jogo.";
 
                 return;
@@ -390,7 +393,7 @@
 
                 resultado.textContent = r
                     ? `Concluído! Partida ${r.numeroPartida}, ` +
-                      `${r.jogadas} jogadas em ${formatarTempo(r.tempoMs)}. Você está em ${r.posicao}º lugar.`
+                    `${r.jogadas} jogadas em ${formatarTempo(r.tempoMs)}. Você está em ${r.posicao}º lugar.`
                     : `Concluído em ${dados.jogadas} jogadas.`;
 
                 carregarRanking();

@@ -49,7 +49,7 @@
                     </div>
                 </button>
 
-                <button id="abrir-memoria" class="card-jogo" type="button">
+                <button id="abrir-habilidade" class="card-jogo" type="button">
                     <div class="card-jogo-icone">🎯</div>
                     <div class="card-jogo-conteudo">
                         <strong>Modo Habilidade</strong>
@@ -67,9 +67,29 @@
 
         <!-- SUBSTITUA todo o bloco <section id="tela-memoria"> ... </section> do index.html por este: -->
 
+        <section id="tela-habilidade" class="tela" hidden>
+            <button id="voltar-menu-habilidade" class="voltar-menu" type="button">
+                ← MODOS
+            </button>
+
+            <div class="menu-topo">
+                <p class="subtitulo-menu">MODO HABILIDADE</p>
+                <img class="menu-logo" src="logo-centro.png" alt="Paradoxo" draggable="false">
+            </div>
+
+            <div class="grade-jogos">
+                <button id="abrir-memoria" class="card-jogo" type="button">
+                    <div class="card-jogo-icone">🧠</div>
+                    <div class="card-jogo-conteudo">
+                        <strong>Jogo da Memória</strong>
+                    </div>
+                </button>
+            </div>
+        </section>
+
         <section id="tela-memoria" class="tela" hidden>
             <button id="voltar-menu-memoria" class="voltar-menu" type="button">
-                ← MODOS
+                ← HABILIDADE
             </button>
 
             <h1>🧠 Jogo da Memória</h1>
@@ -726,7 +746,8 @@
 
     <script src="captcha-pontos.js?v=conta-2"></script>
     <script src="app.js?v=captcha-1"></script>
-    <script src="memoria.js?v=4"></script>
+    <script src="habilidade.js?v=1"></script>
+    <script src="memoria.js?v=5"></script>
     <script src="js/100x100.js?v=1"></script>
     <script src="js/perfil.js?v=2"></script>
     <script src="js/ranking-diamantes.js?v=3"></script>
