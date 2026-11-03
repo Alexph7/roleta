@@ -21,4 +21,17 @@
         telaHabilidade.hidden = true;
         telaModos.hidden = false;
     });
+
+    // Botao VOLTAR do Modo Sorte (tela-menu) para a escolha de modos
+    const botaoVoltarSorte = document.getElementById("voltar-modos-sorte");
+
+    if (botaoVoltarSorte) {
+        botaoVoltarSorte.addEventListener("click", () => {
+            document.querySelectorAll("main > .tela").forEach(tela => {
+                tela.hidden = true;
+            });
+
+            telaModos.hidden = false;
+        });
+    }
 })();
