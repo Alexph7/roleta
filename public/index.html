@@ -11,7 +11,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js?63"></script>
 
     <link rel="stylesheet" href="style.css?v=7">
-    <link rel="stylesheet" href="memoria.css?v=4">
+    <link rel="stylesheet" href="memoria.css?v=5">
     <link rel="stylesheet" href="tetris.css?v=9">
     <link rel="stylesheet" href="css/100x100.css?v=1">
     <link rel="stylesheet" href="podio.css?v=1">
@@ -91,6 +91,56 @@
                     </div>
                 </button>
             </div>
+        </section>
+
+        <section id="tela-memoria" class="tela" hidden>
+            <div class="memoria-topo">
+                <button id="voltar-menu-memoria" class="voltar-menu" type="button">
+                    ← HABILIDADE
+                </button>
+
+                <button id="memoria-som" class="memoria-som" type="button">
+                    SOM ON
+                </button>
+            </div>
+
+            <h1>🧠 Jogo da Memória</h1>
+
+            <div id="memoria-regras" class="memoria-regras">
+                <strong class="memoria-regras-titulo">Como jogar</strong>
+
+                <ul class="memoria-regras-lista">
+                    <li>Vire duas cartas por vez e encontre todos os pares.</li>
+                    <li>Cada par virado, acertando ou errando, conta 1 jogada.</li>
+                    <li>Sem pressa e sem tempo: é só para relaxar.</li>
+                    <li>Jogue quantas vezes quiser.</li>
+                </ul>
+
+                <button id="memoria-comecar" class="memoria-comecar" type="button">
+                    COMEÇAR
+                </button>
+            </div>
+
+            <div id="memoria-jogo" hidden>
+                <div class="memoria-placar">
+                    <div>
+                        <span>JOGADAS</span>
+                        <strong id="memoria-placar-jogadas">0</strong>
+                    </div>
+                    <div>
+                        <span>PARES</span>
+                        <strong id="memoria-placar-pares">0/24</strong>
+                    </div>
+                </div>
+
+                <div id="memoria-grade" class="memoria-grade" aria-label="Jogo da memória"></div>
+            </div>
+
+            <p id="resultado-memoria" class="memoria-resultado"></p>
+
+            <button id="memoria-de-novo" class="memoria-comecar" type="button" hidden>
+                JOGAR DE NOVO
+            </button>
         </section>
 
         <section id="tela-tetris" class="tela" hidden>
