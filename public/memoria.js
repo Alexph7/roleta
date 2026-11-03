@@ -222,7 +222,7 @@
         botaoDeNovo.hidden = true;
 
         resultado.textContent =
-            `Encontre os ${TOTAL_PARES} pares. Sem pressa, é só para relaxar.`;
+            `Encontre os ${TOTAL_PARES} pares.`;
     }
 
     function comecar() {
