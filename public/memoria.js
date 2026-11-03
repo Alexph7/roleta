@@ -12,7 +12,6 @@
     const botaoComecar = el("memoria-comecar");
 
     const jogo = el("memoria-jogo");
-    const placarTempo = el("memoria-placar-partida");
     const placarJogadas = el("memoria-placar-jogadas");
     const placarPares = el("memoria-placar-pares");
     const grade = el("memoria-grade");
@@ -27,14 +26,15 @@
         return;
     }
 
-    const TOTAL_CARTAS = 36;
+    const TOTAL_CARTAS = 48;
     const TOTAL_PARES = TOTAL_CARTAS / 2;
     const ESPERA_ERRO_MS = 900;
 
     const EMOJIS = [
         0x1F34E, 0x1F349, 0x1F680, 0x1F31F, 0x1F381, 0x1F984,
         0x1F43C, 0x1F355, 0x26BD, 0x1F308, 0x1F438, 0x1F431,
-        0x1F436, 0x1F354, 0x1F388, 0x1F3C6, 0x1F6B2, 0x1F3B8
+        0x1F436, 0x1F354, 0x1F388, 0x1F3C6, 0x1F6B2, 0x1F3B8,
+        0x1F353, 0x1F419, 0x1F33B, 0x1F369, 0x1F98A, 0x1F3AE
     ].map(codigo => String.fromCodePoint(codigo));
 
     let cartas = [];            // emoji de cada posicao
@@ -42,9 +42,49 @@
     let encontradas = new Set();
     let jogadas = 0;
     let bloqueado = false;
-    let inicioEm = null;
-    let relogio = null;
     let emAndamento = false;
+
+    // ==============================
+    // FUNDO ANIMADO (suave, para relaxar)
+    // ==============================
+
+    (function criarFundo() {
+        const fundo = document.createElement("div");
+        fundo.className = "memoria-fundo";
+        fundo.setAttribute("aria-hidden", "true");
+
+        // [emoji, esquerda %, topo %, tamanho px, duracao s, atraso s]
+        const flutuantes = [
+            [0, 6, 8, 34, 14, 0], [3, 82, 12, 30, 16, 3],
+            [6, 90, 40, 36, 18, 5], [9, 3, 45, 32, 15, 2],
+            [12, 14, 72, 38, 17, 6], [15, 78, 76, 34, 14, 1],
+            [18, 46, 4, 28, 19, 4], [21, 50, 90, 30, 16, 7],
+            [1, 30, 28, 26, 20, 8], [4, 68, 55, 26, 18, 9]
+        ];
+
+        flutuantes.forEach(([i, esq, topo, tam, dur, atraso]) => {
+            const f = document.createElement("span");
+            f.className = "memoria-fundo-emoji";
+            f.textContent = EMOJIS[i % EMOJIS.length];
+            f.style.left = esq + "%";
+            f.style.top = topo + "%";
+            f.style.fontSize = tam + "px";
+            f.style.setProperty("--d", dur + "s");
+            f.style.animationDelay = "-" + atraso + "s";
+            fundo.appendChild(f);
+        });
+
+        for (let i = 0; i < 16; i++) {
+            const b = document.createElement("b");
+            b.style.left = (i * 41 + 9) % 100 + "%";
+            b.style.top = (i * 57 + 13) % 100 + "%";
+            b.style.animationDelay = "-" + (i % 6) * 0.8 + "s";
+            b.style.animationDuration = 2.6 + (i % 5) * 0.7 + "s";
+            fundo.appendChild(b);
+        }
+
+        telaMemoria.insertBefore(fundo, telaMemoria.firstChild);
+    })();
 
     // ==============================
     // MUSICA DE FUNDO
@@ -119,14 +159,6 @@
     // JOGO
     // ==============================
 
-    function formatarTempo(ms) {
-        const total = Math.max(0, Math.round(ms / 1000));
-        const min = Math.floor(total / 60);
-        const seg = String(total % 60).padStart(2, "0");
-
-        return `${min}:${seg}`;
-    }
-
     function embaralhar() {
         const lista = [...EMOJIS, ...EMOJIS];
 
@@ -136,17 +168,6 @@
         }
 
         return lista;
-    }
-
-    function atualizarRelogio() {
-        placarTempo.textContent = inicioEm
-            ? formatarTempo(Date.now() - inicioEm)
-            : "0:00";
-    }
-
-    function pararRelogio() {
-        clearInterval(relogio);
-        relogio = null;
     }
 
     function atualizarPlacar() {
@@ -186,26 +207,22 @@
     }
 
     function novaPartida() {
-        pararRelogio();
-
         cartas = embaralhar();
         abertas = [];
         encontradas = new Set();
         jogadas = 0;
         bloqueado = false;
-        inicioEm = null;
         emAndamento = true;
 
         criarGrade();
         atualizarPlacar();
-        atualizarRelogio();
 
         regras.hidden = true;
         jogo.hidden = false;
         botaoDeNovo.hidden = true;
 
         resultado.textContent =
-            `Encontre os ${TOTAL_PARES} pares com o menor número de jogadas.`;
+            `Encontre os ${TOTAL_PARES} pares. Sem pressa, é só para relaxar.`;
     }
 
     function comecar() {
@@ -216,13 +233,10 @@
 
     function terminar() {
         emAndamento = false;
-        pararRelogio();
-        atualizarRelogio();
         musica.pausar();
 
         resultado.textContent =
-            `Concluído! ${jogadas} jogadas em ` +
-            `${formatarTempo(Date.now() - inicioEm)}.`;
+            `Parabéns! Você encontrou todos os pares em ${jogadas} jogadas.`;
 
         botaoDeNovo.hidden = false;
     }
@@ -230,11 +244,6 @@
     function virar(indice) {
         if (bloqueado || !emAndamento) return;
         if (encontradas.has(indice) || abertas.includes(indice)) return;
-
-        if (!inicioEm) {
-            inicioEm = Date.now();
-            relogio = setInterval(atualizarRelogio, 500);
-        }
 
         abertas.push(indice);
         desenharTudo();
@@ -290,7 +299,6 @@
     }
 
     function sairDaTela() {
-        pararRelogio();
         emAndamento = false;
         musica.pausar();
 
