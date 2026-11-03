@@ -404,9 +404,9 @@
     // PARTIDA
     // ==============================
 
-    function intervaloQueda() {
-        // Velocidade fixa, nao acelera.
-        return 800;
+       function intervaloQueda() {
+        // A cada 17 linhas fica 0,05 s mais rapido, ate o limite de 0,30 s.
+        return Math.max(300, 800 - 50 * Math.floor(jogo.linhas / 17));
     }
 
     function agendarQueda() {
