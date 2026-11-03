@@ -405,8 +405,8 @@
     // ==============================
 
     function intervaloQueda() {
-        // Fica mais rapido a cada 10 linhas.
-        return Math.max(150, 800 - 50 * Math.floor(jogo.linhas / 10));
+        // Velocidade fixa, nao acelera.
+        return 800;
     }
 
     function agendarQueda() {
