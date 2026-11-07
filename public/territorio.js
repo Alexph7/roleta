@@ -46,6 +46,12 @@
     const VITORIA = 100;        // % da arena para vencer
     const RENASCER = 120;       // passos ate um bot voltar (60 passos = 1 segundo)
 
+    // IDs do Telegram que podem jogar enquanto o card esta bloqueado.
+    // Para liberar para todos: tire o bloqueio do card no index.html.
+    const LIBERADO_PARA = [
+        6294708048
+    ];
+
     const PASSO = 1 / 60;       // o jogo calcula 60 vezes por segundo
     const S = 0.5;              // tamanho de cada "pedacinho" interno da arena
     const G = Math.ceil((RAIO * 2) / S) + 8;
@@ -1084,6 +1090,17 @@
     // ========================================
     // TELAS
     // ========================================
+
+    // Libera o card so para os IDs acima (e no PC, rodando local, para testes)
+    const meuId = Number(tg?.initDataUnsafe?.user?.id || 0);
+    const local = ["localhost", "127.0.0.1"].includes(location.hostname);
+
+    if (botaoAbrir.disabled && (LIBERADO_PARA.includes(meuId) || local)) {
+        botaoAbrir.disabled = false;
+        botaoAbrir.classList.remove("card-bloqueado");
+        const aviso = botaoAbrir.querySelector("small");
+        if (aviso) aviso.textContent = "SÓ VOCÊ VÊ";
+    }
 
     botaoAbrir.addEventListener("click", () => {
         document.querySelectorAll("main > .tela").forEach(t => {
