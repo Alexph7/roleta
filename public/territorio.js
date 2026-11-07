@@ -13,7 +13,6 @@
     const placar = document.getElementById("territorio-placar");
     const placarArea = document.getElementById("territorio-placar-area");
     const placarElim = document.getElementById("territorio-placar-elim");
-    const placarTempo = document.getElementById("territorio-placar-tempo");
     const canvas = document.getElementById("territorio-canvas");
     const botaoComecar = document.getElementById("territorio-comecar");
     const textoRecorde = document.getElementById("territorio-recorde");
@@ -23,7 +22,7 @@
     if (
         !telaHabilidade || !tela || !botaoAbrir || !botaoVoltar ||
         !areaRegras || !areaJogo || !placar || !placarArea ||
-        !placarElim || !placarTempo || !canvas || !botaoComecar ||
+        !placarElim || !canvas || !botaoComecar ||
         !textoRecorde || !resultado || !botaoDeNovo
     ) {
         console.error("Elementos do Territorio nao encontrados.");
@@ -37,19 +36,19 @@
     // CONFIGURACOES (pode ajustar aqui)
     // ========================================
 
-    const RAIO = 55;            // tamanho da arena
-    const VISTA = 30;           // largura visivel da arena na tela (zoom)
-    const VELOCIDADE = 12.5;     // velocidade de todos
+    const RAIO = 80;            // tamanho da arena
+    const VISTA = 34;           // largura visivel da arena na tela (zoom)
+    const VELOCIDADE = 8.5;     // velocidade de todos
     const GIRO_JOGADOR = 5.0;   // rapidez da curva do jogador (maior = curva mais fechada)
     const GIRO_BOT = 4.0;       // rapidez da curva dos bots
-    const NUM_BOTS = 5;
+    const NUM_BOTS = 9;
     const VITORIA = 100;        // % da arena para vencer
     const RENASCER = 120;       // passos ate um bot voltar (60 passos = 1 segundo)
 
     // IDs do Telegram que podem jogar enquanto o card esta bloqueado.
     // Para liberar para todos: tire o bloqueio do card no index.html.
     const LIBERADO_PARA = [
-        6294708048
+        // coloque aqui o seu ID do Telegram, ex.: 123456789
     ];
 
     const PASSO = 1 / 60;       // o jogo calcula 60 vezes por segundo
@@ -58,8 +57,14 @@
     const C = (G * S) / 2;      // centro da arena
 
     // Cor 0 = jogador (roxo do app). Demais = bots (cores ja usadas no app).
-    const CORES = ["#7c5cff", "#ff6b6b", "#06d6a0", "#4cc9f0", "#ffd166", "#f77f00"];
-    const NOMES = ["Você", "Cometa", "Faísca", "Nuvem", "Trovão", "Lince"];
+    const CORES = [
+        "#7c5cff", "#ff6b6b", "#06d6a0", "#4cc9f0", "#ffd166",
+        "#f77f00", "#f72585", "#90be6d", "#2b9348", "#577590"
+    ];
+    const NOMES = [
+        "Você", "Cometa", "Faísca", "Nuvem", "Trovão",
+        "Lince", "Brisa", "Raio", "Pixel", "Orion"
+    ];
 
     // ========================================
     // MAPA INTERNO
@@ -93,7 +98,6 @@
     let maxPct = 0;
     let acumulado = 0;
     let ultimoQuadro = 0;
-    let minimapaSujo = true;
 
     // ========================================
     // AJUDANTES
@@ -332,7 +336,6 @@
         e.casaPerto = null;
 
         construirContorno(e);
-        minimapaSujo = true;
         return true;
     }
 
@@ -356,7 +359,6 @@
 
         e.contorno = null;
         e.area = 0;
-        minimapaSujo = true;
 
         if (assassino && assassino !== e) assassino.elim++;
 
@@ -409,7 +411,6 @@
             else construirContorno(o);
         }
 
-        minimapaSujo = true;
     }
 
     // ========================================
@@ -616,7 +617,8 @@
                 const cc = celula(e.x + ox, e.y + oy);
                 if (cc < 0 || !valido[cc] || dono[cc] === e.id) continue;
                 if (trilha[cc] && trilha[cc] !== e.id) continue;
-                if (trilha[cc] !== e.id) e.trilhaCel.push(cc);
+                if (trilha[cc] === e.id) continue;
+                e.trilhaCel.push(cc);
                 trilha[cc] = e.id;
                 carimbo[cc] = passos;
             }
@@ -634,7 +636,6 @@
         if (passos % 6 === 0) {
             placarArea.textContent = `${pct.toFixed(1)}%`;
             placarElim.textContent = jogador.elim;
-            placarTempo.textContent = formatarTempo(passos * PASSO * 1000);
         }
 
         if (jogadorMorreu) terminar(false);
@@ -644,29 +645,6 @@
     // ========================================
     // DESENHO
     // ========================================
-
-    const minimapa = document.createElement("canvas");
-    minimapa.width = G;
-    minimapa.height = G;
-    const mctx = minimapa.getContext("2d");
-
-    function atualizarMinimapa() {
-        const img = mctx.createImageData(G, G);
-        const base = [27, 23, 48];
-        const rgb = CORES.map(hexParaRgb);
-
-        for (let c = 0; c < dono.length; c++) {
-            if (!valido[c]) continue;
-            const cor = dono[c] ? rgb[dono[c] - 1] : base;
-            img.data[c * 4] = cor[0];
-            img.data[c * 4 + 1] = cor[1];
-            img.data[c * 4 + 2] = cor[2];
-            img.data[c * 4 + 3] = 255;
-        }
-
-        mctx.putImageData(img, 0, 0);
-        minimapaSujo = false;
-    }
 
     function formatarTempo(ms) {
         const total = Math.floor(ms / 1000);
@@ -708,13 +686,13 @@
         // Chao da arena
         ctx.beginPath();
         ctx.arc(C, C, RAIO, 0, Math.PI * 2);
-        ctx.fillStyle = "#1b1730";
+        ctx.fillStyle = "#f4f2fb";
         ctx.fill();
 
         // Textura leve (da sensacao de movimento)
         ctx.save();
         ctx.clip();
-        ctx.strokeStyle = "rgba(255,255,255,0.035)";
+        ctx.strokeStyle = "rgba(21,18,41,0.05)";
         ctx.lineWidth = 0.06;
         const meiaL = VISTA / 2 + 2;
         const meiaA = (H / esc) / 2 + 2;
@@ -803,8 +781,9 @@
             ctx.font = "bold 0.75px Arial";
             ctx.textAlign = "center";
             ctx.textBaseline = "bottom";
-            ctx.fillStyle = "rgba(0,0,0,0.45)";
-            ctx.fillText(e.nome, 0.05, -1.05);
+            ctx.lineWidth = 0.18;
+            ctx.strokeStyle = "rgba(21,18,41,0.75)";
+            ctx.strokeText(e.nome, 0, -1.1);
             ctx.fillStyle = "#ffffff";
             ctx.fillText(e.nome, 0, -1.1);
 
@@ -813,36 +792,6 @@
 
         ctx.globalAlpha = 1;
 
-        // Minimapa
-        if (minimapaSujo) atualizarMinimapa();
-
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        const tam = 64 * dpr;
-        const mx = W - tam - 8 * dpr;
-        const my = H - tam - 8 * dpr;
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(mx + tam / 2, my + tam / 2, tam / 2, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(9,8,17,0.75)";
-        ctx.fill();
-        ctx.clip();
-        ctx.globalAlpha = 0.9;
-        ctx.drawImage(minimapa, mx, my, tam, tam);
-        ctx.restore();
-
-        ctx.beginPath();
-        ctx.arc(mx + tam / 2, my + tam / 2, tam / 2, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(140,120,255,0.8)";
-        ctx.lineWidth = 1.5 * dpr;
-        ctx.stroke();
-
-        if (jogador.vivo) {
-            ctx.beginPath();
-            ctx.arc(mx + (jogador.x / (G * S)) * tam, my + (jogador.y / (G * S)) * tam, 2.5 * dpr, 0, Math.PI * 2);
-            ctx.fillStyle = "#ffffff";
-            ctx.fill();
-        }
     }
 
     // ========================================
@@ -946,11 +895,9 @@
         jogadorMorreu = false;
         acumulado = 0;
         pausado = false;
-        minimapaSujo = true;
 
         placarArea.textContent = "0%";
         placarElim.textContent = "0";
-        placarTempo.textContent = "00:00";
 
         areaRegras.hidden = true;
         areaJogo.hidden = false;
@@ -974,15 +921,14 @@
         const recordeAntes = lerRecorde();
         if (maxPct > recordeAntes) salvarRecorde(maxPct);
 
-        const tempo = formatarTempo(passos * PASSO * 1000);
         const elim = jogador.elim;
         const textoElim = `${elim} ${elim === 1 ? "eliminação" : "eliminações"}`;
 
         if (venceu) {
-            resultado.textContent = `🏆 Você preencheu o círculo em ${tempo} com ${textoElim}!`;
+            resultado.textContent = `🏆 Você preencheu o círculo com ${textoElim}!`;
         } else {
             resultado.textContent =
-                `Fim! Maior área: ${maxPct.toFixed(1)}% · ${textoElim} · ${tempo}` +
+                `Fim! Maior área: ${maxPct.toFixed(1)}% · ${textoElim}` +
                 (maxPct > recordeAntes && recordeAntes > 0 ? " · Novo recorde!" : "");
         }
 
