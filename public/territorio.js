@@ -1004,24 +1004,31 @@
     // CONTROLES
     // ========================================
 
-    // Joystick: a direcao e a do dedo em relacao ao ponto onde tocou.
-    // Se o dedo se afasta muito, o ponto de origem acompanha,
-    // entao da para virar para qualquer lado sem tirar o dedo.
+    // Joystick tipo volante: ao encostar o dedo, ele ja comeca apontando
+    // para onde o personagem esta indo. Mover o dedo um pouco para o lado
+    // vira pouco; arrastar muito vira muito.
     const controle = { alvo: null, origem: null };
-    const SENSIBILIDADE = 6;   // px minimos de arraste para virar
-    const ALCANCE = 40;        // px maximos entre origem e dedo
+    const ALCANCE = 70;        // maior = virada mais suave para o mesmo arraste
+
+    function iniciarDedo(x, y) {
+        const ang = jogador ? jogador.ang : 0;
+        controle.origem = {
+            x: x - Math.cos(ang) * ALCANCE,
+            y: y - Math.sin(ang) * ALCANCE
+        };
+    }
 
     function moverDedo(x, y) {
         if (!controle.origem) {
-            controle.origem = { x, y };
+            iniciarDedo(x, y);
             return;
         }
 
-        let dx = x - controle.origem.x;
-        let dy = y - controle.origem.y;
+        const dx = x - controle.origem.x;
+        const dy = y - controle.origem.y;
         const dist = Math.hypot(dx, dy);
 
-        if (dist < SENSIBILIDADE) return;
+        if (dist < 1) return;
 
         controle.alvo = Math.atan2(dy, dx);
 
@@ -1033,7 +1040,7 @@
 
     areaJogo.addEventListener("touchstart", (e) => {
         const t = e.touches[0];
-        controle.origem = { x: t.clientX, y: t.clientY };
+        iniciarDedo(t.clientX, t.clientY);
         e.preventDefault();
     }, { passive: false });
 
