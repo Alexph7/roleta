@@ -4,6 +4,31 @@
 
 #tela-sudoku {
     width: 100%;
+    margin-top: -18px;
+}
+
+/* Linha do topo: voltar + placar */
+
+.sudoku-topo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.sudoku-topo .voltar-menu {
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+/* Tabuleiro, teclado e botoes usam quase toda a largura da tela */
+
+.sudoku-grade,
+.sudoku-teclado,
+.sudoku-acoes {
+    width: min(calc(100vw - 8px), 480px) !important;
+    margin-left: 50% !important;
+    translate: -50% 0;
 }
 
 .sudoku-regras {
@@ -56,31 +81,34 @@
 /* Placar */
 
 .sudoku-placar {
-    width: 100%;
-    max-width: 360px;
-    margin: 0 auto 12px;
+    flex: 1;
+    min-width: 0;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
+    gap: 5px;
+}
+
+.sudoku-placar[hidden] {
+    display: none;
 }
 
 .sudoku-placar div {
-    padding: 8px 6px;
-    border-radius: 11px;
+    padding: 5px 3px;
+    border-radius: 9px;
     background: rgba(255, 255, 255, 0.05);
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 2px;
 }
 
 .sudoku-placar span {
     color: #aaa6b8;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: bold;
 }
 
 .sudoku-placar strong {
-    font-size: 16px;
+    font-size: 14px;
 }
 
 /* Tabuleiro */
@@ -88,7 +116,7 @@
 .sudoku-grade {
     width: min(100%, 360px);
     aspect-ratio: 1 / 1;
-    margin: 0 auto 14px;
+    margin: 0 0 10px;
     display: grid;
     grid-template-columns: repeat(9, minmax(0, 1fr));
     grid-template-rows: repeat(9, minmax(0, 1fr));
@@ -110,7 +138,7 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     background: transparent;
     color: #cffff0;
-    font-size: 20px;
+    font-size: 22px;
     font-weight: bold;
     cursor: pointer;
 }
@@ -158,7 +186,7 @@
     align-items: center;
     justify-content: center;
     color: #aaa6b8;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: normal;
     line-height: 1;
 }

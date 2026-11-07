@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="css/100x100.css?v=1">
     <link rel="stylesheet" href="podio.css?v=1">
     <link rel="stylesheet" href="captcha-pontos.css?v=conta-2">
-    <link rel="stylesheet" href="sudoku.css?v=1">
+    <link rel="stylesheet" href="sudoku.css?v=2">
 </head>
 
 <body>
@@ -214,14 +214,29 @@
         </section>
 
         <section id="tela-sudoku" class="tela" hidden>
-            <button id="voltar-menu-sudoku" class="voltar-menu" type="button">
-                ← HABILIDADE
-            </button>
+            <div class="sudoku-topo">
+                <button id="voltar-menu-sudoku" class="voltar-menu" type="button">
+                    ← HABILIDADE
+                </button>
 
-            <h1>🔢 Sudoku</h1>
+                <div id="sudoku-placar" class="sudoku-placar" hidden>
+                    <div>
+                        <span>NÍVEL</span>
+                        <strong id="sudoku-placar-nivel">-</strong>
+                    </div>
+                    <div>
+                        <span>TEMPO</span>
+                        <strong id="sudoku-placar-tempo">00:00</strong>
+                    </div>
+                    <div>
+                        <span>ERROS</span>
+                        <strong id="sudoku-placar-erros">0</strong>
+                    </div>
+                </div>
+            </div>
 
             <div id="sudoku-regras" class="sudoku-regras">
-                <strong class="sudoku-regras-titulo">Como jogar</strong>
+                <strong class="sudoku-regras-titulo">Sudoku - Como jogar</strong>
 
                 <ul class="sudoku-regras-lista">
                     <li>Preencha a grade para que cada linha, coluna e quadrado 3x3 tenha os números de 1 a 9, sem
@@ -240,21 +255,6 @@
             </div>
 
             <div id="sudoku-jogo" hidden>
-                <div class="sudoku-placar">
-                    <div>
-                        <span>NÍVEL</span>
-                        <strong id="sudoku-placar-nivel">-</strong>
-                    </div>
-                    <div>
-                        <span>TEMPO</span>
-                        <strong id="sudoku-placar-tempo">00:00</strong>
-                    </div>
-                    <div>
-                        <span>ERROS</span>
-                        <strong id="sudoku-placar-erros">0</strong>
-                    </div>
-                </div>
-
                 <div id="sudoku-grade" class="sudoku-grade" aria-label="Sudoku"></div>
 
                 <div id="sudoku-teclado" class="sudoku-teclado"></div>
@@ -870,7 +870,7 @@
     <script src="memoria.js?v=8"></script>
     <script src="tetris-motor.js?v=6"></script>
     <script src="tetris.js?v=12"></script>
-    <script src="sudoku.js?v=1"></script>
+    <script src="sudoku.js?v=2"></script>
     <script src="js/100x100.js?v=1"></script>
     <script src="js/perfil.js?v=2"></script>
     <script src="js/ranking-diamantes.js?v=3"></script>

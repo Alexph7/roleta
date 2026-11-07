@@ -13,6 +13,7 @@
     const grade = document.getElementById("sudoku-grade");
     const teclado = document.getElementById("sudoku-teclado");
 
+    const placar = document.getElementById("sudoku-placar");
     const placarNivel = document.getElementById("sudoku-placar-nivel");
     const placarTempo = document.getElementById("sudoku-placar-tempo");
     const placarErros = document.getElementById("sudoku-placar-erros");
@@ -26,7 +27,7 @@
     if (
         !telaHabilidade || !telaSudoku || !botaoAbrir || !botaoVoltar ||
         !areaRegras || !areaJogo || !grade || !teclado ||
-        !placarNivel || !placarTempo || !placarErros ||
+        !placar || !placarNivel || !placarTempo || !placarErros ||
         !botaoNotas || !botaoApagar || !resultado || !botaoDeNovo
     ) {
         console.error("Elementos do Sudoku nao encontrados.");
@@ -379,6 +380,7 @@
         terminado = true;
         areaRegras.hidden = false;
         areaJogo.hidden = true;
+        placar.hidden = true;
         botaoDeNovo.hidden = true;
         resultado.textContent = "";
 
@@ -410,6 +412,7 @@
 
             areaRegras.hidden = true;
             areaJogo.hidden = false;
+            placar.hidden = false;
             botaoDeNovo.hidden = true;
             resultado.textContent = "";
 
