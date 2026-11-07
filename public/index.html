@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="css/100x100.css?v=1">
     <link rel="stylesheet" href="podio.css?v=1">
     <link rel="stylesheet" href="captcha-pontos.css?v=conta-2">
+    <link rel="stylesheet" href="sudoku.css?v=1">
 </head>
 
 <body>
@@ -88,6 +89,13 @@
                     <div class="card-jogo-icone">🧱</div>
                     <div class="card-jogo-conteudo">
                         <strong>Blocos</strong>
+                    </div>
+                </button>
+
+                <button id="abrir-sudoku" class="card-jogo" type="button">
+                    <div class="card-jogo-icone">🔢</div>
+                    <div class="card-jogo-conteudo">
+                        <strong>Sudoku</strong>
                     </div>
                 </button>
             </div>
@@ -205,7 +213,66 @@
             </div>
         </section>
 
-               <section id="tela-menu" class="tela" hidden>
+        <section id="tela-sudoku" class="tela" hidden>
+            <button id="voltar-menu-sudoku" class="voltar-menu" type="button">
+                ← HABILIDADE
+            </button>
+
+            <h1>🔢 Sudoku</h1>
+
+            <div id="sudoku-regras" class="sudoku-regras">
+                <strong class="sudoku-regras-titulo">Como jogar</strong>
+
+                <ul class="sudoku-regras-lista">
+                    <li>Preencha a grade para que cada linha, coluna e quadrado 3x3 tenha os números de 1 a 9, sem
+                        repetir.</li>
+                    <li>Toque numa casa vazia e depois no número.</li>
+                    <li>Número errado fica vermelho e conta 1 erro.</li>
+                    <li>Use o lápis para anotar possibilidades.</li>
+                    <li>Jogue quantas vezes quiser.</li>
+                </ul>
+
+                <div class="sudoku-niveis">
+                    <button class="sudoku-nivel" type="button" data-nivel="facil">FÁCIL</button>
+                    <button class="sudoku-nivel" type="button" data-nivel="medio">MÉDIO</button>
+                    <button class="sudoku-nivel" type="button" data-nivel="dificil">DIFÍCIL</button>
+                </div>
+            </div>
+
+            <div id="sudoku-jogo" hidden>
+                <div class="sudoku-placar">
+                    <div>
+                        <span>NÍVEL</span>
+                        <strong id="sudoku-placar-nivel">-</strong>
+                    </div>
+                    <div>
+                        <span>TEMPO</span>
+                        <strong id="sudoku-placar-tempo">00:00</strong>
+                    </div>
+                    <div>
+                        <span>ERROS</span>
+                        <strong id="sudoku-placar-erros">0</strong>
+                    </div>
+                </div>
+
+                <div id="sudoku-grade" class="sudoku-grade" aria-label="Sudoku"></div>
+
+                <div id="sudoku-teclado" class="sudoku-teclado"></div>
+
+                <div class="sudoku-acoes">
+                    <button id="sudoku-notas" class="sudoku-acao" type="button">✏️ LÁPIS OFF</button>
+                    <button id="sudoku-apagar" class="sudoku-acao" type="button">APAGAR</button>
+                </div>
+            </div>
+
+            <p id="resultado-sudoku" class="sudoku-resultado"></p>
+
+            <button id="sudoku-de-novo" class="sudoku-de-novo" type="button" hidden>
+                JOGAR DE NOVO
+            </button>
+        </section>
+
+        <section id="tela-menu" class="tela" hidden>
 
             <button id="voltar-modos-sorte" class="voltar-menu" type="button">
                 ← VOLTAR
@@ -803,6 +870,7 @@
     <script src="memoria.js?v=8"></script>
     <script src="tetris-motor.js?v=6"></script>
     <script src="tetris.js?v=12"></script>
+    <script src="sudoku.js?v=1"></script>
     <script src="js/100x100.js?v=1"></script>
     <script src="js/perfil.js?v=2"></script>
     <script src="js/ranking-diamantes.js?v=3"></script>

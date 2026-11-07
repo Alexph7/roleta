@@ -1,0 +1,245 @@
+/* ========================================
+   SUDOKU
+======================================== */
+
+#tela-sudoku {
+    width: 100%;
+}
+
+.sudoku-regras {
+    width: 100%;
+    max-width: 370px;
+    margin: 0 auto;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 16px;
+    background: linear-gradient(135deg, #211d35, #151222);
+    text-align: left;
+}
+
+.sudoku-regras-titulo {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 15px;
+    text-align: center;
+}
+
+.sudoku-regras-lista {
+    margin: 0 0 16px;
+    padding-left: 18px;
+    color: #dedbe8;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.sudoku-niveis {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.sudoku-nivel {
+    padding: 13px 6px;
+    border: none;
+    border-radius: 11px;
+    background: #7c5cff;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.sudoku-nivel:disabled {
+    opacity: 0.5;
+}
+
+/* Placar */
+
+.sudoku-placar {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto 12px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.sudoku-placar div {
+    padding: 8px 6px;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.sudoku-placar span {
+    color: #aaa6b8;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.sudoku-placar strong {
+    font-size: 16px;
+}
+
+/* Tabuleiro */
+
+.sudoku-grade {
+    width: min(100%, 360px);
+    aspect-ratio: 1 / 1;
+    margin: 0 auto 14px;
+    display: grid;
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    grid-template-rows: repeat(9, minmax(0, 1fr));
+    border: 2px solid #8c78ff;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #1b1730;
+}
+
+.sudoku-celula {
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: transparent;
+    color: #cffff0;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.sudoku-celula.borda-dir {
+    border-right: 2px solid rgba(140, 120, 255, 0.75);
+}
+
+.sudoku-celula.borda-baixo {
+    border-bottom: 2px solid rgba(140, 120, 255, 0.75);
+}
+
+.sudoku-celula.fixa {
+    color: #ffffff;
+}
+
+.sudoku-celula.relacionada {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.sudoku-celula.mesmo-numero {
+    background: rgba(255, 209, 102, 0.18);
+}
+
+.sudoku-celula.selecionada {
+    background: rgba(124, 92, 255, 0.45);
+}
+
+.sudoku-celula.errada {
+    color: #ff4d6d;
+}
+
+/* Anotacoes (lapis) */
+
+.sudoku-notas-grade {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+}
+
+.sudoku-notas-grade span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa6b8;
+    font-size: 9px;
+    font-weight: normal;
+    line-height: 1;
+}
+
+/* Teclado */
+
+.sudoku-teclado {
+    width: min(100%, 360px);
+    margin: 0 auto 10px;
+    display: grid;
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    gap: 4px;
+}
+
+.sudoku-tecla {
+    padding: 12px 0;
+    border: none;
+    border-radius: 9px;
+    background: rgba(124, 92, 255, 0.22);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.sudoku-tecla.completo {
+    opacity: 0.25;
+}
+
+.sudoku-acoes {
+    width: min(100%, 360px);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.sudoku-acao {
+    padding: 11px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #dedbe8;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.sudoku-acao.ativo {
+    border-color: rgba(255, 209, 102, 0.55);
+    background: rgba(255, 209, 102, 0.12);
+    color: #ffd166;
+}
+
+.sudoku-tecla:active,
+.sudoku-acao:active,
+.sudoku-nivel:active {
+    transform: scale(0.96);
+}
+
+.sudoku-resultado {
+    min-height: 24px;
+    margin-top: 16px;
+    color: #cffff0;
+    font-size: 17px;
+    font-weight: bold;
+}
+
+.sudoku-de-novo {
+    width: 100%;
+    max-width: 330px;
+    padding: 15px;
+    border: none;
+    border-radius: 14px;
+    background: #7c5cff;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.sudoku-de-novo[hidden] {
+    display: none;
+}
