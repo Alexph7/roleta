@@ -39,7 +39,7 @@
 
     const RAIO = 55;            // tamanho da arena
     const VISTA = 26;           // largura visivel da arena na tela (zoom)
-    const VELOCIDADE = 6.5;     // velocidade de todos
+    const VELOCIDADE = 8.5;     // velocidade de todos
     const GIRO_JOGADOR = 5.0;   // rapidez da curva do jogador (maior = curva mais fechada)
     const GIRO_BOT = 4.0;       // rapidez da curva dos bots
     const NUM_BOTS = 5;
