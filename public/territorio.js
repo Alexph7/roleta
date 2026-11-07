@@ -1004,55 +1004,29 @@
     // CONTROLES
     // ========================================
 
-    // Joystick tipo volante: ao encostar o dedo, ele ja comeca apontando
-    // para onde o personagem esta indo. Mover o dedo um pouco para o lado
-    // vira pouco; arrastar muito vira muito.
+    // Controle: o personagem vira para o lado onde o dedo esta,
+    // em relacao a ele (ele fica sempre no centro da arena).
+    // Igual ao mouse no PC. A curva continua suave.
     const controle = { alvo: null, origem: null };
-    const ALCANCE = 70;        // maior = virada mais suave para o mesmo arraste
 
-    function iniciarDedo(x, y) {
-        const ang = jogador ? jogador.ang : 0;
-        controle.origem = {
-            x: x - Math.cos(ang) * ALCANCE,
-            y: y - Math.sin(ang) * ALCANCE
-        };
-    }
-
-    function moverDedo(x, y) {
-        if (!controle.origem) {
-            iniciarDedo(x, y);
-            return;
-        }
-
-        const dx = x - controle.origem.x;
-        const dy = y - controle.origem.y;
-        const dist = Math.hypot(dx, dy);
-
-        if (dist < 1) return;
-
-        controle.alvo = Math.atan2(dy, dx);
-
-        if (dist > ALCANCE) {
-            controle.origem.x = x - (dx / dist) * ALCANCE;
-            controle.origem.y = y - (dy / dist) * ALCANCE;
-        }
+    function apontarPara(x, y) {
+        const r = canvas.getBoundingClientRect();
+        const dx = x - (r.left + r.width / 2);
+        const dy = y - (r.top + r.height / 2);
+        if (Math.hypot(dx, dy) > 10) controle.alvo = Math.atan2(dy, dx);
     }
 
     areaJogo.addEventListener("touchstart", (e) => {
         const t = e.touches[0];
-        iniciarDedo(t.clientX, t.clientY);
+        apontarPara(t.clientX, t.clientY);
         e.preventDefault();
     }, { passive: false });
 
     areaJogo.addEventListener("touchmove", (e) => {
         const t = e.touches[0];
-        moverDedo(t.clientX, t.clientY);
+        apontarPara(t.clientX, t.clientY);
         e.preventDefault();
     }, { passive: false });
-
-    areaJogo.addEventListener("touchend", () => {
-        controle.origem = null;
-    });
 
     // PC: o personagem segue o mouse (para testar no VS Code)
     canvas.addEventListener("mousemove", (e) => {
