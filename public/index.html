@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="css/100x100.css?v=1">
     <link rel="stylesheet" href="podio.css?v=1">
     <link rel="stylesheet" href="captcha-pontos.css?v=conta-2">
-    <link rel="stylesheet" href="sudoku.css?v=3">
+    <link rel="stylesheet" href="sudoku.css?v=4">
 </head>
 
 <body>
@@ -238,11 +238,18 @@
             <div class="sudoku-enfeites" aria-hidden="true">
                 <span class="roxo" style="top: 70px; left: 2%; font-size: 40px; rotate: -15deg;">7</span>
                 <span class="ouro" style="top: 58px; right: 4%; font-size: 34px; rotate: 12deg;">3</span>
-                <span class="quadro" style="bottom: 40px; left: 6%; rotate: -10deg;"></span>
-                <span class="ouro" style="bottom: 95px; left: 30%; font-size: 30px; rotate: 8deg;">5</span>
-                <span class="roxo" style="bottom: 30px; left: 42%; font-size: 48px; rotate: -6deg;">9</span>
-                <span class="ouro" style="bottom: 70px; right: 24%; font-size: 36px; rotate: 18deg;">1</span>
-                <span class="quadro" style="bottom: 25px; right: 5%; rotate: 14deg;"></span>
+            </div>
+
+            <div class="sudoku-ondas" aria-hidden="true">
+                <svg class="sudoku-onda sudoku-onda-1" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                    <path d="M0,60 C150,100 350,20 600,60 C850,100 1050,20 1200,60 L1200,120 L0,120 Z"/>
+                </svg>
+                <svg class="sudoku-onda sudoku-onda-2" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                    <path d="M0,50 C200,10 400,90 600,50 C800,10 1000,90 1200,50 L1200,120 L0,120 Z"/>
+                </svg>
+                <svg class="sudoku-onda sudoku-onda-3" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                    <path d="M0,70 C100,40 500,100 600,70 C700,40 1100,100 1200,70 L1200,120 L0,120 Z"/>
+                </svg>
             </div>
 
             <h1 class="sudoku-titulo">🔢 Sudoku</h1>
