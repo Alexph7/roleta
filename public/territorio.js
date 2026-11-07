@@ -39,7 +39,7 @@
 
     const RAIO = 55;            // tamanho da arena
     const VISTA = 30;           // largura visivel da arena na tela (zoom)
-    const VELOCIDADE = 10.5;     // velocidade de todos
+    const VELOCIDADE = 11.5;     // velocidade de todos
     const GIRO_JOGADOR = 5.0;   // rapidez da curva do jogador (maior = curva mais fechada)
     const GIRO_BOT = 4.0;       // rapidez da curva dos bots
     const NUM_BOTS = 5;
@@ -680,7 +680,7 @@
         const largura = Math.min(window.innerWidth - 8, 480);
         const altura = Math.max(
             260,
-            Math.min(Math.round(largura * 1.9), window.innerHeight - 130)
+            Math.min(Math.round(largura * 1.9), window.innerHeight - 90)
         );
 
         canvas.style.width = `${largura}px`;
