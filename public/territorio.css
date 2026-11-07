@@ -1,0 +1,144 @@
+/* ========================================
+   TERRITORIO
+======================================== */
+
+#tela-territorio {
+    width: 100%;
+}
+
+.territorio-topo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.territorio-topo .voltar-menu {
+    flex: 0 0 auto;
+    margin: 0;
+}
+
+.territorio-placar {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+}
+
+.territorio-placar[hidden] {
+    display: none;
+}
+
+.territorio-placar div {
+    padding: 5px 3px;
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.territorio-placar span {
+    color: #aaa6b8;
+    font-size: 9px;
+    font-weight: bold;
+}
+
+.territorio-placar strong {
+    font-size: 14px;
+}
+
+.territorio-titulo {
+    margin: 6px 0 12px;
+    font-size: 26px;
+}
+
+/* Regras */
+
+.territorio-regras {
+    width: 100%;
+    max-width: 370px;
+    margin: 0 auto;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 16px;
+    background: linear-gradient(135deg, #211d35, #151222);
+    text-align: left;
+}
+
+.territorio-regras-titulo {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 15px;
+    text-align: center;
+}
+
+.territorio-regras-lista {
+    margin: 0 0 14px;
+    padding-left: 18px;
+    color: #dedbe8;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.territorio-recorde {
+    margin: 0 0 12px;
+    color: #ffd166;
+    font-size: 13px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.territorio-recorde:empty {
+    display: none;
+}
+
+.territorio-comecar {
+    width: 100%;
+    max-width: 330px;
+    display: block;
+    margin: 0 auto;
+    padding: 15px;
+    border: none;
+    border-radius: 14px;
+    background: #7c5cff;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.territorio-comecar[hidden] {
+    display: none;
+}
+
+.territorio-comecar:active {
+    transform: scale(0.97);
+}
+
+/* Arena: quase toda a largura da tela, igual ao Sudoku */
+
+.territorio-jogo {
+    width: min(calc(100vw - 8px), 480px);
+    margin-left: 50%;
+    translate: -50% 0;
+    touch-action: none;
+}
+
+#territorio-canvas {
+    display: block;
+    box-shadow: 0 0 0 2px #8c78ff;
+    border-radius: 10px;
+    background: #090811;
+    touch-action: none;
+}
+
+.territorio-resultado {
+    min-height: 24px;
+    margin: 14px 0 12px;
+    color: #cffff0;
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 1.4;
+}

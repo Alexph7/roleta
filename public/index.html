@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="podio.css?v=1">
     <link rel="stylesheet" href="captcha-pontos.css?v=conta-2">
     <link rel="stylesheet" href="sudoku.css?v=5">
+    <link rel="stylesheet" href="territorio.css?v=1">
 </head>
 
 <body>
@@ -96,6 +97,13 @@
                     <div class="card-jogo-icone">🔢</div>
                     <div class="card-jogo-conteudo">
                         <strong>Sudoku</strong>
+                    </div>
+                </button>
+
+                <button id="abrir-territorio" class="card-jogo" type="button">
+                    <div class="card-jogo-icone">🟪</div>
+                    <div class="card-jogo-conteudo">
+                        <strong>Território</strong>
                     </div>
                 </button>
 
@@ -250,13 +258,13 @@
 
             <div class="sudoku-ondas" aria-hidden="true">
                 <svg class="sudoku-onda sudoku-onda-1" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                    <path d="M0,60 C150,100 350,20 600,60 C850,100 1050,20 1200,60 L1200,120 L0,120 Z"/>
+                    <path d="M0,60 C150,100 350,20 600,60 C850,100 1050,20 1200,60 L1200,120 L0,120 Z" />
                 </svg>
                 <svg class="sudoku-onda sudoku-onda-2" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                    <path d="M0,50 C200,10 400,90 600,50 C800,10 1000,90 1200,50 L1200,120 L0,120 Z"/>
+                    <path d="M0,50 C200,10 400,90 600,50 C800,10 1000,90 1200,50 L1200,120 L0,120 Z" />
                 </svg>
                 <svg class="sudoku-onda sudoku-onda-3" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                    <path d="M0,70 C100,40 500,100 600,70 C700,40 1100,100 1200,70 L1200,120 L0,120 Z"/>
+                    <path d="M0,70 C100,40 500,100 600,70 C700,40 1100,100 1200,70 L1200,120 L0,120 Z" />
                 </svg>
             </div>
 
@@ -303,6 +311,59 @@
             <p id="resultado-sudoku" class="sudoku-resultado"></p>
 
             <button id="sudoku-de-novo" class="sudoku-de-novo" type="button" hidden>
+                JOGAR DE NOVO
+            </button>
+        </section>
+
+        <section id="tela-territorio" class="tela" hidden>
+            <div class="territorio-topo">
+                <button id="voltar-menu-territorio" class="voltar-menu" type="button">
+                    ← HABILIDADE
+                </button>
+
+                <div id="territorio-placar" class="territorio-placar" hidden>
+                    <div>
+                        <span>ÁREA</span>
+                        <strong id="territorio-placar-area">0%</strong>
+                    </div>
+                    <div>
+                        <span>ELIMIN.</span>
+                        <strong id="territorio-placar-elim">0</strong>
+                    </div>
+                    <div>
+                        <span>TEMPO</span>
+                        <strong id="territorio-placar-tempo">00:00</strong>
+                    </div>
+                </div>
+            </div>
+
+            <h1 class="territorio-titulo">🟪 Território</h1>
+
+            <div id="territorio-regras" class="territorio-regras">
+                <strong class="territorio-regras-titulo">Como jogar</strong>
+
+                <ul class="territorio-regras-lista">
+                    <li>Arraste o dedo para mudar a direção. Você nunca para.</li>
+                    <li>Saia da sua área deixando um rastro e volte para ela: tudo que ficar cercado vira seu.</li>
+                    <li>Se alguém tocar no seu rastro, você perde. Se você tocar no rastro de alguém, ele perde.</li>
+                    <li>Não encoste no seu próprio rastro e não saia do círculo.</li>
+                    <li>Vença preenchendo o círculo inteiro.</li>
+                </ul>
+
+                <p id="territorio-recorde" class="territorio-recorde"></p>
+
+                <button id="territorio-comecar" class="territorio-comecar" type="button">
+                    COMEÇAR
+                </button>
+            </div>
+
+            <div id="territorio-jogo" class="territorio-jogo" hidden>
+                <canvas id="territorio-canvas" aria-label="Território"></canvas>
+            </div>
+
+            <p id="resultado-territorio" class="territorio-resultado"></p>
+
+            <button id="territorio-de-novo" class="territorio-comecar" type="button" hidden>
                 JOGAR DE NOVO
             </button>
         </section>
@@ -906,6 +967,7 @@
     <script src="tetris-motor.js?v=6"></script>
     <script src="tetris.js?v=12"></script>
     <script src="sudoku.js?v=5"></script>
+    <script src="territorio.js?v=1"></script>
     <script src="js/100x100.js?v=1"></script>
     <script src="js/perfil.js?v=2"></script>
     <script src="js/ranking-diamantes.js?v=3"></script>
