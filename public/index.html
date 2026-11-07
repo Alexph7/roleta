@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="css/100x100.css?v=1">
     <link rel="stylesheet" href="podio.css?v=1">
     <link rel="stylesheet" href="captcha-pontos.css?v=conta-2">
-    <link rel="stylesheet" href="sudoku.css?v=2">
+    <link rel="stylesheet" href="sudoku.css?v=3">
 </head>
 
 <body>
@@ -235,8 +235,20 @@
                 </div>
             </div>
 
+            <div class="sudoku-enfeites" aria-hidden="true">
+                <span class="roxo" style="top: 70px; left: 2%; font-size: 40px; rotate: -15deg;">7</span>
+                <span class="ouro" style="top: 58px; right: 4%; font-size: 34px; rotate: 12deg;">3</span>
+                <span class="quadro" style="bottom: 40px; left: 6%; rotate: -10deg;"></span>
+                <span class="ouro" style="bottom: 95px; left: 30%; font-size: 30px; rotate: 8deg;">5</span>
+                <span class="roxo" style="bottom: 30px; left: 42%; font-size: 48px; rotate: -6deg;">9</span>
+                <span class="ouro" style="bottom: 70px; right: 24%; font-size: 36px; rotate: 18deg;">1</span>
+                <span class="quadro" style="bottom: 25px; right: 5%; rotate: 14deg;"></span>
+            </div>
+
+            <h1 class="sudoku-titulo">🔢 Sudoku</h1>
+
             <div id="sudoku-regras" class="sudoku-regras">
-                <strong class="sudoku-regras-titulo">Sudoku - Como jogar</strong>
+                <strong class="sudoku-regras-titulo">Como jogar</strong>
 
                 <ul class="sudoku-regras-lista">
                     <li>Preencha a grade para que cada linha, coluna e quadrado 3x3 tenha os números de 1 a 9, sem
@@ -244,6 +256,7 @@
                     <li>Toque numa casa vazia e depois no número.</li>
                     <li>Número errado fica vermelho e conta 1 erro.</li>
                     <li>Use o lápis para anotar possibilidades.</li>
+                    <li>Você tem 2 dicas por partida. Dica não conta como erro.</li>
                     <li>Jogue quantas vezes quiser.</li>
                 </ul>
 
@@ -261,6 +274,7 @@
 
                 <div class="sudoku-acoes">
                     <button id="sudoku-notas" class="sudoku-acao" type="button">✏️ LÁPIS OFF</button>
+                    <button id="sudoku-dica" class="sudoku-acao" type="button">💡 DICA (2)</button>
                     <button id="sudoku-apagar" class="sudoku-acao" type="button">APAGAR</button>
                 </div>
             </div>
@@ -870,7 +884,7 @@
     <script src="memoria.js?v=8"></script>
     <script src="tetris-motor.js?v=6"></script>
     <script src="tetris.js?v=12"></script>
-    <script src="sudoku.js?v=2"></script>
+    <script src="sudoku.js?v=3"></script>
     <script src="js/100x100.js?v=1"></script>
     <script src="js/perfil.js?v=2"></script>
     <script src="js/ranking-diamantes.js?v=3"></script>

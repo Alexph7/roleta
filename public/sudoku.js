@@ -20,6 +20,7 @@
 
     const botaoNotas = document.getElementById("sudoku-notas");
     const botaoApagar = document.getElementById("sudoku-apagar");
+    const botaoDica = document.getElementById("sudoku-dica");
     const resultado = document.getElementById("resultado-sudoku");
     const botaoDeNovo = document.getElementById("sudoku-de-novo");
     const botoesNivel = Array.from(document.querySelectorAll(".sudoku-nivel"));
@@ -28,7 +29,7 @@
         !telaHabilidade || !telaSudoku || !botaoAbrir || !botaoVoltar ||
         !areaRegras || !areaJogo || !grade || !teclado ||
         !placar || !placarNivel || !placarTempo || !placarErros ||
-        !botaoNotas || !botaoApagar || !resultado || !botaoDeNovo
+        !botaoNotas || !botaoApagar || !botaoDica || !resultado || !botaoDeNovo
     ) {
         console.error("Elementos do Sudoku nao encontrados.");
         return;
@@ -40,6 +41,9 @@
         medio: { nome: "MÉDIO", vazias: 47 },
         dificil: { nome: "DIFÍCIL", vazias: 54 }
     };
+
+    // Quantas dicas cada partida tem
+    const DICAS_POR_PARTIDA = 2;
 
     // ========================================
     // ESTADO DA PARTIDA
@@ -58,6 +62,8 @@
     let inicio = 0;
     let relogio = null;
     let terminado = true;
+    let dicasRestantes = DICAS_POR_PARTIDA;
+    let casasDica = new Set();
 
     // ========================================
     // GERADOR DE SUDOKU
@@ -259,6 +265,7 @@
 
             cel.classList.toggle("fixa", inicial[pos] !== 0);
             cel.classList.toggle("errada", v !== 0 && v !== solucao[pos]);
+            cel.classList.toggle("dica", casasDica.has(pos));
             cel.classList.toggle("selecionada", pos === selecionada);
             cel.classList.toggle(
                 "relacionada",
@@ -295,6 +302,9 @@
             }
             botoesNumero[n - 1].classList.toggle("completo", certos === 9);
         }
+
+        botaoDica.textContent = `💡 DICA (${dicasRestantes})`;
+        botaoDica.disabled = terminado || dicasRestantes <= 0;
 
         botaoNotas.classList.toggle("ativo", modoNotas);
         botaoNotas.textContent = modoNotas ? "✏️ LÁPIS ON" : "✏️ LÁPIS OFF";
@@ -353,6 +363,35 @@
         desenhar();
     }
 
+    // Dica: preenche a casa selecionada (se puder) ou uma casa aleatoria.
+    // Nao conta como erro.
+    function usarDica() {
+        if (terminado || dicasRestantes <= 0) return;
+
+        let alvo = -1;
+
+        if (podeEditar(selecionada)) {
+            alvo = selecionada;
+        } else {
+            const opcoes = [];
+            for (let pos = 0; pos < 81; pos++) {
+                if (atual[pos] !== solucao[pos]) opcoes.push(pos);
+            }
+            if (opcoes.length === 0) return;
+            alvo = opcoes[Math.floor(Math.random() * opcoes.length)];
+        }
+
+        atual[alvo] = solucao[alvo];
+        notas[alvo].clear();
+        limparNotasVizinhas(alvo, solucao[alvo]);
+        casasDica.add(alvo);
+        dicasRestantes--;
+        selecionada = alvo;
+
+        desenhar();
+        verificarFim();
+    }
+
     function verificarFim() {
         for (let pos = 0; pos < 81; pos++) {
             if (atual[pos] !== solucao[pos]) return;
@@ -362,11 +401,13 @@
         pararRelogio();
 
         const tempo = formatarTempo(Date.now() - inicio);
+        const usadas = DICAS_POR_PARTIDA - dicasRestantes;
         selecionada = -1;
         desenhar();
 
         resultado.textContent =
-            `🎉 Completou em ${tempo} com ${erros} ${erros === 1 ? "erro" : "erros"}!`;
+            `🎉 Completou em ${tempo} com ${erros} ${erros === 1 ? "erro" : "erros"}` +
+            ` e ${usadas} ${usadas === 1 ? "dica" : "dicas"}!`;
 
         botaoDeNovo.hidden = false;
     }
@@ -406,6 +447,8 @@
             modoNotas = false;
             erros = 0;
             terminado = false;
+            dicasRestantes = DICAS_POR_PARTIDA;
+            casasDica = new Set();
 
             placarNivel.textContent = NIVEIS[nivel].nome;
             placarErros.textContent = "0";
@@ -432,6 +475,7 @@
     });
 
     botaoApagar.addEventListener("click", apagar);
+    botaoDica.addEventListener("click", usarDica);
     botaoDeNovo.addEventListener("click", mostrarRegras);
 
     botaoAbrir.addEventListener("click", () => {

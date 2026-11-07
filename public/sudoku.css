@@ -3,8 +3,60 @@
 ======================================== */
 
 #tela-sudoku {
+    position: relative;
     width: 100%;
-    margin-top: -18px;
+    min-height: calc(100dvh - 80px);
+}
+
+/* Tudo da tela fica na frente dos enfeites */
+#tela-sudoku > *:not(.sudoku-enfeites) {
+    position: relative;
+    z-index: 1;
+}
+
+.sudoku-titulo {
+    margin: 6px 0 12px;
+    font-size: 26px;
+}
+
+/* ========================================
+   ENFEITES (fora do tabuleiro, so decoracao)
+======================================== */
+
+.sudoku-enfeites {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.sudoku-enfeites span {
+    position: absolute;
+    font-weight: bold;
+    line-height: 1;
+    opacity: 0.12;
+}
+
+.sudoku-enfeites .roxo {
+    color: #8c78ff;
+}
+
+.sudoku-enfeites .ouro {
+    color: #ffd166;
+}
+
+/* Mini tabuleiro 3x3 desenhado so com bordas */
+.sudoku-enfeites .quadro {
+    width: 54px;
+    height: 54px;
+    border: 2px solid #8c78ff;
+    border-radius: 6px;
+    background:
+        linear-gradient(90deg, transparent 32%, #8c78ff 32%, #8c78ff 35%, transparent 35%,
+            transparent 65%, #8c78ff 65%, #8c78ff 68%, transparent 68%),
+        linear-gradient(0deg, transparent 32%, #8c78ff 32%, #8c78ff 35%, transparent 35%,
+            transparent 65%, #8c78ff 65%, #8c78ff 68%, transparent 68%);
 }
 
 /* Linha do topo: voltar + placar */
@@ -167,6 +219,10 @@
     background: rgba(124, 92, 255, 0.45);
 }
 
+.sudoku-celula.dica {
+    color: #ffd166;
+}
+
 .sudoku-celula.errada {
     color: #ff4d6d;
 }
@@ -220,7 +276,7 @@
     width: min(100%, 360px);
     margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
 }
 
@@ -233,6 +289,11 @@
     font-size: 13px;
     font-weight: bold;
     cursor: pointer;
+}
+
+.sudoku-acao:disabled {
+    opacity: 0.35;
+    cursor: default;
 }
 
 .sudoku-acao.ativo {
