@@ -21,6 +21,7 @@
     const botaoNotas = document.getElementById("sudoku-notas");
     const botaoApagar = document.getElementById("sudoku-apagar");
     const botaoDica = document.getElementById("sudoku-dica");
+    const botaoSom = document.getElementById("sudoku-som");
     const resultado = document.getElementById("resultado-sudoku");
     const botaoDeNovo = document.getElementById("sudoku-de-novo");
     const botoesNivel = Array.from(document.querySelectorAll(".sudoku-nivel"));
@@ -29,7 +30,7 @@
         !telaHabilidade || !telaSudoku || !botaoAbrir || !botaoVoltar ||
         !areaRegras || !areaJogo || !grade || !teclado ||
         !placar || !placarNivel || !placarTempo || !placarErros ||
-        !botaoNotas || !botaoApagar || !botaoDica || !resultado || !botaoDeNovo
+        !botaoNotas || !botaoApagar || !botaoDica || !botaoSom || !resultado || !botaoDeNovo
     ) {
         console.error("Elementos do Sudoku nao encontrados.");
         return;
@@ -171,6 +172,47 @@
 
         return { completo, puzzle };
     }
+
+    // ========================================
+    // MUSICA
+    // ========================================
+
+    const musica = new Audio("musica-sudoku.mp3");
+    musica.loop = true;
+    musica.volume = 0.4;
+
+    // Guarda a escolha do jogador (ligado/desligado) neste celular
+    let somLigado = true;
+    try {
+        somLigado = localStorage.getItem("sudoku-som") !== "off";
+    } catch (e) { }
+
+    function atualizarBotaoSom() {
+        botaoSom.textContent = somLigado ? "SOM ON" : "SOM OFF";
+    }
+
+    function tocarMusica() {
+        if (!somLigado || telaSudoku.hidden) return;
+        musica.play().catch(() => { });
+    }
+
+    function pararMusica() {
+        musica.pause();
+    }
+
+    botaoSom.addEventListener("click", () => {
+        somLigado = !somLigado;
+        try {
+            localStorage.setItem("sudoku-som", somLigado ? "on" : "off");
+        } catch (e) { }
+        atualizarBotaoSom();
+        if (somLigado) tocarMusica(); else pararMusica();
+    });
+
+    // Telegram minimizado: pausa. Voltou: continua.
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) pararMusica(); else tocarMusica();
+    });
 
     // ========================================
     // TEMPO
@@ -462,6 +504,7 @@
             montarGrade();
             desenhar();
             iniciarRelogio();
+            tocarMusica();
         }, 30);
     }
 
@@ -487,6 +530,7 @@
     });
 
     botaoVoltar.addEventListener("click", () => {
+        pararMusica();
         pararRelogio();
         terminado = true;
         telaSudoku.hidden = true;
@@ -505,4 +549,5 @@
     });
 
     montarTeclado();
+    atualizarBotaoSom();
 })();
