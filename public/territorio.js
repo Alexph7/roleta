@@ -18,6 +18,8 @@
     const textoRecorde = document.getElementById("territorio-recorde");
     const resultado = document.getElementById("resultado-territorio");
     const botaoDeNovo = document.getElementById("territorio-de-novo");
+    const campoNome = document.getElementById("territorio-nome");
+    const areaNome = document.getElementById("territorio-nome-area");
 
     if (
         !telaHabilidade || !tela || !botaoAbrir || !botaoVoltar ||
@@ -37,13 +39,13 @@
     // ========================================
 
     const RAIO = 80;            // tamanho da arena
-    const VISTA = 34;           // largura visivel da arena na tela (zoom)
-    const VELOCIDADE = 8.5;     // velocidade de todos
+    const VISTA = 29;           // largura visivel da arena na tela (zoom)
+    const VELOCIDADE = 11.5;     // velocidade de todos
     const GIRO_JOGADOR = 5.0;   // rapidez da curva do jogador (maior = curva mais fechada)
     const GIRO_BOT = 4.0;       // rapidez da curva dos bots
     const NUM_BOTS = 9;
     const VITORIA = 100;        // % da arena para vencer
-    const TOLERANCIA_BORDA = 1.2; // quanto pode passar da borda sem morrer
+    const TOLERANCIA_BORDA = 0.6; // quanto pode passar da borda sem morrer
     const RENASCER = 120;       // passos ate um bot voltar (60 passos = 1 segundo)
 
     // IDs do Telegram que podem jogar enquanto o card esta bloqueado.
@@ -840,6 +842,17 @@
         } catch (e) { }
     }
 
+    // Nome do jogador: o que ele digitou, ou o nick do Telegram
+    function nomePadrao() {
+        const u = tg?.initDataUnsafe?.user;
+        return (u?.first_name || u?.username || "Você").slice(0, 14);
+    }
+
+    function nomeJogador() {
+        const digitado = (campoNome?.value || "").trim().slice(0, 14);
+        return digitado || nomePadrao();
+    }
+
     function comecar() {
         dono = new Uint8Array(G * G);
         trilha = new Uint8Array(G * G);
@@ -851,7 +864,7 @@
             entidades.push({
                 id: i + 1,
                 bot: i > 0,
-                nome: NOMES[i % NOMES.length],
+                nome: i === 0 ? nomeJogador() : NOMES[i % NOMES.length],
                 cor,
                 corEscura: misturar(cor, [0, 0, 0], 0.35),
                 corClara: misturar(cor, [255, 255, 255], 0.25),
@@ -884,6 +897,7 @@
         placarElim.textContent = "0";
 
         areaRegras.hidden = true;
+        if (areaNome) areaNome.hidden = true;
         areaJogo.hidden = false;
         placar.hidden = false;
         botaoDeNovo.hidden = true;
@@ -916,6 +930,7 @@
                 (maxPct > recordeAntes && recordeAntes > 0 ? " · Novo recorde!" : "");
         }
 
+        if (areaNome) areaNome.hidden = false;
         botaoDeNovo.hidden = false;
     }
 
@@ -923,6 +938,7 @@
         rodando = false;
         travarArrasto(false);
         areaRegras.hidden = false;
+        if (areaNome) areaNome.hidden = false;
         areaJogo.hidden = true;
         placar.hidden = true;
         botaoDeNovo.hidden = true;
@@ -1027,6 +1043,21 @@
         tela.hidden = true;
         telaHabilidade.hidden = false;
     });
+
+    // Campo do nome: comeca com o ultimo nome usado, ou o nick do Telegram
+    if (campoNome) {
+        let salvo = "";
+        try {
+            salvo = localStorage.getItem("territorio-nome") || "";
+        } catch (e) { }
+        campoNome.value = salvo || nomePadrao();
+
+        campoNome.addEventListener("input", () => {
+            try {
+                localStorage.setItem("territorio-nome", campoNome.value.trim());
+            } catch (e) { }
+        });
+    }
 
     botaoComecar.addEventListener("click", comecar);
     botaoDeNovo.addEventListener("click", comecar);
