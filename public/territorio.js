@@ -37,46 +37,48 @@
     // CONFIGURACOES (pode ajustar aqui)
     // ========================================
 
-    const RAIO = 34;          // tamanho da arena (raio em casas)
-    const TICK = 110;         // ms por passo (menor = mais rapido)
-    const VISTA = 24;         // quantas casas aparecem na largura da tela
-    const NUM_BOTS = 5;       // quantos bots na arena
-    const VITORIA = 100;      // % da arena para vencer
-    const RENASCER = 18;      // passos ate um bot voltar depois de morrer
+    const RAIO = 55;            // tamanho da arena
+    const VISTA = 26;           // largura visivel da arena na tela (zoom)
+    const VELOCIDADE = 6.5;     // velocidade de todos
+    const GIRO_JOGADOR = 5.0;   // rapidez da curva do jogador (maior = curva mais fechada)
+    const GIRO_BOT = 4.0;       // rapidez da curva dos bots
+    const NUM_BOTS = 5;
+    const VITORIA = 100;        // % da arena para vencer
+    const RENASCER = 120;       // passos ate um bot voltar (60 passos = 1 segundo)
+
+    const PASSO = 1 / 60;       // o jogo calcula 60 vezes por segundo
+    const S = 0.5;              // tamanho de cada "pedacinho" interno da arena
+    const G = Math.ceil((RAIO * 2) / S) + 8;
+    const C = (G * S) / 2;      // centro da arena
 
     // Cor 0 = jogador (roxo do app). Demais = bots (cores ja usadas no app).
     const CORES = ["#7c5cff", "#ff6b6b", "#06d6a0", "#4cc9f0", "#ffd166", "#f77f00"];
+    const NOMES = ["Você", "Cometa", "Faísca", "Nuvem", "Trovão", "Lince"];
 
-    // 0 = cima, 1 = direita, 2 = baixo, 3 = esquerda
-    const DIRS = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    // ========================================
+    // MAPA INTERNO
+    // ========================================
 
-    const N = RAIO * 2 + 5;
-    const CENTRO = Math.floor(N / 2);
-
-    // Casas que fazem parte do circulo
-    const valido = new Uint8Array(N * N);
+    const valido = new Uint8Array(G * G);
     let totalValidas = 0;
 
-    for (let y = 0; y < N; y++) {
-        for (let x = 0; x < N; x++) {
-            const dx = x - CENTRO;
-            const dy = y - CENTRO;
+    for (let j = 0; j < G; j++) {
+        for (let i = 0; i < G; i++) {
+            const dx = (i + 0.5) * S - C;
+            const dy = (j + 0.5) * S - C;
             if (dx * dx + dy * dy <= RAIO * RAIO) {
-                valido[y * N + x] = 1;
+                valido[j * G + i] = 1;
                 totalValidas++;
             }
         }
     }
 
-    // ========================================
-    // ESTADO
-    // ========================================
+    let dono = new Uint8Array(G * G);
+    let trilha = new Uint8Array(G * G);
+    let carimbo = new Int32Array(G * G);
 
-    let dono = new Uint8Array(N * N);    // quem e dono de cada casa (0 = ninguem)
-    let trilha = new Uint8Array(N * N);  // rastro de quem passa em cada casa
     let entidades = [];
     let jogador = null;
-    let fila = [];
 
     let rodando = false;
     let pausado = false;
@@ -85,49 +87,206 @@
     let maxPct = 0;
     let acumulado = 0;
     let ultimoQuadro = 0;
+    let minimapaSujo = true;
 
     // ========================================
-    // FUNCOES DA ARENA
+    // AJUDANTES
     // ========================================
 
-    function idx(x, y) {
-        return y * N + x;
+    function celula(x, y) {
+        const i = Math.floor(x / S);
+        const j = Math.floor(y / S);
+        if (i < 0 || j < 0 || i >= G || j >= G) return -1;
+        return j * G + i;
     }
 
-    function dentro(x, y) {
-        return x >= 0 && y >= 0 && x < N && y < N && valido[idx(x, y)] === 1;
+    function naArena(x, y) {
+        const dx = x - C;
+        const dy = y - C;
+        return dx * dx + dy * dy <= RAIO * RAIO;
     }
 
-    function aleatorio(n) {
-        return Math.floor(Math.random() * n);
+    function angulo(a) {
+        while (a > Math.PI) a -= Math.PI * 2;
+        while (a < -Math.PI) a += Math.PI * 2;
+        return a;
     }
 
-    function entidadePorId(id) {
-        return entidades[id - 1];
+    function aleatorio(min, max) {
+        return min + Math.random() * (max - min);
     }
+
+    function hexParaRgb(hex) {
+        const n = parseInt(hex.slice(1), 16);
+        return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+
+    function misturar(hex, alvo, t) {
+        const [r, g, b] = hexParaRgb(hex);
+        const [r2, g2, b2] = alvo;
+        return `rgb(${Math.round(r + (r2 - r) * t)}, ${Math.round(g + (g2 - g) * t)}, ${Math.round(b + (b2 - b) * t)})`;
+    }
+
+    // ========================================
+    // CONTORNO SUAVE DAS AREAS
+    // ========================================
+
+    // Transforma os pedacinhos de uma area em um desenho com bordas
+    // arredondadas (contorno + suavizacao).
+    function construirContorno(e) {
+        const id = e.id;
+        const m = (i, j) => (i >= 0 && j >= 0 && i < G && j < G && dono[j * G + i] === id) ? 1 : 0;
+
+        const adj = new Map();
+        const chave = (X, Y) => (X + 4) * 10000 + (Y + 4);
+
+        function ligar(a, b) {
+            if (!adj.has(a)) adj.set(a, []);
+            if (!adj.has(b)) adj.set(b, []);
+            adj.get(a).push(b);
+            adj.get(b).push(a);
+        }
+
+        let somaX = 0;
+        let somaY = 0;
+        let qtd = 0;
+
+        for (let y = -1; y < G; y++) {
+            for (let x = -1; x < G; x++) {
+                const tl = m(x, y);
+                const tr = m(x + 1, y);
+                const br = m(x + 1, y + 1);
+                const bl = m(x, y + 1);
+
+                if (tl && x >= 0 && y >= 0) {
+                    somaX += x;
+                    somaY += y;
+                    qtd++;
+                }
+
+                const caso = tl * 8 + tr * 4 + br * 2 + bl;
+                if (caso === 0 || caso === 15) continue;
+
+                const topo = chave(2 * x + 1, 2 * y);
+                const dir = chave(2 * x + 2, 2 * y + 1);
+                const baixo = chave(2 * x + 1, 2 * y + 2);
+                const esq = chave(2 * x, 2 * y + 1);
+
+                switch (caso) {
+                    case 1: case 14: ligar(esq, baixo); break;
+                    case 2: case 13: ligar(baixo, dir); break;
+                    case 3: case 12: ligar(esq, dir); break;
+                    case 4: case 11: ligar(topo, dir); break;
+                    case 6: case 9: ligar(topo, baixo); break;
+                    case 7: case 8: ligar(esq, topo); break;
+                    case 5: ligar(esq, baixo); ligar(topo, dir); break;
+                    case 10: ligar(esq, topo); ligar(baixo, dir); break;
+                }
+            }
+        }
+
+        e.casa = qtd ? { x: (somaX / qtd + 0.5) * S, y: (somaY / qtd + 0.5) * S } : null;
+
+        if (adj.size === 0) {
+            e.contorno = null;
+            return;
+        }
+
+        const path = new Path2D();
+        const visto = new Set();
+
+        for (const inicio of adj.keys()) {
+            if (visto.has(inicio)) continue;
+
+            let pontos = [];
+            let anterior = null;
+            let atual = inicio;
+
+            while (atual !== undefined && !visto.has(atual)) {
+                visto.add(atual);
+                const X = Math.floor(atual / 10000) - 4;
+                const Y = (atual % 10000) - 4;
+                pontos.push([(X / 2 + 0.5) * S, (Y / 2 + 0.5) * S]);
+
+                const viz = adj.get(atual);
+                const proximo = viz[0] !== anterior ? viz[0] : viz[1];
+                anterior = atual;
+                atual = proximo;
+            }
+
+            if (pontos.length < 3) continue;
+
+            // Tira os "degraus": cada ponto vira a media com os vizinhos
+            for (let r = 0; r < 10; r++) {
+                const n = pontos.length;
+                const novo = new Array(n);
+                for (let k = 0; k < n; k++) {
+                    const a = pontos[(k - 1 + n) % n];
+                    const p = pontos[k];
+                    const b = pontos[(k + 1) % n];
+                    novo[k] = [
+                        (a[0] + 2 * p[0] + b[0]) / 4,
+                        (a[1] + 2 * p[1] + b[1]) / 4
+                    ];
+                }
+                pontos = novo;
+            }
+
+            // Arredonda os cantos que sobraram
+            for (let r = 0; r < 1; r++) {
+                const novo = [];
+                for (let k = 0; k < pontos.length; k++) {
+                    const p = pontos[k];
+                    const q = pontos[(k + 1) % pontos.length];
+                    novo.push([p[0] * 0.75 + q[0] * 0.25, p[1] * 0.75 + q[1] * 0.25]);
+                    novo.push([p[0] * 0.25 + q[0] * 0.75, p[1] * 0.25 + q[1] * 0.75]);
+                }
+                pontos = novo;
+            }
+
+            path.moveTo(pontos[0][0], pontos[0][1]);
+            for (let k = 1; k < pontos.length; k++) path.lineTo(pontos[k][0], pontos[k][1]);
+            path.closePath();
+        }
+
+        e.contorno = path;
+    }
+
+    function contarAreas() {
+        const areas = new Array(entidades.length + 1).fill(0);
+        for (let c = 0; c < dono.length; c++) {
+            if (dono[c]) areas[dono[c]]++;
+        }
+        for (const e of entidades) e.area = areas[e.id];
+    }
+
+    // ========================================
+    // NASCER, MORRER, CAPTURAR
+    // ========================================
 
     function lugarLivre() {
-        for (let t = 0; t < 400; t++) {
-            const x = CENTRO - RAIO + 5 + aleatorio(RAIO * 2 - 9);
-            const y = CENTRO - RAIO + 5 + aleatorio(RAIO * 2 - 9);
-            if (!dentro(x, y)) continue;
+        for (let t = 0; t < 300; t++) {
+            const a = Math.random() * Math.PI * 2;
+            const r = Math.sqrt(Math.random()) * (RAIO - 12);
+            const x = C + Math.cos(a) * r;
+            const y = C + Math.sin(a) * r;
 
             let livre = true;
 
-            for (let dy = -4; dy <= 4 && livre; dy++) {
-                for (let dx = -4; dx <= 4; dx++) {
-                    const nx = x + dx;
-                    const ny = y + dy;
-                    if (!dentro(nx, ny)) { livre = false; break; }
-                    const c = idx(nx, ny);
-                    if (dono[c] !== 0 || trilha[c] !== 0) { livre = false; break; }
+            for (let dy = -7; dy <= 7 && livre; dy += 1) {
+                for (let dx = -7; dx <= 7; dx += 1) {
+                    const c = celula(x + dx, y + dy);
+                    if (c < 0 || dono[c] !== 0 || trilha[c] !== 0) {
+                        livre = false;
+                        break;
+                    }
                 }
             }
 
             if (!livre) continue;
 
             for (const e of entidades) {
-                if (e.vivo && Math.abs(e.x - x) + Math.abs(e.y - y) < 8) {
+                if (e.vivo && Math.hypot(e.x - x, e.y - y) < 14) {
                     livre = false;
                     break;
                 }
@@ -143,100 +302,108 @@
         const lugar = lugarLivre();
         if (!lugar) return false;
 
-        for (let dy = -2; dy <= 2; dy++) {
-            for (let dx = -2; dx <= 2; dx++) {
-                if (dx * dx + dy * dy <= 5) {
-                    dono[idx(lugar.x + dx, lugar.y + dy)] = e.id;
-                }
+        const raioBase = 3;
+
+        for (let dy = -raioBase; dy <= raioBase; dy += S) {
+            for (let dx = -raioBase; dx <= raioBase; dx += S) {
+                if (dx * dx + dy * dy > raioBase * raioBase) continue;
+                const c = celula(lugar.x + dx, lugar.y + dy);
+                if (c >= 0 && valido[c]) dono[c] = e.id;
             }
         }
 
         e.x = e.px = lugar.x;
         e.y = e.py = lugar.y;
+        e.ang = Math.atan2(C - lugar.y, C - lugar.x);
+        e.alvo = e.ang;
         e.vivo = true;
-        e.trilha = [];
+        e.trilhaCel = [];
+        e.trilhaPts = [];
+        e.foraPassos = 0;
+        e.modo = "casa";
         e.plano = [];
-        e.espera = 3 + aleatorio(15);
+        e.espera = Math.floor(aleatorio(20, 90));
+        e.casaPerto = null;
 
-        // Comeca andando para o lado do centro
-        const dx = CENTRO - lugar.x;
-        const dy = CENTRO - lugar.y;
-        if (Math.abs(dx) > Math.abs(dy)) e.dir = dx > 0 ? 1 : 3;
-        else e.dir = dy > 0 ? 2 : 0;
-
+        construirContorno(e);
+        minimapaSujo = true;
         return true;
+    }
+
+    function limparTrilha(e) {
+        for (const c of e.trilhaCel) {
+            if (trilha[c] === e.id) trilha[c] = 0;
+        }
+        e.trilhaCel = [];
+        e.trilhaPts = [];
     }
 
     function matar(e, assassino) {
         if (!e.vivo) return;
 
         e.vivo = false;
-
-        for (const c of e.trilha) {
-            if (trilha[c] === e.id) trilha[c] = 0;
-        }
-        e.trilha = [];
+        limparTrilha(e);
 
         for (let c = 0; c < dono.length; c++) {
             if (dono[c] === e.id) dono[c] = 0;
         }
 
+        e.contorno = null;
+        e.area = 0;
+        minimapaSujo = true;
+
         if (assassino && assassino !== e) assassino.elim++;
 
-        if (e.bot) {
-            e.renascer = RENASCER;
-        } else {
-            jogadorMorreu = true;
-        }
+        if (e.bot) e.renascer = RENASCER;
+        else jogadorMorreu = true;
     }
 
-    // Fecha o caminho: o rastro e tudo que ficou dentro vira do jogador
     function capturar(e) {
-        for (const c of e.trilha) {
+        for (const c of e.trilhaCel) {
             if (trilha[c] === e.id) trilha[c] = 0;
-            dono[c] = e.id;
+            if (valido[c]) dono[c] = e.id;
         }
-        e.trilha = [];
+        e.trilhaCel = [];
+        e.trilhaPts = [];
 
-        // Tudo que da para alcancar "por fora" (sem passar pela area de e)
-        // continua como esta. O resto foi cercado.
-        const visto = new Uint8Array(N * N);
-        const fila2 = new Int32Array(N * N);
+        // Tudo que nao da para alcancar "por fora" foi cercado
+        const visto = new Uint8Array(G * G);
+        const fila = new Int32Array(G * G);
         let ini = 0;
         let fim = 0;
 
-        fila2[fim++] = 0;
+        fila[fim++] = 0;
         visto[0] = 1;
 
         while (ini < fim) {
-            const c = fila2[ini++];
-            const x = c % N;
-            const y = (c - x) / N;
+            const c = fila[ini++];
+            const i = c % G;
+            const j = (c - i) / G;
 
-            for (const d of DIRS) {
-                const nx = x + d[0];
-                const ny = y + d[1];
-                if (nx < 0 || ny < 0 || nx >= N || ny >= N) continue;
-                const nc = idx(nx, ny);
-                if (visto[nc] || dono[nc] === e.id) continue;
-                visto[nc] = 1;
-                fila2[fim++] = nc;
-            }
+            if (i > 0) { const n = c - 1; if (!visto[n] && dono[n] !== e.id) { visto[n] = 1; fila[fim++] = n; } }
+            if (i < G - 1) { const n = c + 1; if (!visto[n] && dono[n] !== e.id) { visto[n] = 1; fila[fim++] = n; } }
+            if (j > 0) { const n = c - G; if (!visto[n] && dono[n] !== e.id) { visto[n] = 1; fila[fim++] = n; } }
+            if (j < G - 1) { const n = c + G; if (!visto[n] && dono[n] !== e.id) { visto[n] = 1; fila[fim++] = n; } }
         }
+
+        const afetados = new Set([e.id]);
 
         for (let c = 0; c < dono.length; c++) {
             if (valido[c] && !visto[c] && dono[c] !== e.id) {
+                if (dono[c]) afetados.add(dono[c]);
                 dono[c] = e.id;
             }
         }
-    }
 
-    function contarAreas() {
-        const areas = new Array(entidades.length + 1).fill(0);
-        for (let c = 0; c < dono.length; c++) {
-            if (dono[c]) areas[dono[c]]++;
+        contarAreas();
+
+        for (const id of afetados) {
+            const o = entidades[id - 1];
+            if (o !== e && o.vivo && o.area === 0) matar(o, e);
+            else construirContorno(o);
         }
-        for (const e of entidades) e.area = areas[e.id];
+
+        minimapaSujo = true;
     }
 
     // ========================================
@@ -246,15 +413,17 @@
     function casaMaisPerto(b) {
         let melhor = null;
         let menor = Infinity;
+        const bi = b.x / S;
+        const bj = b.y / S;
 
         for (let c = 0; c < dono.length; c++) {
             if (dono[c] !== b.id) continue;
-            const x = c % N;
-            const y = (c - x) / N;
-            const dist = Math.abs(x - b.x) + Math.abs(y - b.y);
-            if (dist < menor) {
-                menor = dist;
-                melhor = { x, y };
+            const i = c % G;
+            const j = (c - i) / G;
+            const d = (i - bi) * (i - bi) + (j - bj) * (j - bj);
+            if (d < menor) {
+                menor = d;
+                melhor = { x: (i + 0.5) * S, y: (j + 0.5) * S };
             }
         }
 
@@ -262,167 +431,129 @@
     }
 
     function pensarBot(b) {
-        const reverso = (b.dir + 2) % 4;
-        const emCasa = dono[idx(b.x, b.y)] === b.id;
+        const c = celula(b.x, b.y);
+        const emCasa = c >= 0 && dono[c] === b.id;
 
-        function seguro(d) {
-            if (d === reverso) return false;
-            const nx = b.x + DIRS[d][0];
-            const ny = b.y + DIRS[d][1];
-            if (!dentro(nx, ny)) return false;
-            return trilha[idx(nx, ny)] !== b.id;
-        }
+        // Olha um pouco a frente
+        const fx = b.x + Math.cos(b.ang) * 3;
+        const fy = b.y + Math.sin(b.ang) * 3;
+        const cf = celula(fx, fy);
+        const bordaAFrente = !naArena(fx, fy) || Math.hypot(fx - C, fy - C) > RAIO - 1.5;
+        const proprioRastroAFrente =
+            cf >= 0 && trilha[cf] === b.id && passos - carimbo[cf] > 25;
 
-        function rumoCasa() {
-            const alvo = casaMaisPerto(b);
-            if (!alvo) return b.dir;
+        if (emCasa) {
+            b.foraPassos = 0;
 
-            let melhor = -1;
-            let menor = Infinity;
+            if (b.modo === "voltar") {
+                b.modo = "casa";
+                b.espera = Math.floor(aleatorio(30, 120));
+            }
 
-            for (let d = 0; d < 4; d++) {
-                if (!seguro(d)) continue;
-                const nx = b.x + DIRS[d][0];
-                const ny = b.y + DIRS[d][1];
-                const dist = Math.abs(nx - alvo.x) + Math.abs(ny - alvo.y);
-                if (dist < menor) {
-                    menor = dist;
-                    melhor = d;
+            if (b.modo === "casa") {
+                if (cf < 0 || dono[cf] !== b.id) {
+                    if (b.casa) b.alvo = Math.atan2(b.casa.y - b.y, b.casa.x - b.x);
+                } else {
+                    b.alvo += aleatorio(-0.08, 0.08);
+                }
+
+                if (--b.espera <= 0) {
+                    let base = Math.random() * Math.PI * 2;
+                    if (Math.hypot(b.x - C, b.y - C) > RAIO - 14) {
+                        base = Math.atan2(C - b.y, C - b.x) + aleatorio(-1, 1);
+                    }
+                    const lado = Math.random() < 0.5 ? 1 : -1;
+                    b.plano = [
+                        { ang: base, passos: Math.floor(aleatorio(60, 150)) },
+                        { ang: base + lado * aleatorio(1.7, 2.4), passos: Math.floor(aleatorio(40, 110)) }
+                    ];
+                    b.modo = "sair";
                 }
             }
-
-            return melhor >= 0 ? melhor : b.dir;
-        }
-
-        // Ataque: se puder pisar no rastro de alguem, pisa
-        for (let d = 0; d < 4; d++) {
-            if (!seguro(d)) continue;
-            const t = trilha[idx(b.x + DIRS[d][0], b.y + DIRS[d][1])];
-            if (t && t !== b.id) {
-                b.dir = d;
-                return;
-            }
-        }
-
-        // Perigo: alguem perto enquanto esta fora de casa -> volta
-        if (!emCasa && b.trilha.length > 0) {
-            for (const o of entidades) {
-                if (o === b || !o.vivo) continue;
-                if (Math.abs(o.x - b.x) + Math.abs(o.y - b.y) <= 4) {
-                    b.plano = [];
-                    break;
-                }
-            }
-        }
-
-        if (b.trilha.length > 40) b.plano = [];
-
-        // Em casa e sem plano: espera um pouco e cria um novo passeio
-        if (emCasa && b.plano.length === 0) {
-            if (b.espera > 0) {
-                b.espera--;
-            } else {
-                const lado = Math.random() < 0.5 ? 1 : 3;
-                const d1 = b.dir;
-                const d2 = (d1 + lado) % 4;
-                const d3 = (d2 + lado) % 4;
-                const ida = 3 + aleatorio(8);
-                const largura = 3 + aleatorio(8);
-
-                b.plano = [
-                    { d: d1, n: ida },
-                    { d: d2, n: largura },
-                    { d: d3, n: ida }
-                ];
-                b.espera = 5 + aleatorio(20);
-            }
-        }
-
-        let desejada = b.dir;
-
-        if (b.plano.length > 0) {
-            const p = b.plano[0];
-            desejada = p.d;
-            p.n--;
-            if (p.n <= 0) b.plano.shift();
-        } else if (!emCasa) {
-            desejada = rumoCasa();
         } else {
-            // Passeia dentro da propria area
-            const nx = b.x + DIRS[b.dir][0];
-            const ny = b.y + DIRS[b.dir][1];
-            if (!dentro(nx, ny) || dono[idx(nx, ny)] !== b.id) {
-                const opcoes = [];
-                for (let d = 0; d < 4; d++) {
-                    if (!seguro(d)) continue;
-                    const cx = b.x + DIRS[d][0];
-                    const cy = b.y + DIRS[d][1];
-                    if (dono[idx(cx, cy)] === b.id) opcoes.push(d);
+            b.foraPassos++;
+
+            // Ataque: rastro de outro por perto, a frente
+            for (const desvio of [0, -0.45, 0.45]) {
+                let achou = false;
+                for (let dist = 1; dist <= 5; dist++) {
+                    const ca = celula(
+                        b.x + Math.cos(b.ang + desvio) * dist,
+                        b.y + Math.sin(b.ang + desvio) * dist
+                    );
+                    if (ca >= 0 && trilha[ca] && trilha[ca] !== b.id) {
+                        b.alvo = b.ang + desvio;
+                        achou = true;
+                        break;
+                    }
                 }
-                if (opcoes.length) desejada = opcoes[aleatorio(opcoes.length)];
+                if (achou) return;
             }
+
+            // Perigo: alguem perto, rastro longo, ou rumo ruim
+            let perigo = b.foraPassos > 420 || bordaAFrente || proprioRastroAFrente;
+            for (const o of entidades) {
+                if (o !== b && o.vivo && Math.hypot(o.x - b.x, o.y - b.y) < 7) perigo = true;
+            }
+            if (perigo) b.modo = "voltar";
         }
 
-        if (!seguro(desejada)) {
-            if (!emCasa) {
-                desejada = rumoCasa();
+        if (b.modo === "sair") {
+            const p = b.plano[0];
+            if (p) {
+                b.alvo = p.ang;
+                if (--p.passos <= 0) b.plano.shift();
             } else {
-                const opcoes = [];
-                for (let d = 0; d < 4; d++) if (seguro(d)) opcoes.push(d);
-                if (opcoes.length) desejada = opcoes[aleatorio(opcoes.length)];
+                b.modo = "voltar";
             }
-            b.plano = [];
         }
 
-        b.dir = desejada;
+        if (b.modo === "voltar" && !emCasa) {
+            if (!b.casaPerto || passos % 15 === 0) b.casaPerto = casaMaisPerto(b);
+            if (b.casaPerto) b.alvo = Math.atan2(b.casaPerto.y - b.y, b.casaPerto.x - b.x);
+            if (proprioRastroAFrente) b.alvo = b.ang + Math.PI / 2;
+        }
+
+        if (bordaAFrente) b.alvo = Math.atan2(C - b.y, C - b.x);
     }
 
     // ========================================
     // UM PASSO DO JOGO
     // ========================================
 
-    function aplicarFila() {
-        while (fila.length) {
-            const d = fila.shift();
-            if (d !== jogador.dir && d !== (jogador.dir + 2) % 4) {
-                jogador.dir = d;
-                break;
-            }
-        }
-    }
-
     function passo() {
         passos++;
 
-        // Bots que morreram voltam depois de um tempo
         for (const e of entidades) {
             if (e.bot && !e.vivo) {
                 if (e.renascer > 0) e.renascer--;
-                else if (!nascer(e)) e.renascer = 10;
+                else if (!nascer(e)) e.renascer = 60;
             }
         }
 
         const vivos = entidades.filter(e => e.vivo);
 
-        // Decide a direcao
+        // Vira suavemente e anda
         for (const e of vivos) {
             e.px = e.x;
             e.py = e.y;
+
             if (e.bot) pensarBot(e);
-            else aplicarFila();
-            e.nx = e.x + DIRS[e.dir][0];
-            e.ny = e.y + DIRS[e.dir][1];
+            else if (controle.alvo !== null) e.alvo = controle.alvo;
+
+            const giro = (e.bot ? GIRO_BOT : GIRO_JOGADOR) * PASSO;
+            const diff = angulo(e.alvo - e.ang);
+            e.ang = angulo(e.ang + Math.max(-giro, Math.min(giro, diff)));
+
+            e.x += Math.cos(e.ang) * VELOCIDADE * PASSO;
+            e.y += Math.sin(e.ang) * VELOCIDADE * PASSO;
         }
 
         const mortes = new Map();
+        const marcar = (v, a) => { if (!mortes.has(v)) mortes.set(v, a); };
 
-        function marcar(vitima, assassino) {
-            if (!mortes.has(vitima)) mortes.set(vitima, assassino);
-        }
-
-        // Saiu do circulo
         for (const e of vivos) {
-            if (!dentro(e.nx, e.ny)) marcar(e, null);
+            if (!naArena(e.x, e.y)) marcar(e, null);
         }
 
         // Batida de cabeca
@@ -430,95 +561,106 @@
             for (let j = i + 1; j < vivos.length; j++) {
                 const a = vivos[i];
                 const b = vivos[j];
+                if (Math.hypot(a.x - b.x, a.y - b.y) > 0.9) continue;
 
-                const mesmaCasa = a.nx === b.nx && a.ny === b.ny;
-                const cruzaram =
-                    a.nx === b.x && a.ny === b.y &&
-                    b.nx === a.x && b.ny === a.y;
+                const ca = celula(a.x, a.y);
+                const cb = celula(b.x, b.y);
+                const aCasa = ca >= 0 && dono[ca] === a.id;
+                const bCasa = cb >= 0 && dono[cb] === b.id;
 
-                if (!mesmaCasa && !cruzaram) continue;
-
-                const c = dentro(a.nx, a.ny) ? idx(a.nx, a.ny) : -1;
-                const aCasa = c >= 0 && dono[c] === a.id;
-                const bCasa = c >= 0 && dono[c] === b.id;
-
-                if (mesmaCasa && aCasa && !bCasa) marcar(b, a);
-                else if (mesmaCasa && bCasa && !aCasa) marcar(a, b);
-                else {
-                    marcar(a, b);
-                    marcar(b, a);
-                }
+                if (aCasa && !bCasa) marcar(b, a);
+                else if (bCasa && !aCasa) marcar(a, b);
+                else { marcar(a, b); marcar(b, a); }
             }
         }
 
         // Rastros
         for (const e of vivos) {
             if (mortes.has(e)) continue;
-            const t = trilha[idx(e.nx, e.ny)];
-            if (t === 0) continue;
+            const c = celula(e.x, e.y);
+            if (c < 0) continue;
+            const t = trilha[c];
+            if (!t) continue;
 
             if (t === e.id) {
-                marcar(e, null);
+                if (passos - carimbo[c] > 25) marcar(e, null);
             } else {
-                const vitima = entidadePorId(t);
-                if (vitima && vitima.vivo) marcar(vitima, e);
+                const vitima = entidades[t - 1];
+                if (vitima.vivo) marcar(vitima, e);
             }
         }
 
-        for (const [vitima, assassino] of mortes) {
-            matar(vitima, assassino);
-        }
+        for (const [v, a] of mortes) matar(v, a);
 
-        // Anda
-        const capturas = [];
-
+        // Deixa rastro ou fecha a area
         for (const e of vivos) {
             if (!e.vivo) continue;
 
-            e.x = e.nx;
-            e.y = e.ny;
-
-            const c = idx(e.x, e.y);
+            const c = celula(e.x, e.y);
+            if (c < 0) continue;
 
             if (dono[c] === e.id) {
-                if (e.trilha.length) capturas.push(e);
-            } else {
-                trilha[c] = e.id;
-                e.trilha.push(c);
+                if (e.trilhaCel.length) capturar(e);
+                continue;
+            }
+
+            if (e.trilhaPts.length === 0) e.trilhaPts.push([e.px, e.py]);
+
+            for (const [ox, oy] of [[0, 0], [0.3, 0], [-0.3, 0], [0, 0.3], [0, -0.3]]) {
+                const cc = celula(e.x + ox, e.y + oy);
+                if (cc < 0 || !valido[cc] || dono[cc] === e.id) continue;
+                if (trilha[cc] && trilha[cc] !== e.id) continue;
+                if (trilha[cc] !== e.id) e.trilhaCel.push(cc);
+                trilha[cc] = e.id;
+                carimbo[cc] = passos;
+            }
+
+            const ultimo = e.trilhaPts[e.trilhaPts.length - 1];
+            if (Math.hypot(ultimo[0] - e.x, ultimo[1] - e.y) > 0.3) {
+                e.trilhaPts.push([e.x, e.y]);
             }
         }
-
-        for (const e of capturas) {
-            if (!e.vivo) continue;
-            capturar(e);
-            contarAreas();
-
-            // Quem ficou sem area nenhuma foi eliminado por quem cercou
-            for (const o of entidades) {
-                if (o !== e && o.vivo && o.area === 0) matar(o, e);
-            }
-        }
-
-        contarAreas();
 
         // Placar
         const pct = jogador.vivo ? (jogador.area / totalValidas) * 100 : 0;
         if (pct > maxPct) maxPct = pct;
 
-        placarArea.textContent = `${pct.toFixed(1)}%`;
-        placarElim.textContent = jogador.elim;
-        placarTempo.textContent = formatarTempo(passos * TICK);
-
-        if (jogadorMorreu) {
-            terminar(false);
-        } else if (pct >= VITORIA) {
-            terminar(true);
+        if (passos % 6 === 0) {
+            placarArea.textContent = `${pct.toFixed(1)}%`;
+            placarElim.textContent = jogador.elim;
+            placarTempo.textContent = formatarTempo(passos * PASSO * 1000);
         }
+
+        if (jogadorMorreu) terminar(false);
+        else if (pct >= VITORIA) terminar(true);
     }
 
     // ========================================
     // DESENHO
     // ========================================
+
+    const minimapa = document.createElement("canvas");
+    minimapa.width = G;
+    minimapa.height = G;
+    const mctx = minimapa.getContext("2d");
+
+    function atualizarMinimapa() {
+        const img = mctx.createImageData(G, G);
+        const base = [27, 23, 48];
+        const rgb = CORES.map(hexParaRgb);
+
+        for (let c = 0; c < dono.length; c++) {
+            if (!valido[c]) continue;
+            const cor = dono[c] ? rgb[dono[c] - 1] : base;
+            img.data[c * 4] = cor[0];
+            img.data[c * 4 + 1] = cor[1];
+            img.data[c * 4 + 2] = cor[2];
+            img.data[c * 4 + 3] = 255;
+        }
+
+        mctx.putImageData(img, 0, 0);
+        minimapaSujo = false;
+    }
 
     function formatarTempo(ms) {
         const total = Math.floor(ms / 1000);
@@ -532,7 +674,7 @@
         const largura = Math.min(window.innerWidth - 8, 480);
         const altura = Math.max(
             260,
-            Math.min(Math.round(largura * 1.2), window.innerHeight - 150)
+            Math.min(Math.round(largura * 1.25), window.innerHeight - 150)
         );
 
         canvas.style.width = `${largura}px`;
@@ -544,104 +686,157 @@
     function desenhar(alfa) {
         const W = canvas.width;
         const H = canvas.height;
-        const cel = W / VISTA;
+        const dpr = window.devicePixelRatio || 1;
+        const esc = W / VISTA;
 
-        const foco = jogador;
-        const cx = foco.px + (foco.x - foco.px) * alfa + 0.5;
-        const cy = foco.py + (foco.y - foco.py) * alfa + 0.5;
+        const camX = jogador.px + (jogador.x - jogador.px) * alfa;
+        const camY = jogador.py + (jogador.y - jogador.py) * alfa;
 
-        const x0 = cx - W / 2 / cel;
-        const y0 = cy - H / 2 / cel;
-
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.globalAlpha = 1;
         ctx.fillStyle = "#090811";
         ctx.fillRect(0, 0, W, H);
 
-        const xi = Math.max(0, Math.floor(x0));
-        const xf = Math.min(N - 1, Math.ceil(x0 + W / cel));
-        const yi = Math.max(0, Math.floor(y0));
-        const yf = Math.min(N - 1, Math.ceil(y0 + H / cel));
+        ctx.setTransform(esc, 0, 0, esc, W / 2 - camX * esc, H / 2 - camY * esc);
 
-        const gap = Math.max(1, cel * 0.06);
+        // Chao da arena
+        ctx.beginPath();
+        ctx.arc(C, C, RAIO, 0, Math.PI * 2);
+        ctx.fillStyle = "#1b1730";
+        ctx.fill();
 
-        for (let y = yi; y <= yf; y++) {
-            for (let x = xi; x <= xf; x++) {
-                const c = idx(x, y);
-                if (!valido[c]) continue;
+        // Textura leve (da sensacao de movimento)
+        ctx.save();
+        ctx.clip();
+        ctx.strokeStyle = "rgba(255,255,255,0.035)";
+        ctx.lineWidth = 0.06;
+        const meiaL = VISTA / 2 + 2;
+        const meiaA = (H / esc) / 2 + 2;
+        ctx.beginPath();
+        for (let x = Math.floor((camX - meiaL) / 2) * 2; x <= camX + meiaL; x += 2) {
+            ctx.moveTo(x, camY - meiaA);
+            ctx.lineTo(x, camY + meiaA);
+        }
+        for (let y = Math.floor((camY - meiaA) / 2) * 2; y <= camY + meiaA; y += 2) {
+            ctx.moveTo(camX - meiaL, y);
+            ctx.lineTo(camX + meiaL, y);
+        }
+        ctx.stroke();
+        ctx.restore();
 
-                const sx = (x - x0) * cel;
-                const sy = (y - y0) * cel;
-
-                const d = dono[c];
-                const t = trilha[c];
-
-                if (d) {
-                    ctx.globalAlpha = 0.8;
-                    ctx.fillStyle = CORES[d - 1];
-                    ctx.fillRect(sx, sy, cel + 0.5, cel + 0.5);
-                } else {
-                    ctx.globalAlpha = 1;
-                    ctx.fillStyle = "#1b1730";
-                    ctx.fillRect(sx + gap / 2, sy + gap / 2, cel - gap, cel - gap);
-                }
-
-                if (t) {
-                    ctx.globalAlpha = 0.45;
-                    ctx.fillStyle = CORES[t - 1];
-                    ctx.fillRect(sx + cel * 0.15, sy + cel * 0.15, cel * 0.7, cel * 0.7);
-                }
-            }
+        // Areas (sombra + cor)
+        for (const e of entidades) {
+            if (!e.contorno) continue;
+            ctx.save();
+            ctx.translate(0, 0.35);
+            ctx.fillStyle = e.corEscura;
+            ctx.fill(e.contorno, "evenodd");
+            ctx.restore();
+            ctx.fillStyle = e.cor;
+            ctx.fill(e.contorno, "evenodd");
         }
 
+        // Rastros
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        for (const e of entidades) {
+            if (!e.vivo || e.trilhaPts.length === 0) continue;
+            ctx.globalAlpha = 0.55;
+            ctx.strokeStyle = e.corClara;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(e.trilhaPts[0][0], e.trilhaPts[0][1]);
+            for (let k = 1; k < e.trilhaPts.length; k++) {
+                ctx.lineTo(e.trilhaPts[k][0], e.trilhaPts[k][1]);
+            }
+            ctx.lineTo(
+                e.px + (e.x - e.px) * alfa,
+                e.py + (e.y - e.py) * alfa
+            );
+            ctx.stroke();
+        }
         ctx.globalAlpha = 1;
 
-        // Borda do circulo
+        // Borda da arena
         ctx.beginPath();
-        ctx.arc(
-            (CENTRO + 0.5 - x0) * cel,
-            (CENTRO + 0.5 - y0) * cel,
-            (RAIO + 0.5) * cel,
-            0,
-            Math.PI * 2
-        );
+        ctx.arc(C, C, RAIO, 0, Math.PI * 2);
         ctx.strokeStyle = "#8c78ff";
-        ctx.lineWidth = Math.max(2, cel * 0.12);
+        ctx.lineWidth = 0.3;
         ctx.stroke();
 
-        // Cabecas
+        // Cabecas e nomes
         for (const e of entidades) {
             if (!e.vivo && e !== jogador) continue;
 
-            const hx = (e.px + (e.x - e.px) * alfa - x0) * cel;
-            const hy = (e.py + (e.y - e.py) * alfa - y0) * cel;
-            const m = cel * 0.06;
-            const tam = cel - m * 2;
+            const hx = e.px + (e.x - e.px) * alfa;
+            const hy = e.py + (e.y - e.py) * alfa;
 
-            ctx.globalAlpha = e.vivo ? 1 : 0.4;
-            ctx.fillStyle = e.cor;
+            ctx.save();
+            ctx.translate(hx, hy);
+            ctx.globalAlpha = e.vivo ? 1 : 0.35;
+
+            ctx.save();
+            ctx.rotate(e.ang);
+            ctx.fillStyle = e.corEscura;
             ctx.beginPath();
-            if (ctx.roundRect) ctx.roundRect(hx + m, hy + m, tam, tam, cel * 0.22);
-            else ctx.rect(hx + m, hy + m, tam, tam);
+            if (ctx.roundRect) ctx.roundRect(-0.65, -0.65 + 0.2, 1.3, 1.3, 0.3);
+            else ctx.rect(-0.65, -0.45, 1.3, 1.3);
             ctx.fill();
-
-            ctx.lineWidth = Math.max(1.5, cel * 0.1);
-            ctx.strokeStyle = e.bot ? "rgba(255,255,255,0.85)" : "#ffd166";
-            ctx.stroke();
-
-            // Olhinhos na direcao em que anda
-            const ox = DIRS[e.dir][0] * cel * 0.14;
-            const oy = DIRS[e.dir][1] * cel * 0.14;
-            ctx.fillStyle = "#151229";
-            for (const lado of [-1, 1]) {
-                const px = DIRS[e.dir][1] * lado * cel * 0.16;
-                const py = DIRS[e.dir][0] * lado * cel * 0.16;
-                ctx.beginPath();
-                ctx.arc(hx + cel / 2 + ox + px, hy + cel / 2 + oy + py, cel * 0.08, 0, Math.PI * 2);
-                ctx.fill();
+            ctx.fillStyle = e.corClara;
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(-0.65, -0.65, 1.3, 1.3, 0.3);
+            else ctx.rect(-0.65, -0.65, 1.3, 1.3);
+            ctx.fill();
+            if (!e.bot) {
+                ctx.strokeStyle = "#ffd166";
+                ctx.lineWidth = 0.15;
+                ctx.stroke();
             }
+            ctx.restore();
+
+            ctx.font = "bold 0.75px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "bottom";
+            ctx.fillStyle = "rgba(0,0,0,0.45)";
+            ctx.fillText(e.nome, 0.05, -1.05);
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText(e.nome, 0, -1.1);
+
+            ctx.restore();
         }
 
         ctx.globalAlpha = 1;
+
+        // Minimapa
+        if (minimapaSujo) atualizarMinimapa();
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        const tam = 64 * dpr;
+        const mx = W - tam - 8 * dpr;
+        const my = H - tam - 8 * dpr;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(mx + tam / 2, my + tam / 2, tam / 2, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(9,8,17,0.75)";
+        ctx.fill();
+        ctx.clip();
+        ctx.globalAlpha = 0.9;
+        ctx.drawImage(minimapa, mx, my, tam, tam);
+        ctx.restore();
+
+        ctx.beginPath();
+        ctx.arc(mx + tam / 2, my + tam / 2, tam / 2, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(140,120,255,0.8)";
+        ctx.lineWidth = 1.5 * dpr;
+        ctx.stroke();
+
+        if (jogador.vivo) {
+            ctx.beginPath();
+            ctx.arc(mx + (jogador.x / (G * S)) * tam, my + (jogador.y / (G * S)) * tam, 2.5 * dpr, 0, Math.PI * 2);
+            ctx.fillStyle = "#ffffff";
+            ctx.fill();
+        }
     }
 
     // ========================================
@@ -657,17 +852,17 @@
             return;
         }
 
-        acumulado += agora - ultimoQuadro;
+        acumulado += (agora - ultimoQuadro) / 1000;
         ultimoQuadro = agora;
 
-        if (acumulado > 1000) acumulado = TICK;
+        if (acumulado > 0.25) acumulado = PASSO;
 
-        while (acumulado >= TICK && rodando) {
+        while (acumulado >= PASSO && rodando) {
             passo();
-            acumulado -= TICK;
+            acumulado -= PASSO;
         }
 
-        desenhar(rodando ? acumulado / TICK : 1);
+        desenhar(rodando ? acumulado / PASSO : 1);
 
         if (rodando) requestAnimationFrame(quadro);
     }
@@ -707,25 +902,29 @@
     }
 
     function comecar() {
-        dono = new Uint8Array(N * N);
-        trilha = new Uint8Array(N * N);
+        dono = new Uint8Array(G * G);
+        trilha = new Uint8Array(G * G);
+        carimbo = new Int32Array(G * G);
         entidades = [];
-        fila = [];
 
         for (let i = 0; i <= NUM_BOTS; i++) {
+            const cor = CORES[i % CORES.length];
             entidades.push({
                 id: i + 1,
                 bot: i > 0,
-                cor: CORES[i % CORES.length],
+                nome: NOMES[i % NOMES.length],
+                cor,
+                corEscura: misturar(cor, [0, 0, 0], 0.35),
+                corClara: misturar(cor, [255, 255, 255], 0.25),
                 vivo: false,
-                x: 0, y: 0, px: 0, py: 0, nx: 0, ny: 0,
-                dir: 0,
-                trilha: [],
-                plano: [],
-                espera: 0,
-                renascer: 0,
-                elim: 0,
-                area: 0
+                x: 0, y: 0, px: 0, py: 0,
+                ang: 0, alvo: 0,
+                trilhaCel: [], trilhaPts: [],
+                foraPassos: 0,
+                modo: "casa", plano: [], espera: 0,
+                casa: null, casaPerto: null,
+                contorno: null,
+                renascer: 0, elim: 0, area: 0
             });
         }
 
@@ -734,11 +933,14 @@
         for (const e of entidades) nascer(e);
         contarAreas();
 
+        controle.alvo = null;
+        controle.origem = null;
         passos = 0;
         maxPct = 0;
         jogadorMorreu = false;
         acumulado = 0;
         pausado = false;
+        minimapaSujo = true;
 
         placarArea.textContent = "0%";
         placarElim.textContent = "0";
@@ -766,7 +968,7 @@
         const recordeAntes = lerRecorde();
         if (maxPct > recordeAntes) salvarRecorde(maxPct);
 
-        const tempo = formatarTempo(passos * TICK);
+        const tempo = formatarTempo(passos * PASSO * 1000);
         const elim = jogador.elim;
         const textoElim = `${elim} ${elim === 1 ? "eliminação" : "eliminações"}`;
 
@@ -796,55 +998,87 @@
     // CONTROLES
     // ========================================
 
-    function enfileirar(d) {
-        if (!rodando) return;
-        const ultima = fila.length ? fila[fila.length - 1] : jogador.dir;
-        if (d === ultima || fila.length >= 2) return;
-        fila.push(d);
-    }
+    // Joystick: a direcao e a do dedo em relacao ao ponto onde tocou.
+    // Se o dedo se afasta muito, o ponto de origem acompanha,
+    // entao da para virar para qualquer lado sem tirar o dedo.
+    const controle = { alvo: null, origem: null };
+    const SENSIBILIDADE = 6;   // px minimos de arraste para virar
+    const ALCANCE = 40;        // px maximos entre origem e dedo
 
-    let toque = null;
+    function moverDedo(x, y) {
+        if (!controle.origem) {
+            controle.origem = { x, y };
+            return;
+        }
+
+        let dx = x - controle.origem.x;
+        let dy = y - controle.origem.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist < SENSIBILIDADE) return;
+
+        controle.alvo = Math.atan2(dy, dx);
+
+        if (dist > ALCANCE) {
+            controle.origem.x = x - (dx / dist) * ALCANCE;
+            controle.origem.y = y - (dy / dist) * ALCANCE;
+        }
+    }
 
     areaJogo.addEventListener("touchstart", (e) => {
         const t = e.touches[0];
-        toque = { x: t.clientX, y: t.clientY };
+        controle.origem = { x: t.clientX, y: t.clientY };
         e.preventDefault();
     }, { passive: false });
 
     areaJogo.addEventListener("touchmove", (e) => {
-        if (!toque) return;
         const t = e.touches[0];
-        const dx = t.clientX - toque.x;
-        const dy = t.clientY - toque.y;
-
-        if (Math.hypot(dx, dy) >= 18) {
-            if (Math.abs(dx) > Math.abs(dy)) enfileirar(dx > 0 ? 1 : 3);
-            else enfileirar(dy > 0 ? 2 : 0);
-            toque = { x: t.clientX, y: t.clientY };
-        }
-
+        moverDedo(t.clientX, t.clientY);
         e.preventDefault();
     }, { passive: false });
 
     areaJogo.addEventListener("touchend", () => {
-        toque = null;
+        controle.origem = null;
     });
 
-    // Teclado do PC (para testar no VS Code)
+    // PC: o personagem segue o mouse (para testar no VS Code)
+    canvas.addEventListener("mousemove", (e) => {
+        if (!rodando) return;
+        const r = canvas.getBoundingClientRect();
+        const dx = e.clientX - (r.left + r.width / 2);
+        const dy = e.clientY - (r.top + r.height / 2);
+        if (Math.hypot(dx, dy) > 4) controle.alvo = Math.atan2(dy, dx);
+    });
+
+    // PC: setas ou W A S D tambem funcionam
+    const teclas = new Set();
+
+    function direcaoTeclado() {
+        let dx = 0;
+        let dy = 0;
+        if (teclas.has("up")) dy -= 1;
+        if (teclas.has("down")) dy += 1;
+        if (teclas.has("left")) dx -= 1;
+        if (teclas.has("right")) dx += 1;
+        if (dx || dy) controle.alvo = Math.atan2(dy, dx);
+    }
+
+    const mapaTeclas = {
+        ArrowUp: "up", w: "up", W: "up",
+        ArrowDown: "down", s: "down", S: "down",
+        ArrowLeft: "left", a: "left", A: "left",
+        ArrowRight: "right", d: "right", D: "right"
+    };
+
     document.addEventListener("keydown", (e) => {
-        if (tela.hidden || !rodando) return;
+        if (tela.hidden || !rodando || !(e.key in mapaTeclas)) return;
+        teclas.add(mapaTeclas[e.key]);
+        direcaoTeclado();
+        e.preventDefault();
+    });
 
-        const mapa = {
-            ArrowUp: 0, w: 0, W: 0,
-            ArrowRight: 1, d: 1, D: 1,
-            ArrowDown: 2, s: 2, S: 2,
-            ArrowLeft: 3, a: 3, A: 3
-        };
-
-        if (e.key in mapa) {
-            enfileirar(mapa[e.key]);
-            e.preventDefault();
-        }
+    document.addEventListener("keyup", (e) => {
+        if (e.key in mapaTeclas) teclas.delete(mapaTeclas[e.key]);
     });
 
     // ========================================
@@ -869,7 +1103,6 @@
     botaoComecar.addEventListener("click", comecar);
     botaoDeNovo.addEventListener("click", comecar);
 
-    // Telegram minimizado: pausa
     document.addEventListener("visibilitychange", () => {
         pausado = document.hidden;
     });
