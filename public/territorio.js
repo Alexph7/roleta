@@ -48,7 +48,7 @@
     // IDs do Telegram que podem jogar enquanto o card esta bloqueado.
     // Para liberar para todos: tire o bloqueio do card no index.html.
     const LIBERADO_PARA = [
-        // coloque aqui o seu ID do Telegram, ex.: 123456789
+        6294708048
     ];
 
     const PASSO = 1 / 60;       // o jogo calcula 60 vezes por segundo
