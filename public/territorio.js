@@ -43,6 +43,7 @@
     const GIRO_BOT = 4.0;       // rapidez da curva dos bots
     const NUM_BOTS = 9;
     const VITORIA = 100;        // % da arena para vencer
+    const TOLERANCIA_BORDA = 1.2; // quanto pode passar da borda sem morrer
     const RENASCER = 120;       // passos ate um bot voltar (60 passos = 1 segundo)
 
     // IDs do Telegram que podem jogar enquanto o card esta bloqueado.
@@ -559,8 +560,10 @@
         const mortes = new Map();
         const marcar = (v, a) => { if (!mortes.has(v)) mortes.set(v, a); };
 
+        // Borda: pode encostar e passar um pouco (deslizando de lado).
+        // So morre se for alem da tolerancia, ou seja, se virar para fora.
         for (const e of vivos) {
-            if (!naArena(e.x, e.y)) marcar(e, null);
+            if (Math.hypot(e.x - C, e.y - C) > RAIO + TOLERANCIA_BORDA) marcar(e, null);
         }
 
         // Batida de cabeca
@@ -688,25 +691,6 @@
         ctx.arc(C, C, RAIO, 0, Math.PI * 2);
         ctx.fillStyle = "#f4f2fb";
         ctx.fill();
-
-        // Textura leve (da sensacao de movimento)
-        ctx.save();
-        ctx.clip();
-        ctx.strokeStyle = "rgba(21,18,41,0.05)";
-        ctx.lineWidth = 0.06;
-        const meiaL = VISTA / 2 + 2;
-        const meiaA = (H / esc) / 2 + 2;
-        ctx.beginPath();
-        for (let x = Math.floor((camX - meiaL) / 2) * 2; x <= camX + meiaL; x += 2) {
-            ctx.moveTo(x, camY - meiaA);
-            ctx.lineTo(x, camY + meiaA);
-        }
-        for (let y = Math.floor((camY - meiaA) / 2) * 2; y <= camY + meiaA; y += 2) {
-            ctx.moveTo(camX - meiaL, y);
-            ctx.lineTo(camX + meiaL, y);
-        }
-        ctx.stroke();
-        ctx.restore();
 
         // Areas (sombra + cor)
         for (const e of entidades) {
