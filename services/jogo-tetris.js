@@ -20,6 +20,17 @@ const MIN_MS_POR_PECA = 120;
 const MAX_DURACAO_MS = 6 * 60 * 60 * 1000;
 const MAX_PACOTE = 6100;
 
+// Fim do campeonato (horario de Brasilia). Depois disso ninguem comeca
+// nem envia partida, e o ranking fica congelado.
+// Para testar no PC: TETRIS_FIM_CAMPEONATO=2026-11-09T11:30:00-03:00 no .env
+const FIM_CAMPEONATO = Date.parse(
+    process.env.TETRIS_FIM_CAMPEONATO || "2026-11-11T10:30:00-03:00"
+);
+
+function encerrado(agora = Date.now()) {
+    return agora >= FIM_CAMPEONATO;
+}
+
 db.exec(`
     CREATE TABLE IF NOT EXISTS tetris_partidas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,6 +52,11 @@ db.exec(`
 
     CREATE INDEX IF NOT EXISTS idx_tetris_rank
         ON tetris_partidas (status, pontos DESC, finalizada_em);
+
+    CREATE TABLE IF NOT EXISTS tetris_avisos (
+        chave TEXT PRIMARY KEY,
+        enviado_em INTEGER NOT NULL
+    );
 `);
 
 // ==============================
@@ -71,6 +87,10 @@ const iniciarTransaction = db.transaction((usuarioId, agora) => {
 });
 
 function iniciar(usuarioId) {
+    if (encerrado()) {
+        return { ok: false, motivo: "campeonato_encerrado" };
+    }
+
     return iniciarTransaction.immediate(String(usuarioId), Date.now());
 }
 
@@ -164,6 +184,10 @@ const finalizarTransaction = db.transaction(
 );
 
 function finalizar(usuarioId, partidaId, pacote) {
+    if (encerrado()) {
+        return { ok: false, motivo: "campeonato_encerrado" };
+    }
+
     const resposta = finalizarTransaction.immediate(
         String(usuarioId),
         partidaId,
@@ -274,11 +298,79 @@ function estado(usuarioId) {
 
     return {
         meu: resultadoUsuario(usuarioId),
-        partidasJogadas: Number(partidas)
+        partidasJogadas: Number(partidas),
+        fimCampeonato: FIM_CAMPEONATO,
+        encerrado: encerrado()
     };
 }
 
+// ==============================
+// RESULTADO FINAL NO GRUPO
+// ==============================
+
+// Confere a cada 30 s. Quando o campeonato acaba, monta o top 10 e chama
+// "enviar" uma unica vez (fica anotado no banco, entao reiniciar o pm2
+// nao repete o post).
+function agendarPublicacaoResultado(enviar) {
+    const chave = "resultado_final_" + FIM_CAMPEONATO;
+    let enviando = false;
+
+    async function verificar() {
+        if (enviando || !encerrado()) return;
+
+        const jaEnviado = db.prepare(`
+            SELECT 1 FROM tetris_avisos WHERE chave = ?
+        `).get(chave);
+
+        if (jaEnviado) return;
+
+        enviando = true;
+
+        try {
+            const { ranking } = listarRanking(10);
+            const medalhas = ["🥇", "🥈", "🥉"];
+
+            const linhas = ranking.map(r =>
+                `${medalhas[r.posicao - 1] || r.posicao + "º"} ${r.nome} — ` +
+                `${r.pontos} pts (${r.linhas} linhas)`
+            );
+
+            const linhasControle = ranking.map(r =>
+                `${r.posicao}º ${r.nome} | ID ${r.usuarioId} | ${r.pontos} pts`
+            );
+
+            const texto =
+                "🏆 RESULTADO FINAL — CAMPEONATO DE TETRIS\n\n" +
+                (linhas.length ? linhas.join("\n") : "Ninguém pontuou.") +
+                "\n\nObrigado a todos que participaram!";
+
+            const textoControle =
+                "🏆 TETRIS — RESULTADO FINAL (CONTROLE)\n\n" +
+                (linhasControle.length ? linhasControle.join("\n") : "Ninguém pontuou.");
+
+            await enviar(texto, textoControle);
+
+            db.prepare(`
+                INSERT OR IGNORE INTO tetris_avisos (chave, enviado_em)
+                VALUES (?, ?)
+            `).run(chave, Date.now());
+
+            console.log("🏆 Resultado final do Tetris publicado.");
+        } catch (erro) {
+            console.error("❌ Erro ao publicar resultado do Tetris:", erro);
+        } finally {
+            enviando = false;
+        }
+    }
+
+    verificar();
+    setInterval(verificar, 30 * 1000);
+}
+
 module.exports = {
+    FIM_CAMPEONATO,
+    encerrado,
+    agendarPublicacaoResultado,
     iniciar,
     finalizar,
     estado,

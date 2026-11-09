@@ -627,6 +627,31 @@ registrarRotaTetris(
     }
 );
 
+// Posta o resultado final do campeonato de Tetris no grupo de ganhadores
+require("./services/jogo-tetris").agendarPublicacaoResultado(
+    async (texto, textoControle) => {
+        if (!GANHADORES_CHAT_ID) {
+            throw new Error("GANHADORES_CHAT_ID não configurado");
+        }
+
+        await bot.api.sendMessage({
+            chat_id: GANHADORES_CHAT_ID,
+            text: texto
+        });
+
+        if (CONTROLE_CHAT_ID) {
+            try {
+                await bot.api.sendMessage({
+                    chat_id: CONTROLE_CHAT_ID,
+                    text: textoControle
+                });
+            } catch (erro) {
+                console.error("❌ Resultado do Tetris não foi para o controle:", erro);
+            }
+        }
+    }
+);
+
 // ==============================
 // PRÊMIOS
 // ==============================

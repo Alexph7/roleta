@@ -406,8 +406,8 @@
     // ==============================
 
     function intervaloQueda() {
-        // A cada 17 linhas fica 0,05 s mais rapido, ate o limite de 0,30 s.
-        return Math.max(300, 800 - 50 * Math.floor(jogo.linhas / 17));
+        // A cada x linhas fica x mais rapido, ate o limite de x s.
+        return Math.max(300, 800 - 50 * Math.floor(jogo.linhas / 13));
     }
 
     function agendarQueda() {
@@ -599,6 +599,15 @@
         try {
             const e = await requisicao("/api/tetris/estado", {});
 
+            if (e.encerrado) {
+                avisoEl.textContent = e.meu
+                    ? `Campeonato encerrado. Sua posição final: ${e.meu.posicao}º (${e.meu.pontos} pontos).`
+                    : "Campeonato encerrado. Confira o ranking final abaixo.";
+                botaoComecar.textContent = "CAMPEONATO ENCERRADO";
+                botaoComecar.disabled = true;
+                return;
+            }
+
             avisoEl.textContent = e.meu
                 ? `Seu melhor: ${e.meu.pontos} pontos (${e.meu.posicao}º lugar).`
                 : "Você ainda não pontuou.";
@@ -647,9 +656,21 @@
         try {
             const d = await requisicao("/api/tetris/ranking", {});
 
-            rankingInfo.textContent =
-                "Vale a maior pontuação de cada pessoa. " +
-                "Cada linha completa soma 10 pontos.";
+            const fim = d.fimCampeonato
+                ? new Date(d.fimCampeonato).toLocaleString("pt-BR", {
+                    timeZone: "America/Sao_Paulo",
+                    day: "2-digit",
+                    month: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                })
+                : null;
+
+            rankingInfo.textContent = d.encerrado
+                ? "Campeonato encerrado. Este é o ranking final."
+                : "Vale a maior pontuação de cada pessoa. " +
+                  "Empate: fica na frente quem fez a pontuação primeiro." +
+                  (fim ? ` Termina em ${fim}.` : "");
 
             rankingLista.replaceChildren();
 
@@ -740,7 +761,7 @@
     //  - tocar a direita da peca: move para a direita (segurar repete)
     //  - tocar a esquerda da peca: move para a esquerda (segurar repete)
     //  - tocar em cima da peca: gira
-    //  - tocar abaixo da peca: acelera a descida (segurar repete)
+    //  - tocar abaixo da peca: nao faz nada (evita girar sem querer)
     //  - arrastar para baixo: queda direta
     (function ativarToqueNoCampo() {
         let inicio = null;
@@ -765,7 +786,7 @@
 
             if (x < esquerda) return "L";
             if (x > direita) return "R";
-            if (y > baixo) return "D";
+            if (y > baixo) return null;
             return "C";
         }
 
@@ -779,7 +800,7 @@
         // ate o dedo e para quando chegar nele (nao gira sozinha).
         function repetirUmaVez() {
             const letra = zona(ultimo.x, ultimo.y);
-            if (letra !== "C") acao(letra);
+            if (letra === "L" || letra === "R") acao(letra);
         }
 
         painelJogo.addEventListener("pointerdown", ev => {
@@ -808,7 +829,7 @@
                 repetindo: false
             };
 
-            if (inicio.zona !== "C") {
+            if (inicio.zona === "L" || inicio.zona === "R") {
                 esperaToque = setTimeout(() => {
                     if (!inicio || inicio.moveu) return;
 
@@ -837,7 +858,7 @@
 
         painelJogo.addEventListener("pointerup", () => {
             if (inicio && !inicio.moveu && !inicio.repetindo) {
-                acao(inicio.zona);
+                if (inicio.zona) acao(inicio.zona);
             }
 
             limpar();

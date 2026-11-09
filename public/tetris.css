@@ -289,7 +289,7 @@
     padding: 10px;
     box-sizing: border-box;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr 1.7fr;
+    grid-template-columns: 1.7fr 1fr 1fr 1fr 1.7fr;
     gap: 8px;
     border-radius: 20px;
     background: linear-gradient(180deg, #4a2fb0, #2a1670);

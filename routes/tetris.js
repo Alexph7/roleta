@@ -4,7 +4,9 @@ const MENSAGENS = {
     partida_inexistente:
         "Essa partida não está mais aberta. Comece uma nova.",
     registro_invalido:
-        "Não foi possível validar essa partida, ela não entrou no ranking."
+        "Não foi possível validar essa partida, ela não entrou no ranking.",
+    campeonato_encerrado:
+        "O campeonato terminou. Confira o ranking final abaixo."
 };
 
 function registrarRotaTetris(
@@ -68,7 +70,17 @@ function registrarRotaTetris(
 
             res.set("Cache-Control", "no-store");
 
-            return res.json(jogoTetris.iniciar(usuario.id));
+            const partida = jogoTetris.iniciar(usuario.id);
+
+            if (!partida.ok) {
+                return res.status(409).json({
+                    erro:
+                        MENSAGENS[partida.motivo] ||
+                        "Não foi possível iniciar o jogo."
+                });
+            }
+
+            return res.json(partida);
         } catch (erro) {
             console.error("Erro ao iniciar tetris:", erro);
 
@@ -121,7 +133,9 @@ function registrarRotaTetris(
             return res.json({
                 ranking: lista.ranking,
                 totalJogadores: lista.totalJogadores,
-                meu: jogoTetris.resultadoUsuario(usuario.id)
+                meu: jogoTetris.resultadoUsuario(usuario.id),
+                fimCampeonato: jogoTetris.FIM_CAMPEONATO,
+                encerrado: jogoTetris.encerrado()
             });
         } catch (erro) {
             console.error("Erro ao carregar ranking do tetris:", erro);

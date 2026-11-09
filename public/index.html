@@ -12,7 +12,7 @@
 
     <link rel="stylesheet" href="style.css?v=7">
     <link rel="stylesheet" href="memoria.css?v=6">
-    <link rel="stylesheet" href="tetris.css?v=9">
+    <link rel="stylesheet" href="tetris.css?v=10">
     <link rel="stylesheet" href="css/100x100.css?v=1">
     <link rel="stylesheet" href="podio.css?v=1">
     <link rel="stylesheet" href="captcha-pontos.css?v=conta-2">
@@ -180,7 +180,8 @@
                     <li>Cada linha completa soma 10 pontos.</li>
                     <li>O jogo termina quando as peças chegam ao topo.</li>
                     <li>Você pode jogar quantas vezes quiser. Vale a sua maior pontuação.</li>
-                    <li>A partida é conferida no servidor. Pontuação que não bate com o jogo é recusada.</li>
+                    <li>O campeonato vai até 11/11 às 10:30h. Só valem partidas terminadas até esse horário.</li>
+                    <li>Empate de pontos: fica na frente quem fez a pontuação primeiro.</li>
                 </ul>
 
                 <p id="tetris-aviso" class="tetris-aviso"></p>
@@ -209,8 +210,8 @@
                 <canvas id="tetris-canvas" width="336" height="480" aria-label="Jogo de blocos"></canvas>
 
                 <div class="tetris-controles">
+                    <button class="tetris-btn tetris-btn-queda" type="button" data-acao="C" aria-label="Girar">GIRAR</button>
                     <button class="tetris-btn" type="button" data-acao="L" aria-label="Esquerda">◀</button>
-                    <button class="tetris-btn" type="button" data-acao="C" aria-label="Girar">⟳</button>
                     <button class="tetris-btn" type="button" data-acao="R" aria-label="Direita">▶</button>
                     <button class="tetris-btn" type="button" data-acao="D" aria-label="Descer">▼</button>
                     <button class="tetris-btn tetris-btn-queda" type="button" data-acao="H">QUEDA</button>
@@ -965,7 +966,7 @@
     <script src="habilidade.js?v=2"></script>
     <script src="memoria.js?v=8"></script>
     <script src="tetris-motor.js?v=6"></script>
-    <script src="tetris.js?v=13"></script>
+    <script src="tetris.js?v=14"></script>
     <script src="sudoku.js?v=5"></script>
     <script src="territorio.js?v=15"></script>
     <script src="js/100x100.js?v=1"></script>
