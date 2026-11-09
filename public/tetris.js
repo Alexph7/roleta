@@ -22,6 +22,7 @@
     const rankingInfo = el("tetris-ranking-info");
     const rankingLista = el("tetris-ranking-lista");
     const minhaPosicao = el("tetris-minha-posicao");
+    const caixaRanking = document.querySelector("#tela-tetris .tetris-ranking");
 
     if (
         !Motor || !telaTetris || !botaoAbrir || !botaoVoltar ||
@@ -81,7 +82,7 @@
             }
 
             const r = audio.play();
-            if (r && r.catch) r.catch(() => {});
+            if (r && r.catch) r.catch(() => { });
         }
 
         function pausar() {
@@ -404,7 +405,7 @@
     // PARTIDA
     // ==============================
 
-       function intervaloQueda() {
+    function intervaloQueda() {
         // A cada 17 linhas fica 0,05 s mais rapido, ate o limite de 0,30 s.
         return Math.max(300, 800 - 50 * Math.floor(jogo.linhas / 17));
     }
@@ -463,6 +464,7 @@
             painelRegras.hidden = true;
             painelJogo.hidden = false;
             botaoVoltar.hidden = true;
+            if (caixaRanking) caixaRanking.hidden = true;
 
             atualizarPlacar();
             desenhar();
@@ -527,6 +529,7 @@
         painelJogo.hidden = true;
         botaoVoltar.hidden = false;
         painelRegras.hidden = false;
+        if (caixaRanking) caixaRanking.hidden = false;
         resultadoEl.textContent = "Calculando sua pontuação...";
 
         enviarResultado();
@@ -543,6 +546,7 @@
 
         telaTetris.hidden = false;
         painelRegras.hidden = false;
+        if (caixaRanking) caixaRanking.hidden = false;
         painelJogo.hidden = true;
         botaoVoltar.hidden = false;
         resultadoEl.textContent = "";
