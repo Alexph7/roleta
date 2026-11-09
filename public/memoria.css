@@ -133,8 +133,8 @@
 .memoria-carta::before {
     content: "";
     display: block;
-    width: 65%;
-    height: 65%;
+    width: 75%;
+    height: 75%;
     margin: auto;
     background: url("logo-centro.png") center / contain no-repeat;
 }
