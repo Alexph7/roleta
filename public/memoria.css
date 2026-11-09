@@ -133,10 +133,10 @@
 .memoria-carta::before {
     content: "";
     display: block;
-    width: 92%;
-    height: 92%;
+    width: 100%;
+    height: 100%;
     margin: auto;
-    background: url("logo-centro.png") center / contain no-repeat;
+    background: url("logo-centro.png") center / 125% no-repeat;
 }
 
 .memoria-carta:active {
