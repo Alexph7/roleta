@@ -330,13 +330,21 @@ function agendarPublicacaoResultado(enviar) {
             const { ranking } = listarRanking(10);
             const medalhas = ["🥇", "🥈", "🥉"];
 
+            const premio = posicao =>
+                posicao === 1 ? "2 gift cards Shopee ou R$ 50"
+                    : posicao <= 4 ? "1 gift card Shopee ou R$ 20"
+                    : posicao <= 7 ? "R$ 10"
+                    : null;
+
             const linhas = ranking.map(r =>
                 `${medalhas[r.posicao - 1] || r.posicao + "º"} ${r.nome} — ` +
-                `${r.pontos} pts (${r.linhas} linhas)`
+                `${r.pontos} pts (${r.linhas} linhas)` +
+                (premio(r.posicao) ? ` → 🎁 ${premio(r.posicao)}` : "")
             );
 
             const linhasControle = ranking.map(r =>
-                `${r.posicao}º ${r.nome} | ID ${r.usuarioId} | ${r.pontos} pts`
+                `${r.posicao}º ${r.nome} | ID ${r.usuarioId} | ${r.pontos} pts` +
+                (premio(r.posicao) ? ` | ${premio(r.posicao)}` : "")
             );
 
             const texto =

@@ -668,7 +668,8 @@
 
             rankingInfo.textContent = d.encerrado
                 ? "Campeonato encerrado. Este é o ranking final."
-                : "Vale a maior pontuação de cada pessoa. " +
+                : "Prêmios: 1º, 2 gift cards Shopee ou R$ 50. 2º ao 4º, 1 gift card ou R$ 20. 5º ao 7º, R$ 10. " +
+                  "Vale a maior pontuação de cada pessoa. " +
                   "Empate: fica na frente quem fez a pontuação primeiro." +
                   (fim ? ` Termina em ${fim}.` : "");
 
