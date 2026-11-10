@@ -57,6 +57,12 @@ db.exec(`
         chave TEXT PRIMARY KEY,
         enviado_em INTEGER NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS tetris_retomadas (
+        usuario_id TEXT PRIMARY KEY,
+        partida_origem INTEGER NOT NULL,
+        criada_em INTEGER NOT NULL
+    );
 `);
 
 // ==============================
@@ -71,6 +77,37 @@ const iniciarTransaction = db.transaction((usuarioId, agora) => {
         WHERE usuario_id = ?
           AND status = 'ativa'
     `).run(usuarioId);
+
+    // Retomada: partida que foi cortada pelo limite antigo de jogadas.
+    // Vale uma vez so: a marcacao e apagada assim que a partida comeca.
+    const retomada = db.prepare(`
+        SELECT p.seed, p.acoes, p.duracao_ms
+        FROM tetris_retomadas r
+        JOIN tetris_partidas p ON p.id = r.partida_origem
+        WHERE r.usuario_id = ?
+    `).get(usuarioId);
+
+    if (retomada) {
+        db.prepare(`
+            DELETE FROM tetris_retomadas WHERE usuario_id = ?
+        `).run(usuarioId);
+
+        const novaPartida = db.prepare(`
+            INSERT INTO tetris_partidas (usuario_id, seed, iniciada_em)
+            VALUES (?, ?, ?)
+        `).run(
+            usuarioId,
+            retomada.seed,
+            agora - Number(retomada.duracao_ms || 0)
+        );
+
+        return {
+            ok: true,
+            partidaId: Number(novaPartida.lastInsertRowid),
+            seed: retomada.seed,
+            prefixo: retomada.acoes
+        };
+    }
 
     const seed = crypto.randomInt(1, 2147483647);
 
