@@ -548,7 +548,7 @@ app.use(
 );
 
 app.use(express.json({
-    limit: "10kb"
+    limit: "30kb"
 }));
 
 app.use(express.static("public"));

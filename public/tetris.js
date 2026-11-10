@@ -406,8 +406,17 @@
     // ==============================
 
     function intervaloQueda() {
-        // A cada x linhas fica x mais rapido, ate o limite de x s.
-        return Math.max(300, 800 - 50 * Math.floor(jogo.linhas / 13));
+        const linhas = jogo.linhas;
+
+        // Ate 207 linhas: igual antes (0,05 s mais rapido a cada 13 linhas,
+        // ate 0,30 s).
+        if (linhas < 208) {
+            return Math.max(300, 800 - 50 * Math.floor(linhas / 13));
+        }
+
+        // A partir de 208 linhas: 0,04 s mais rapido a cada 13 linhas,
+        // ate 0,15 s.
+        return Math.max(150, 260 - 40 * Math.floor((linhas - 208) / 13));
     }
 
     function agendarQueda() {

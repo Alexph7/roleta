@@ -18,7 +18,7 @@ db.pragma("busy_timeout = 5000");
 // Ninguem coloca uma peca em menos que isso. Abaixo disso, e robo ou fraude.
 const MIN_MS_POR_PECA = 120;
 const MAX_DURACAO_MS = 6 * 60 * 60 * 1000;
-const MAX_PACOTE = 6100;
+const MAX_PACOTE = 18100;
 
 // Fim do campeonato (horario de Brasilia). Depois disso ninguem comeca
 // nem envia partida, e o ranking fica congelado.

@@ -15,7 +15,7 @@
     const PONTOS_POR_LINHA = 10;
 
     // Limite de acoes por partida (mantem o envio pequeno e a partida finita).
-    const LIMITE_EVENTOS = 12000;
+    const LIMITE_EVENTOS = 36000;
 
     // L = esquerda, R = direita, C = girar, D = descer 1,
     // H = queda direta, T = descida automatica (tempo)
