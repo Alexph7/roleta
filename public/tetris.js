@@ -478,14 +478,6 @@
                 }
             }
 
-            // Retomada: refaz as jogadas antigas e continua dali
-            if (p.prefixo) {
-                for (const letra of Motor.desempacotar(p.prefixo) || "") {
-                    Motor.aplicar(jogo, letra);
-                    acoesFeitas.push(letra);
-                }
-            }
-
             painelRegras.hidden = true;
             painelJogo.hidden = false;
             botaoVoltar.hidden = true;
