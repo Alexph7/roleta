@@ -1,0 +1,340 @@
+/* ==============================
+   JOGO DA MEMÓRIA - DUELO
+   ============================== */
+
+.memoria-botoes-modo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.memoria-botoes-modo .memoria-comecar {
+    margin-top: 0;
+}
+
+.memoria-comecar.md-convidar {
+    background: linear-gradient(180deg, #f72585, #b5179e);
+}
+
+/* ---------- ESPERA ---------- */
+
+.md-espera {
+    width: min(92vw, 360px);
+    margin: 18px auto;
+    padding: 18px 14px;
+    border-radius: 16px;
+    background: rgba(10, 10, 50, .35);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25);
+}
+
+.md-espera-icone {
+    font-size: 3rem;
+    animation: md-pulsa 1.4s ease-in-out infinite;
+}
+
+.md-espera p {
+    margin: 10px 0;
+}
+
+.md-espera-tempo {
+    font-size: .85rem;
+    opacity: .8;
+}
+
+.md-cancelar {
+    margin-top: 6px;
+    padding: 10px 18px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .15);
+    color: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* ---------- PLACAR DOS DOIS ---------- */
+
+.md-placar {
+    width: min(92vw, 360px);
+    margin: 12px auto 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.md-jogador {
+    padding: 8px 6px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .1);
+    box-shadow: inset 0 0 0 2px transparent;
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.md-jogador .md-nome {
+    display: block;
+    font-size: .72rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: .85;
+}
+
+.md-jogador .md-pontos {
+    font-size: 1.5rem;
+}
+
+.md-cor-1 .md-pontos { color: #6fd3ff; }
+.md-cor-2 .md-pontos { color: #ff8fc7; }
+
+.md-jogador.md-vez {
+    transform: scale(1.04);
+    background: rgba(255, 255, 255, .2);
+}
+
+.md-cor-1.md-vez { box-shadow: inset 0 0 0 2px #6fd3ff, 0 0 14px rgba(111, 211, 255, .5); }
+.md-cor-2.md-vez { box-shadow: inset 0 0 0 2px #ff8fc7, 0 0 14px rgba(255, 143, 199, .5); }
+
+.md-tempo {
+    width: min(92vw, 360px);
+    height: 6px;
+    margin: 10px auto 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .15);
+    overflow: hidden;
+}
+
+.md-tempo-barra {
+    height: 100%;
+    width: 100%;
+    border-radius: 999px;
+    background: #06d6a0;
+    transition: width .2s linear, background .3s ease;
+}
+
+.md-tempo-barra.md-pouco {
+    background: #ff6b6b;
+}
+
+.md-aviso {
+    min-height: 1.4em;
+    margin: 8px auto 0;
+    font-weight: 700;
+}
+
+.md-aviso.md-aviso-minha {
+    color: #ffd166;
+    animation: md-pulsa 1s ease-in-out infinite;
+}
+
+/* ---------- CARTAS ---------- */
+
+.memoria-grade.md-bloqueada .memoria-carta:not(.encontrada) {
+    opacity: .82;
+}
+
+.memoria-carta.encontrada.md-dono-1 {
+    background: linear-gradient(180deg, #6fd3ff, #1e7fd0);
+    box-shadow: 0 4px 0 #145a96, 0 0 12px rgba(111, 211, 255, .5);
+}
+
+.memoria-carta.encontrada.md-dono-2 {
+    background: linear-gradient(180deg, #ff9fd0, #d1307f);
+    box-shadow: 0 4px 0 #8e1d55, 0 0 12px rgba(255, 143, 199, .5);
+}
+
+.memoria-carta.md-errada {
+    background: linear-gradient(180deg, #ffe0e0, #ffb3b3);
+    animation: md-treme .35s ease;
+}
+
+/* ---------- TELA FINAL ---------- */
+
+#tela-memoria > #memoria-duelo-final {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 30%, rgba(40, 60, 140, .92), rgba(5, 10, 40, .96));
+    animation: md-aparece .35s ease;
+}
+
+.md-final-cartao {
+    position: relative;
+    z-index: 2;
+    width: min(90vw, 340px);
+    padding: 26px 18px 20px;
+    border-radius: 24px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, .16), rgba(255, 255, 255, .06));
+    box-shadow:
+        inset 0 0 0 2px rgba(255, 209, 102, .55),
+        0 0 40px rgba(255, 209, 102, .25),
+        0 20px 40px rgba(0, 0, 0, .45);
+    text-align: center;
+    animation: md-sobe .5s cubic-bezier(.2, 1.4, .4, 1);
+}
+
+.md-final-derrota .md-final-cartao {
+    box-shadow:
+        inset 0 0 0 2px rgba(160, 210, 255, .45),
+        0 0 30px rgba(160, 210, 255, .2),
+        0 20px 40px rgba(0, 0, 0, .45);
+}
+
+.md-final-raios {
+    position: absolute;
+    top: -70px;
+    left: 50%;
+    width: 260px;
+    height: 260px;
+    margin-left: -130px;
+    border-radius: 50%;
+    background: repeating-conic-gradient(rgba(255, 209, 102, .25) 0 10deg, transparent 10deg 20deg);
+    -webkit-mask: radial-gradient(circle, #000 30%, transparent 70%);
+    mask: radial-gradient(circle, #000 30%, transparent 70%);
+    animation: md-gira 12s linear infinite;
+    pointer-events: none;
+}
+
+.md-final-derrota .md-final-raios {
+    opacity: .35;
+}
+
+.md-final-icone {
+    position: relative;
+    font-size: 4.2rem;
+    line-height: 1;
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, .4));
+    animation: md-pulsa 1.6s ease-in-out infinite;
+}
+
+.md-final-titulo {
+    position: relative;
+    margin: 12px 0 4px;
+    font-size: 1.6rem;
+    letter-spacing: 1px;
+    background: linear-gradient(180deg, #fff6c7, #ffd166 60%, #f4a100);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.md-final-derrota .md-final-titulo {
+    background: linear-gradient(180deg, #ffffff, #a8d4ff);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+.md-final-sub {
+    margin: 0 0 14px;
+    font-size: .9rem;
+    opacity: .85;
+}
+
+.md-final-placar {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.md-final-linha {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, .25);
+    text-align: left;
+}
+
+.md-final-linha span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.md-final-linha.md-cor-1 strong { color: #6fd3ff; }
+.md-final-linha.md-cor-2 strong { color: #ff8fc7; }
+
+.md-final-linha.md-final-ganhou {
+    background: rgba(255, 209, 102, .18);
+    box-shadow: inset 0 0 0 1px rgba(255, 209, 102, .6);
+}
+
+.md-final-botoes {
+    display: grid;
+    gap: 8px;
+}
+
+.md-final-botoes .memoria-comecar {
+    margin-top: 0;
+}
+
+.md-final-voltar {
+    padding: 10px;
+    border: 0;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .12);
+    color: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.md-confete {
+    position: absolute;
+    top: -12px;
+    z-index: 1;
+    width: 8px;
+    height: 14px;
+    border-radius: 2px;
+    opacity: .9;
+    animation: md-cai 3s linear infinite;
+    pointer-events: none;
+}
+
+/* ---------- ANIMAÇÕES ---------- */
+
+@keyframes md-pulsa {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+
+@keyframes md-treme {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+@keyframes md-aparece {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes md-sobe {
+    from { transform: translateY(40px) scale(.9); opacity: 0; }
+    to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes md-gira {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes md-cai {
+    0% { transform: translateY(0) rotate(0deg); }
+    100% { transform: translateY(110vh) rotate(720deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .md-confete,
+    .md-final-raios,
+    .md-final-icone,
+    .md-espera-icone,
+    .md-aviso.md-aviso-minha {
+        animation: none !important;
+    }
+}

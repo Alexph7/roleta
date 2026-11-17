@@ -12,6 +12,7 @@
 
     <link rel="stylesheet" href="style.css?v=7">
     <link rel="stylesheet" href="memoria.css?v=11">
+    <link rel="stylesheet" href="memoria-duelo.css?v=1">
     <link rel="stylesheet" href="tetris.css?v=13">
     <link rel="stylesheet" href="css/100x100.css?v=1">
     <link rel="stylesheet" href="captcha-pontos.css?v=conta-2">
@@ -137,11 +138,19 @@
                     <li>Vire duas cartas por vez e encontre todos os pares.</li>
                     <li>Cada par virado, acertando ou errando, conta 1 jogada.</li>
                     <li>Jogue quantas vezes quiser.</li>
+                    <li>Em 2 jogadores, o convite vai para o grupo e o primeiro que entrar joga com você.
+                        Acertou o par, joga de novo. Errou, passa a vez. Ganha quem fizer mais pares.</li>
                 </ul>
 
-                <button id="memoria-comecar" class="memoria-comecar" type="button">
-                    COMEÇAR
-                </button>
+                <div class="memoria-botoes-modo">
+                    <button id="memoria-comecar" class="memoria-comecar" type="button">
+                        1 JOGADOR
+                    </button>
+
+                    <button id="memoria-duelo-convidar" class="memoria-comecar md-convidar" type="button">
+                        2 JOGADORES
+                    </button>
+                </div>
             </div>
 
             <div id="memoria-jogo" hidden>
@@ -164,6 +173,61 @@
             <button id="memoria-de-novo" class="memoria-comecar" type="button" hidden>
                 JOGAR DE NOVO
             </button>
+
+            <!-- DUELO (2 JOGADORES) -->
+            <div id="memoria-duelo" hidden>
+                <div id="memoria-duelo-espera" class="md-espera">
+                    <div class="md-espera-icone">📨</div>
+                    <p id="memoria-duelo-espera-texto"></p>
+                    <p id="memoria-duelo-espera-tempo" class="md-espera-tempo"></p>
+                    <button id="memoria-duelo-cancelar" class="md-cancelar" type="button">
+                        CANCELAR CONVITE
+                    </button>
+                </div>
+
+                <div id="memoria-duelo-partida" hidden>
+                    <div class="md-placar">
+                        <div id="memoria-duelo-j1" class="md-jogador md-cor-1">
+                            <span class="md-nome"></span>
+                            <strong class="md-pontos">0</strong>
+                        </div>
+                        <div id="memoria-duelo-j2" class="md-jogador md-cor-2">
+                            <span class="md-nome"></span>
+                            <strong class="md-pontos">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="md-tempo">
+                        <div id="memoria-duelo-barra" class="md-tempo-barra"></div>
+                    </div>
+
+                    <p id="memoria-duelo-aviso" class="md-aviso"></p>
+
+                    <div id="memoria-duelo-grade" class="memoria-grade" aria-label="Duelo da memória"></div>
+                </div>
+            </div>
+
+            <div id="memoria-duelo-final" hidden>
+                <div class="md-final-cartao">
+                    <div class="md-final-raios"></div>
+                    <div id="memoria-duelo-final-icone" class="md-final-icone">🏆</div>
+                    <h2 id="memoria-duelo-final-titulo" class="md-final-titulo"></h2>
+                    <p id="memoria-duelo-final-sub" class="md-final-sub"></p>
+                    <div id="memoria-duelo-final-placar" class="md-final-placar"></div>
+
+                    <div class="md-final-botoes">
+                        <button id="memoria-duelo-final-convidar" class="memoria-comecar md-convidar" type="button">
+                            NOVO DUELO
+                        </button>
+                        <button id="memoria-duelo-final-solo" class="memoria-comecar" type="button">
+                            JOGAR SOZINHO
+                        </button>
+                        <button id="memoria-duelo-final-voltar" class="md-final-voltar" type="button">
+                            VOLTAR
+                        </button>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section id="tela-tetris" class="tela" hidden>
@@ -967,6 +1031,7 @@
     <script src="app.js?v=captcha-1"></script>
     <script src="habilidade.js?v=2"></script>
     <script src="memoria.js?v=9"></script>
+    <script src="memoria-duelo.js?v=1"></script>
     <script src="tetris-motor.js?v=7"></script>
     <script src="tetris.js?v=19"></script>
     <script src="sudoku.js?v=5"></script>

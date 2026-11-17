@@ -644,7 +644,7 @@ registrarRotaMemoriaDuelo(
             }
 
             return bot.api.sendMessage({
-                chat_id: GANHADORES_CHAT_ID,
+                chat_id: process.env.MEMORIA_DUELO_CHAT_ID || GANHADORES_CHAT_ID,
                 text: texto,
                 reply_markup: {
                     inline_keyboard: [[
