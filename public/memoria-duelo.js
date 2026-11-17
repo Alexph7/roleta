@@ -90,6 +90,8 @@
     // ==============================
 
     function esconderSolo() {
+        const painel = el("memoria-ranking");
+        if (painel) painel.hidden = true;
         regras.hidden = true;
         jogoSolo.hidden = true;
         botaoDeNovoSolo.hidden = true;
@@ -98,6 +100,7 @@
 
     function mostrarRegras(mensagem = "") {
         parar();
+        mostrarRankingAbaixo();
         area.hidden = true;
         final.hidden = true;
         jogoSolo.hidden = true;
@@ -575,6 +578,121 @@
     }
 
     // ==============================
+    // RANKINGS (SOLO E DUELOS)
+    // ==============================
+
+    const painelRanking = el("memoria-ranking");
+    const abaSolo = el("memoria-ranking-aba-solo");
+    const abaDuelos = el("memoria-ranking-aba-duelos");
+    const rankingInfo = el("memoria-ranking-info");
+    const rankingLista = el("memoria-ranking-lista");
+
+    let abaAtual = "solo";
+
+    function formatarTempo(ms) {
+        const total = Math.max(0, Math.round(Number(ms || 0) / 1000));
+        return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+    }
+
+    function medalha(posicao) {
+        if (posicao === 1) return "🥇";
+        if (posicao === 2) return "🥈";
+        if (posicao === 3) return "🥉";
+        return `${posicao}º`;
+    }
+
+    function linhaRanking(posicao, nome, valor, destaque) {
+        const linha = document.createElement("div");
+        linha.className = "md-rank-linha" + (destaque ? " md-rank-eu" : "");
+
+        const pos = document.createElement("span");
+        pos.className = "md-rank-pos";
+        pos.textContent = medalha(posicao);
+
+        const n = document.createElement("span");
+        n.className = "md-rank-nome";
+        n.textContent = nome || "Jogador";
+
+        const v = document.createElement("strong");
+        v.textContent = valor;
+
+        linha.append(pos, n, v);
+        return linha;
+    }
+
+    async function carregarRanking() {
+        abaSolo.classList.toggle("ativa", abaAtual === "solo");
+        abaDuelos.classList.toggle("ativa", abaAtual === "duelos");
+
+        rankingInfo.textContent = abaAtual === "solo"
+            ? "Melhor partida de cada um: menos jogadas. Empate: menor tempo."
+            : "Mais vitórias. Empate: mais pares somados.";
+
+        rankingLista.replaceChildren();
+        const carregando = document.createElement("p");
+        carregando.textContent = "Carregando...";
+        rankingLista.appendChild(carregando);
+
+        const meuId = String(telegram?.initDataUnsafe?.user?.id || "");
+        const aba = abaAtual;
+
+        try {
+            const rota = aba === "solo" ? "/api/memoria-solo/ranking" : "/api/memoria-duelo/ranking";
+            const resposta = await fetch(rota, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ initData: telegram?.initData || "" })
+            });
+            const dados = await resposta.json();
+
+            if (aba !== abaAtual) return;
+            if (!resposta.ok) throw new Error(dados.erro);
+
+            rankingLista.replaceChildren();
+            const lista = dados.ranking || [];
+
+            if (!lista.length) {
+                const vazio = document.createElement("p");
+                vazio.textContent = "Ninguém no ranking ainda. Seja o primeiro!";
+                rankingLista.appendChild(vazio);
+                return;
+            }
+
+            for (const item of lista) {
+                const valor = aba === "solo"
+                    ? `${item.jogadas} jog. · ${formatarTempo(item.tempoMs)}`
+                    : `${item.vitorias} V · ${item.pares} pares`;
+
+                rankingLista.appendChild(
+                    linhaRanking(item.posicao, item.nome, valor, item.usuarioId === meuId)
+                );
+            }
+
+        } catch {
+            if (aba !== abaAtual) return;
+            rankingLista.replaceChildren();
+            const erro = document.createElement("p");
+            erro.textContent = "Não foi possível carregar o ranking.";
+            rankingLista.appendChild(erro);
+        }
+    }
+
+    // O ranking fica sempre embaixo das regras.
+    function mostrarRankingAbaixo() {
+        if (!painelRanking) return;
+        painelRanking.hidden = false;
+        carregarRanking();
+    }
+
+    if (painelRanking) {
+        abaSolo.addEventListener("click", () => { abaAtual = "solo"; carregarRanking(); });
+        abaDuelos.addEventListener("click", () => { abaAtual = "duelos"; carregarRanking(); });
+
+        // Começou o solo: o ranking sai da frente
+        botaoSolo.addEventListener("click", () => { painelRanking.hidden = true; });
+    }
+
+    // ==============================
     // BOTÕES
     // ==============================
 
@@ -597,6 +715,7 @@
     // Abrir a tela da memória pelo menu: começa sempre nas regras
     botaoAbrir.addEventListener("click", () => {
         parar();
+        mostrarRankingAbaixo();
         area.hidden = true;
         final.hidden = true;
     });
