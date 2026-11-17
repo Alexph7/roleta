@@ -1389,3 +1389,132 @@ textarea,
 select {
     font-family: "Arimo", Arial, Helvetica, sans-serif;
 }
+
+/* ==============================
+   MENU DO MODO HABILIDADE (lista)
+   ============================== */
+
+#tela-habilidade .grade-jogos {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: min(94vw, 420px);
+    margin: 18px auto 28px;
+}
+
+#tela-habilidade .card-jogo {
+    --c1: #a78bfa;
+    --c2: #6366f1;
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 14px;
+    width: 100%;
+    height: auto;
+    min-height: 86px;
+    aspect-ratio: auto;
+    padding: 14px 44px 14px 14px;
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, .02));
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+    text-align: left;
+    overflow: hidden;
+    transition: transform .15s ease, border-color .2s ease;
+}
+
+#abrir-memoria { --c1: #a78bfa !important; --c2: #ec4899 !important; }
+#abrir-tetris { --c1: #fbbf24 !important; --c2: #f97316 !important; }
+#abrir-sudoku { --c1: #22d3ee !important; --c2: #3b82f6 !important; }
+#abrir-territorio { --c1: #c084fc !important; --c2: #6366f1 !important; }
+
+#tela-habilidade .card-jogo::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 0% 50%, var(--c1), transparent 55%);
+    opacity: .14;
+    pointer-events: none;
+}
+
+#tela-habilidade .card-jogo::after {
+    content: "›";
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-52%);
+    font-size: 30px;
+    line-height: 1;
+    color: rgba(255, 255, 255, .35);
+}
+
+#tela-habilidade .card-jogo:active {
+    transform: scale(.98);
+}
+
+#tela-habilidade .card-jogo-icone {
+    position: relative;
+    flex: 0 0 58px;
+    width: 58px;
+    height: 58px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--c1), var(--c2));
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .35);
+    font-size: 30px;
+}
+
+#tela-habilidade .card-jogo-conteudo {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    min-width: 0;
+}
+
+#tela-habilidade .card-jogo-conteudo strong {
+    font-size: 1.05rem;
+    letter-spacing: .2px;
+}
+
+#tela-habilidade .card-jogo-conteudo small {
+    font-size: .76rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    color: rgba(255, 255, 255, .6);
+}
+
+#tela-habilidade .card-selo {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(236, 72, 153, .22);
+    color: #f9a8d4;
+    font-size: .6rem;
+    font-weight: 700;
+    letter-spacing: .5px;
+    vertical-align: middle;
+}
+
+#tela-habilidade .card-jogo.card-bloqueado {
+    border-style: dashed;
+    box-shadow: none;
+    opacity: .5;
+}
+
+#tela-habilidade .card-jogo.card-bloqueado::after {
+    display: none;
+}
+
+#tela-habilidade .card-jogo.card-bloqueado:not(#abrir-territorio) .card-jogo-icone {
+    background: rgba(255, 255, 255, .08);
+    box-shadow: none;
+}
