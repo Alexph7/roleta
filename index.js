@@ -29,6 +29,9 @@ const registrarRotaTetris =
 const registrarRotaMemoriaDuelo =
     require("./routes/memoria-duelo");
 
+const registrarRotaVelha =
+    require("./routes/velha");
+
 const { Bot } = require("node-telegram-bot-api");
 
 const {
@@ -655,6 +658,32 @@ registrarRotaMemoriaDuelo(
         },
 
         // Apaga o convite (aceito, cancelado ou vencido)
+        apagarMensagem: (chatId, mensagemId) =>
+            bot.api.deleteMessage({
+                chat_id: chatId,
+                message_id: mensagemId
+            })
+    }
+);
+
+registrarRotaVelha(
+    app,
+    {
+        validarInitDataTelegram,
+        usuarioLiberadoPorId,
+        salvarUsuarioTelegram,
+
+        enviarConvite: (texto, link) =>
+            bot.api.sendMessage({
+                chat_id: process.env.MEMORIA_DUELO_CHAT_ID || GANHADORES_CHAT_ID,
+                text: texto,
+                reply_markup: {
+                    inline_keyboard: [[
+                        { text: "🎮 Entrar na partida", url: link }
+                    ]]
+                }
+            }),
+
         apagarMensagem: (chatId, mensagemId) =>
             bot.api.deleteMessage({
                 chat_id: chatId,

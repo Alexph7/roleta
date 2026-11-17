@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="style.css?v=9">
     <link rel="stylesheet" href="memoria.css?v=11">
     <link rel="stylesheet" href="memoria-duelo.css?v=3">
+    <link rel="stylesheet" href="velha.css?v=1">
     <link rel="stylesheet" href="tetris.css?v=13">
     <link rel="stylesheet" href="css/100x100.css?v=1">
     <link rel="stylesheet" href="captcha-pontos.css?v=conta-2">
@@ -112,6 +113,14 @@
                     <div class="card-jogo-conteudo">
                         <strong>...</strong>
                         <small>PaperDoxo</small>
+                    </div>
+                </button>
+
+                <button id="abrir-velha" class="card-jogo" type="button">
+                    <div class="card-jogo-icone">❌</div>
+                    <div class="card-jogo-conteudo">
+                        <strong>Jogo da Velha <span class="card-selo">DUELO</span></strong>
+                        <small>Contra o bot ou melhor de 3</small>
                     </div>
                 </button>
 
@@ -449,6 +458,105 @@
             <button id="territorio-de-novo" class="territorio-comecar" type="button" hidden>
                 JOGAR DE NOVO
             </button>
+        </section>
+
+        <section id="tela-velha" class="tela" hidden>
+            <button id="voltar-menu-velha" class="voltar-menu" type="button">
+                ← HABILIDADE
+            </button>
+
+            <h1 class="velha-titulo">❌⭕ Jogo da Velha</h1>
+
+            <div id="velha-inicio">
+                <div class="velha-caixa">
+                    <strong class="velha-caixa-titulo">Como jogar</strong>
+
+                    <ul class="velha-lista">
+                        <li>Faça uma linha de 3 (reta ou diagonal) antes do adversário.</li>
+                        <li>Sozinho: você joga contra o bot. Escolha a dificuldade.</li>
+                        <li>2 jogadores: o convite vai para o grupo. Melhor de 3, com 15 segundos por jogada.</li>
+                    </ul>
+
+                    <p class="velha-rotulo">CONTRA O BOT</p>
+
+                    <div class="velha-niveis">
+                        <button class="velha-nivel" type="button" data-nivel="facil">FÁCIL</button>
+                        <button class="velha-nivel" type="button" data-nivel="medio">MÉDIO</button>
+                        <button class="velha-nivel" type="button" data-nivel="dificil">DIFÍCIL</button>
+                    </div>
+
+                    <button id="velha-duelo-convidar" class="memoria-comecar md-convidar" type="button">
+                        2 JOGADORES
+                    </button>
+
+                    <p id="velha-placar-bot" class="velha-placar-bot"></p>
+                </div>
+
+                <p id="velha-mensagem" class="velha-mensagem"></p>
+
+                <div class="md-ranking">
+                    <strong>🏆 Ranking de duelos</strong>
+                    <p class="md-ranking-info">Mais vitórias. Empate: mais rodadas vencidas.</p>
+                    <div id="velha-ranking-lista" class="md-ranking-lista"></div>
+                </div>
+            </div>
+
+            <div id="velha-espera" class="md-espera" hidden>
+                <div class="md-espera-icone">📨</div>
+                <p>Convite enviado no grupo! Esperando alguém entrar...</p>
+                <p id="velha-espera-tempo" class="md-espera-tempo"></p>
+                <button id="velha-cancelar" class="md-cancelar" type="button">
+                    CANCELAR CONVITE
+                </button>
+            </div>
+
+            <div id="velha-jogo" hidden>
+                <div class="md-placar">
+                    <div id="velha-j1" class="md-jogador md-cor-1">
+                        <span class="md-nome"></span>
+                        <strong class="md-pontos">0</strong>
+                    </div>
+                    <div id="velha-j2" class="md-jogador md-cor-2">
+                        <span class="md-nome"></span>
+                        <strong class="md-pontos">0</strong>
+                    </div>
+                </div>
+
+                <div id="velha-tempo" class="md-tempo">
+                    <div id="velha-barra" class="md-tempo-barra"></div>
+                </div>
+
+                <p id="velha-aviso" class="md-aviso"></p>
+
+                <div id="velha-tabuleiro" class="velha-tabuleiro" aria-label="Jogo da Velha"></div>
+
+                <div id="velha-botoes-bot" class="velha-botoes-bot" hidden>
+                    <button id="velha-de-novo" class="memoria-comecar" type="button">JOGAR DE NOVO</button>
+                    <button id="velha-trocar" class="velha-secundario" type="button">TROCAR MODO</button>
+                </div>
+            </div>
+
+            <div id="velha-final" hidden>
+                <div class="md-final-cartao">
+                    <div class="md-final-raios"></div>
+                    <div id="velha-final-icone" class="md-final-icone">🏆</div>
+                    <h2 id="velha-final-titulo" class="md-final-titulo"></h2>
+                    <p id="velha-final-sub" class="md-final-sub"></p>
+                    <div id="velha-final-placar" class="md-final-placar"></div>
+
+                    <div class="md-final-botoes">
+                        <button id="velha-final-convidar" class="memoria-comecar md-convidar" type="button">
+                            NOVO DUELO
+                        </button>
+                        <button id="velha-final-bot" class="memoria-comecar" type="button">
+                            JOGAR CONTRA O BOT
+                        </button>
+                        <button id="velha-final-voltar" class="md-final-voltar" type="button">
+                            VOLTAR
+                        </button>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <section id="tela-menu" class="tela" hidden>
@@ -1048,6 +1156,7 @@
     <script src="habilidade.js?v=2"></script>
     <script src="memoria.js?v=10"></script>
     <script src="memoria-duelo.js?v=3"></script>
+    <script src="velha.js?v=1"></script>
     <script src="tetris-motor.js?v=7"></script>
     <script src="tetris.js?v=19"></script>
     <script src="sudoku.js?v=5"></script>
