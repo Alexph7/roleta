@@ -425,3 +425,15 @@
     display: block;
     margin: 12px auto 0;
 }
+
+/* ---------- PARES JÁ ACHADOS: APAGADOS ---------- */
+
+.memoria-carta.encontrada,
+.memoria-carta.encontrada.md-dono-1,
+.memoria-carta.encontrada.md-dono-2 {
+    opacity: .42;
+    filter: saturate(.55);
+    transform: scale(.92);
+    box-shadow: none;
+    transition: opacity .5s ease, transform .5s ease, filter .5s ease;
+}
