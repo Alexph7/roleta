@@ -25,8 +25,8 @@ const TEMPO_VEZ_MS = 15 * 1000;            // 15 s por jogada
 const MAX_PERDAS_VEZ = 3;                  // 3 vezes seguidas = abandono
 const PAUSA_INICIO_MS = 3000;
 const PAUSA_RODADA_MS = 2800;              // mostra o fim da rodada
-const VITORIAS_PARA_GANHAR = 2;            // melhor de 3
-const MAX_RODADAS = 5;                     // empates não contam, até 5 rodadas
+const VITORIAS_PARA_GANHAR = 2;            // quem vence 2 leva
+const MAX_RODADAS = 3;                     // no máximo 3 rodadas, contando empates
 
 const LINHAS = [
     [0, 1, 2], [3, 4, 5], [6, 7, 8],
