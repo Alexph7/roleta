@@ -338,3 +338,90 @@
         animation: none !important;
     }
 }
+
+/* ---------- RANKINGS ---------- */
+
+.md-ranking-botao {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    border: 0;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #ffd166, #f4a100);
+    color: #3a2400;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.md-ranking {
+    width: min(92vw, 380px);
+    margin: 14px auto;
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(10, 10, 50, .35);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25);
+}
+
+.md-ranking-abas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.md-ranking-aba {
+    padding: 9px;
+    border: 0;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .12);
+    color: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.md-ranking-aba.ativa {
+    background: #ffd166;
+    color: #3a2400;
+}
+
+.md-ranking-info {
+    margin: 4px 0 10px;
+    font-size: .78rem;
+    opacity: .8;
+}
+
+.md-ranking-lista {
+    display: grid;
+    gap: 6px;
+    max-height: 55vh;
+    overflow-y: auto;
+}
+
+.md-rank-linha {
+    display: grid;
+    grid-template-columns: 34px 1fr auto;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .08);
+    text-align: left;
+    font-size: .88rem;
+}
+
+.md-rank-linha.md-rank-eu {
+    background: rgba(255, 209, 102, .2);
+    box-shadow: inset 0 0 0 1px rgba(255, 209, 102, .6);
+}
+
+.md-rank-nome {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.md-ranking .md-cancelar {
+    display: block;
+    margin: 12px auto 0;
+}

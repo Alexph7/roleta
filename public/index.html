@@ -12,7 +12,7 @@
 
     <link rel="stylesheet" href="style.css?v=7">
     <link rel="stylesheet" href="memoria.css?v=11">
-    <link rel="stylesheet" href="memoria-duelo.css?v=1">
+    <link rel="stylesheet" href="memoria-duelo.css?v=2">
     <link rel="stylesheet" href="tetris.css?v=13">
     <link rel="stylesheet" href="css/100x100.css?v=1">
     <link rel="stylesheet" href="captcha-pontos.css?v=conta-2">
@@ -151,6 +151,20 @@
                         2 JOGADORES
                     </button>
                 </div>
+
+                <button id="memoria-ranking-abrir" class="md-ranking-botao" type="button">
+                    🏆 RANKINGS
+                </button>
+            </div>
+
+            <div id="memoria-ranking" class="md-ranking" hidden>
+                <div class="md-ranking-abas">
+                    <button id="memoria-ranking-aba-solo" class="md-ranking-aba ativa" type="button">SOLO</button>
+                    <button id="memoria-ranking-aba-duelos" class="md-ranking-aba" type="button">DUELOS</button>
+                </div>
+                <p id="memoria-ranking-info" class="md-ranking-info"></p>
+                <div id="memoria-ranking-lista" class="md-ranking-lista"></div>
+                <button id="memoria-ranking-fechar" class="md-cancelar" type="button">FECHAR</button>
             </div>
 
             <div id="memoria-jogo" hidden>
@@ -1030,8 +1044,8 @@
     <script src="captcha-pontos.js?v=conta-2"></script>
     <script src="app.js?v=captcha-1"></script>
     <script src="habilidade.js?v=2"></script>
-    <script src="memoria.js?v=9"></script>
-    <script src="memoria-duelo.js?v=1"></script>
+    <script src="memoria.js?v=10"></script>
+    <script src="memoria-duelo.js?v=2"></script>
     <script src="tetris-motor.js?v=7"></script>
     <script src="tetris.js?v=19"></script>
     <script src="sudoku.js?v=5"></script>

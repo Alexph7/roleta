@@ -37,7 +37,6 @@
         0x1F353, 0x1F419, 0x1F33B, 0x1F369, 0x1F98A, 0x1F3AE
     ].map(codigo => String.fromCodePoint(codigo));
 
-    let cartas = [];            // emoji de cada posicao
     let abertas = [];           // posicoes viradas e ainda sem par
     let encontradas = new Set();
     let jogadas = 0;
@@ -159,15 +158,24 @@
     // JOGO
     // ==============================
 
-    function embaralhar() {
-        const lista = [...EMOJIS, ...EMOJIS];
+    // As cartas ficam no servidor. Aqui só guardamos
+    // o emoji das cartas que já foram mostradas.
+    let cartasVistas = new Map();
 
-        for (let i = lista.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [lista[i], lista[j]] = [lista[j], lista[i]];
-        }
+    async function chamarSolo(rota, extras = {}) {
+        const resposta = await fetch(`/api/memoria-solo/${rota}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                initData: window.Telegram?.WebApp?.initData || "",
+                ...extras
+            })
+        });
 
-        return lista;
+        let dados = {};
+        try { dados = await resposta.json(); } catch {}
+
+        return { ok: resposta.ok, dados };
     }
 
     function atualizarPlacar() {
@@ -179,7 +187,7 @@
         const achada = encontradas.has(indice);
         const aberta = achada || abertas.includes(indice);
 
-        botao.textContent = aberta ? cartas[indice] : "";
+        botao.textContent = aberta ? (cartasVistas.get(indice) || "") : "";
         botao.classList.toggle("aberta", aberta);
         botao.classList.toggle("encontrada", achada);
         botao.disabled = achada;
@@ -206,13 +214,13 @@
         }
     }
 
-    function novaPartida() {
-        cartas = embaralhar();
+    async function novaPartida() {
+        cartasVistas = new Map();
         abertas = [];
         encontradas = new Set();
         jogadas = 0;
-        bloqueado = false;
-        emAndamento = true;
+        bloqueado = true;
+        emAndamento = false;
 
         criarGrade();
         atualizarPlacar();
@@ -220,9 +228,25 @@
         regras.hidden = true;
         jogo.hidden = false;
         botaoDeNovo.hidden = true;
+        resultado.textContent = "Embaralhando...";
 
-        resultado.textContent =
-            `Encontre os ${TOTAL_PARES} pares.`;
+        try {
+            const { ok, dados } = await chamarSolo("iniciar");
+
+            if (!ok) {
+                resultado.textContent = dados.erro || "Não foi possível começar.";
+                botaoDeNovo.hidden = false;
+                return;
+            }
+        } catch {
+            resultado.textContent = "Sem conexão. Tente de novo.";
+            botaoDeNovo.hidden = false;
+            return;
+        }
+
+        bloqueado = false;
+        emAndamento = true;
+        resultado.textContent = `Encontre os ${TOTAL_PARES} pares.`;
     }
 
     function comecar() {
@@ -231,45 +255,88 @@
         novaPartida();
     }
 
-    function terminar() {
+    function formatarTempo(ms) {
+        const total = Math.max(0, Math.round(Number(ms || 0) / 1000));
+        const min = Math.floor(total / 60);
+        const seg = total % 60;
+        return `${min}:${String(seg).padStart(2, "0")}`;
+    }
+
+    function terminar(dados) {
         emAndamento = false;
         musica.pausar();
 
-        resultado.textContent =
-            `Parabéns! Você encontrou todos os pares em ${jogadas} jogadas.`;
+        let texto =
+            `Parabéns! Você encontrou todos os pares em ${jogadas} jogadas ` +
+            `(${formatarTempo(dados?.tempoMs)}).`;
 
+        const meu = dados?.meuResultado;
+
+        if (meu) {
+            texto += meu.jogadas === jogadas
+                ? ` Seu melhor resultado! Posição ${meu.posicao}º no ranking solo.`
+                : ` Seu melhor continua ${meu.jogadas} jogadas (${meu.posicao}º no ranking solo).`;
+        }
+
+        resultado.textContent = texto;
         botaoDeNovo.hidden = false;
     }
 
-    function virar(indice) {
+    async function virar(indice) {
         if (bloqueado || !emAndamento) return;
         if (encontradas.has(indice) || abertas.includes(indice)) return;
 
-        abertas.push(indice);
-        desenharTudo();
+        bloqueado = true;
 
-        if (abertas.length < 2) return;
+        let resposta;
+
+        try {
+            resposta = await chamarSolo("jogada", { indice });
+        } catch {
+            resultado.textContent = "Sem conexão. Toque na carta de novo.";
+            bloqueado = false;
+            return;
+        }
+
+        const { ok, dados } = resposta;
+
+        if (!ok) {
+            resultado.textContent = dados.erro || "Jogada inválida.";
+            bloqueado = false;
+            return;
+        }
+
+        if (dados.tipo === "primeira") {
+            cartasVistas.set(dados.indice, dados.emoji);
+            abertas = [dados.indice];
+            desenharTudo();
+            bloqueado = false;
+            return;
+        }
 
         // segunda carta: conta 1 jogada
-        jogadas++;
+        for (const carta of dados.cartas) {
+            cartasVistas.set(carta.indice, carta.emoji);
+        }
 
-        const [a, b] = abertas;
+        jogadas = dados.jogadas;
+        abertas = dados.cartas.map(carta => carta.indice);
 
-        if (cartas[a] === cartas[b]) {
-            encontradas.add(a);
-            encontradas.add(b);
+        if (dados.combinou) {
+            for (const carta of dados.cartas) encontradas.add(carta.indice);
             abertas = [];
 
             atualizarPlacar();
             desenharTudo();
 
-            if (encontradas.size === TOTAL_CARTAS) terminar();
+            if (dados.terminou) terminar(dados);
 
+            bloqueado = false;
             return;
         }
 
-        bloqueado = true;
         atualizarPlacar();
+        desenharTudo();
 
         setTimeout(() => {
             abertas = [];
@@ -328,4 +395,4 @@
     botaoVoltar.addEventListener("click", sairDaTela);
     botaoComecar.addEventListener("click", comecar);
     botaoDeNovo.addEventListener("click", comecar);
-})();
+})();

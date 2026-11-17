@@ -1,9 +1,10 @@
 const duelo = require("../services/jogo-memoria-duelo");
+const solo = require("../services/jogo-memoria-solo");
 
 const MENSAGENS = {
     aguarde: "Espere um pouco para convidar de novo.",
     em_partida: "Você já está em um duelo.",
-    partida_inexistente: "Partida não encontrada.",
+    partida_inexistente: "Partida não encontrada. Toque em jogar de novo.",
     ja_entraram:
         "Alguém já entrou, mas você pode começar um jogo sozinho ou convidar alguém também.",
     expirado:
@@ -249,6 +250,66 @@ function registrarRotaMemoriaDuelo(
 
         } catch (erro) {
             console.error("Erro no ranking de duelos:", erro);
+            return res.status(500).json({
+                erro: "Não foi possível carregar o ranking."
+            });
+        }
+    });
+
+    // ==============================
+    // MODO SOLO (conferido pelo servidor)
+    // ==============================
+
+    app.post("/api/memoria-solo/iniciar", (req, res) => {
+        const usuario = obterUsuario(req, res);
+        if (!usuario) return;
+
+        try {
+            salvarUsuarioTelegram(usuario);
+            res.set("Cache-Control", "no-store");
+            return res.json(solo.iniciar(usuario.id));
+
+        } catch (erro) {
+            console.error("Erro ao iniciar memória solo:", erro);
+            return res.status(500).json({ erro: "Não foi possível começar." });
+        }
+    });
+
+    app.post("/api/memoria-solo/jogada", (req, res) => {
+        const usuario = obterUsuario(req, res);
+        if (!usuario) return;
+
+        try {
+            const resultado = solo.jogar(usuario.id, req.body?.indice);
+
+            if (!resultado.ok) {
+                return responderErro(res, resultado, "Jogada inválida.");
+            }
+
+            res.set("Cache-Control", "no-store");
+            return res.json(resultado);
+
+        } catch (erro) {
+            console.error("Erro na jogada da memória solo:", erro);
+            return res.status(500).json({
+                erro: "Não foi possível registrar essa jogada."
+            });
+        }
+    });
+
+    app.post("/api/memoria-solo/ranking", (req, res) => {
+        const usuario = obterUsuario(req, res);
+        if (!usuario) return;
+
+        try {
+            res.set("Cache-Control", "no-store");
+            return res.json({
+                ranking: solo.listarRanking(50),
+                meu: solo.resultadoUsuario(usuario.id)
+            });
+
+        } catch (erro) {
+            console.error("Erro no ranking solo:", erro);
             return res.status(500).json({
                 erro: "Não foi possível carregar o ranking."
             });
