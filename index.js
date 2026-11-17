@@ -26,6 +26,9 @@ const registrarRotaMemoria =
 const registrarRotaTetris =
     require("./routes/tetris");
 
+const registrarRotaMemoriaDuelo =
+    require("./routes/memoria-duelo");
+
 const { Bot } = require("node-telegram-bot-api");
 
 const {
@@ -624,6 +627,39 @@ registrarRotaTetris(
         validarInitDataTelegram,
         usuarioLiberadoPorId,
         salvarUsuarioTelegram
+    }
+);
+
+registrarRotaMemoriaDuelo(
+    app,
+    {
+        validarInitDataTelegram,
+        usuarioLiberadoPorId,
+        salvarUsuarioTelegram,
+
+        // Posta o convite no grupo dos ganhadores, com o link dentro do botão
+        enviarConvite: (texto, link) => {
+            if (!GANHADORES_CHAT_ID) {
+                throw new Error("GANHADORES_CHAT_ID não configurado");
+            }
+
+            return bot.api.sendMessage({
+                chat_id: GANHADORES_CHAT_ID,
+                text: texto,
+                reply_markup: {
+                    inline_keyboard: [[
+                        { text: "🎮 Entrar na partida", url: link }
+                    ]]
+                }
+            });
+        },
+
+        // Apaga o convite (aceito, cancelado ou vencido)
+        apagarMensagem: (chatId, mensagemId) =>
+            bot.api.deleteMessage({
+                chat_id: chatId,
+                message_id: mensagemId
+            })
     }
 );
 
