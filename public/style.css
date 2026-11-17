@@ -1380,3 +1380,12 @@ button.card-jogo:active {
     aspect-ratio: auto;
     min-height: 205px;
 }
+
+/* Fonte do app: "I" maiúsculo e "l" minúsculo ficam iguais */
+body,
+button,
+input,
+textarea,
+select {
+    font-family: "Arimo", Arial, Helvetica, sans-serif;
+}
