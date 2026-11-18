@@ -142,9 +142,42 @@
         jogo.hidden = false;
     }
 
+    // Avisa o servidor que saiu (funciona até com o app fechando)
+    function avisarSaida() {
+        const e = duelo.estado;
+        if (!duelo.codigo || !e) return;
+        if (e.status !== "aguardando" && e.status !== "jogando") return;
+
+        const corpo = JSON.stringify({
+            initData: telegram?.initData || "",
+            codigo: duelo.codigo
+        });
+
+        try {
+            const enviou = navigator.sendBeacon?.(
+                "/api/velha/desistir",
+                new Blob([corpo], { type: "application/json" })
+            );
+            if (!enviou) {
+                fetch("/api/velha/desistir", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: corpo,
+                    keepalive: true
+                }).catch(() => {});
+            }
+        } catch {}
+    }
+
+    window.addEventListener("pagehide", () => {
+        if (duelo.ativo) avisarSaida();
+    });
+
+    // Sair da tela: esperando = cancela o convite; jogando = desiste (o outro vence)
     function sair() {
-        if (modo === "duelo" && duelo.estado?.status === "aguardando" && duelo.codigo) {
-            cancelarConvite(false);
+        if (modo === "duelo") {
+            avisarSaida();
+            duelo.codigo = null;
         }
         pararDuelo();
         modo = null;

@@ -720,15 +720,40 @@
         final.hidden = true;
     });
 
-    // Sair da tela: se estava só esperando, cancela o convite
+    // Avisa o servidor que saiu (funciona até com o app fechando)
+    function avisarSaida() {
+        if (!codigo || !estado) return;
+        if (estado.status !== "aguardando" && estado.status !== "jogando") return;
+
+        const corpo = JSON.stringify({ initData: telegram?.initData || "", codigo });
+
+        try {
+            const enviou = navigator.sendBeacon?.(
+                "/api/memoria-duelo/desistir",
+                new Blob([corpo], { type: "application/json" })
+            );
+            if (!enviou) {
+                fetch("/api/memoria-duelo/desistir", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: corpo,
+                    keepalive: true
+                }).catch(() => {});
+            }
+        } catch {}
+    }
+
+    // Sair da tela: esperando = cancela o convite; jogando = desiste (o outro vence)
     botaoVoltar.addEventListener("click", () => {
-        const esperandoConvite = estado?.status === "aguardando" && codigo;
-        if (esperandoConvite) {
-            cancelar();
-        }
+        avisarSaida();
         parar();
+        codigo = null;
         area.hidden = true;
         final.hidden = true;
+    });
+
+    window.addEventListener("pagehide", () => {
+        if (ativo) avisarSaida();
     });
 
     document.addEventListener("visibilitychange", () => {

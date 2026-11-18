@@ -21,9 +21,10 @@ db.pragma("busy_timeout = 5000");
 
 const CONVITE_EXPIRA_MS = 3 * 60 * 1000;   // convite some em 3 min
 const INTERVALO_CONVITE_MS = 60 * 1000;    // 1 convite por minuto
-const TEMPO_VEZ_MS = 15 * 1000;            // 15 s por jogada
+const TEMPO_VEZ_MS = 30 * 1000;            // 15 s por jogada
 const MAX_PERDAS_VEZ = 3;                  // 3 vezes seguidas = abandono
 const PAUSA_INICIO_MS = 3000;
+const SUMIU_MS = 30 * 1000;                // sem sinal por 30 s = saiu da partida
 const PAUSA_RODADA_MS = 2800;              // mostra o fim da rodada
 const VITORIAS_PARA_GANHAR = 2;            // quem vence 2 leva
 const MAX_RODADAS = 3;                     // no máximo 3 rodadas, contando empates
@@ -73,6 +74,13 @@ db.exec(`
     CREATE INDEX IF NOT EXISTS idx_velha_j1 ON velha_duelos (jogador1_id, criado_em);
     CREATE INDEX IF NOT EXISTS idx_velha_j2 ON velha_duelos (jogador2_id);
 `);
+
+// Colunas novas: última vez que cada jogador deu sinal
+for (const coluna of ["visto1", "visto2"]) {
+    const existe = db.prepare(`PRAGMA table_info(velha_duelos)`).all()
+        .some(c => c.name === coluna);
+    if (!existe) db.exec(`ALTER TABLE velha_duelos ADD COLUMN ${coluna} INTEGER`);
+}
 
 // ==============================
 // AUXILIARES
@@ -158,6 +166,15 @@ function aplicarTempo(partida, agora) {
     }
 
     if (partida.status !== "jogando") return partida;
+
+    // Um jogador sumiu (fechou o app) e o outro continua: o outro vence.
+    const sumiu1 = agora - (partida.visto1 || 0) > SUMIU_MS;
+    const sumiu2 = agora - (partida.visto2 || 0) > SUMIU_MS;
+
+    if (sumiu1 !== sumiu2) {
+        finalizar(partida.id, agora, "abandono", sumiu1 ? 2 : 1);
+        return lerPorId(partida.id);
+    }
 
     let atual = partida;
 
@@ -323,7 +340,8 @@ const entrarTransaction = db.transaction((usuarioId, codigo, agora) => {
 
     if (!partida) return { ok: false, motivo: "partida_inexistente" };
 
-    partida = aplicarTempo(partida, agora);
+    marcarVisto(partida, usuarioId, agora);
+    partida = aplicarTempo(lerPorId(partida.id), agora);
 
     if (numeroDoJogador(partida, id)) {
         return { ok: true, ...estadoPublico(partida, id, agora) };
@@ -354,9 +372,9 @@ const entrarTransaction = db.transaction((usuarioId, codigo, agora) => {
     const resultado = db.prepare(`
         UPDATE velha_duelos
         SET jogador2_id = ?, status = 'jogando', quem_comecou = ?, vez = ?,
-            vez_inicio = ?, iniciado_em = ?, seq = seq + 1
+            vez_inicio = ?, iniciado_em = ?, visto1 = ?, visto2 = ?, seq = seq + 1
         WHERE id = ? AND status = 'aguardando'
-    `).run(id, comeca, comeca, agora + PAUSA_INICIO_MS, agora, partida.id);
+    `).run(id, comeca, comeca, agora + PAUSA_INICIO_MS, agora, agora, agora, partida.id);
 
     if (resultado.changes === 0) return { ok: false, motivo: "ja_entraram" };
 
@@ -372,6 +390,45 @@ function entrar(usuarioId, codigo) {
     );
 }
 
+// Guarda que o jogador deu sinal agora.
+function marcarVisto(partida, usuarioId, agora) {
+    const numero = numeroDoJogador(partida, usuarioId);
+    if (!numero) return;
+    db.prepare(`UPDATE velha_duelos SET visto${numero} = ? WHERE id = ?`)
+        .run(agora, partida.id);
+}
+
+// ==============================
+// DESISTIR (tocou em VOLTAR ou fechou o app)
+// ==============================
+
+const desistirTransaction = db.transaction((usuarioId, codigo, agora) => {
+    const partida = lerPorCodigo(codigo);
+    if (!partida) return { ok: false, motivo: "partida_inexistente" };
+
+    const eu = numeroDoJogador(partida, usuarioId);
+    if (!eu) return { ok: false, motivo: "nao_participa" };
+
+    if (partida.status === "aguardando" && eu === 1) {
+        db.prepare(`
+            UPDATE velha_duelos SET status = 'cancelada', seq = seq + 1
+            WHERE id = ? AND status = 'aguardando'
+        `).run(partida.id);
+    } else if (partida.status === "jogando") {
+        finalizar(partida.id, agora, "abandono", eu === 1 ? 2 : 1);
+    }
+
+    return { ok: true };
+});
+
+function desistir(usuarioId, codigo) {
+    return desistirTransaction.immediate(
+        String(usuarioId),
+        String(codigo || "").toUpperCase(),
+        Date.now()
+    );
+}
+
 // ==============================
 // ESTADO
 // ==============================
@@ -380,7 +437,8 @@ const estadoTransaction = db.transaction((usuarioId, codigo, agora) => {
     let partida = lerPorCodigo(codigo);
     if (!partida) return { ok: false, motivo: "partida_inexistente" };
 
-    partida = aplicarTempo(partida, agora);
+    marcarVisto(partida, usuarioId, agora);
+    partida = aplicarTempo(lerPorId(partida.id), agora);
 
     if (!numeroDoJogador(partida, usuarioId)) return { ok: false, motivo: "nao_participa" };
 
@@ -403,7 +461,8 @@ const jogarTransaction = db.transaction((usuarioId, codigo, casa, agora) => {
     let partida = lerPorCodigo(codigo);
     if (!partida) return { ok: false, motivo: "partida_inexistente" };
 
-    partida = aplicarTempo(partida, agora);
+    marcarVisto(partida, usuarioId, agora);
+    partida = aplicarTempo(lerPorId(partida.id), agora);
 
     const eu = numeroDoJogador(partida, usuarioId);
 
@@ -585,6 +644,7 @@ module.exports = {
     entrar,
     estado,
     jogar,
+    desistir,
     varrer,
     marcarMensagemApagada,
     listarRanking

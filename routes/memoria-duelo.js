@@ -156,6 +156,29 @@ function registrarRotaMemoriaDuelo(
         }
     });
 
+    // ---------- DESISTIR (VOLTAR ou app fechado) ----------
+
+    app.post("/api/memoria-duelo/desistir", (req, res) => {
+        const usuario = obterUsuario(req, res);
+        if (!usuario) return;
+
+        try {
+            const resultado = duelo.desistir(usuario.id, req.body?.codigo);
+
+            if (!resultado.ok) {
+                return responderErro(res, resultado, "Não foi possível sair.");
+            }
+
+            verificar(); // apaga o convite do chat, se ainda estiver lá
+
+            return res.json({ ok: true });
+
+        } catch (erro) {
+            console.error("Erro ao desistir:", erro);
+            return res.status(500).json({ erro: "Não foi possível sair." });
+        }
+    });
+
     // ---------- ENTRAR ----------
 
     app.post("/api/memoria-duelo/entrar", (req, res) => {
