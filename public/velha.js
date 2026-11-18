@@ -251,8 +251,28 @@
         return melhor;
     }
 
+    // Casa que fecha uma linha para "quem" (ou null)
+    function casaQueFecha(quem) {
+        for (const [a, b, c] of LINHAS) {
+            const trio = [bot.tab[a], bot.tab[b], bot.tab[c]];
+            if (trio.filter(v => v === quem).length === 2 && trio.includes(".")) {
+                return [a, b, c][trio.indexOf(".")];
+            }
+        }
+        return null;
+    }
+
     function jogadaDoBot() {
         const livres = bot.tab.map((v, i) => (v === "." ? i : null)).filter(i => i !== null);
+
+        // Difícil: nunca perde a chance de ganhar nem deixa de bloquear
+        if (bot.nivel === "dificil") {
+            const ganhar = casaQueFecha("O");
+            if (ganhar !== null) return ganhar;
+
+            const bloquear = casaQueFecha("X");
+            if (bloquear !== null) return bloquear;
+        }
 
         if (Math.random() < ACERTO_BOT[bot.nivel]) {
             const r = minimax([...bot.tab], "O");
