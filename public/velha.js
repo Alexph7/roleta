@@ -57,7 +57,7 @@
     ];
 
     const NOMES_NIVEL = { facil: "Fácil", medio: "Médio", dificil: "Difícil" };
-    const ACERTO_BOT = { facil: 0.25, medio: 0.65, dificil: 0.9 };
+    const ACERTO_BOT = { facil: 0.25, medio: 0.65, dificil: 1 };
 
     let modo = null;         // "bot" ou "duelo"
 
